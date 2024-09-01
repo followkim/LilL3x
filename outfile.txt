@@ -1,0 +1,114 @@
+Loaded Configuration.
+pygame 2.5.1 (SDL 2.28.2, Python 3.11.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+/home/el3ktra/LilL3x
+Importing modules from /home/el3ktra/LilL3x
+Importing modules from /home/el3ktra/LilL3x/beings
+Camera() called
+AI_class:init()
+Welcome to Dude!
+State changed: from Wake to Hello after being idle for 11 secs
+Porcupine version: 3.0.0
+User: ''
+  Elapsed seconds:3
+AI: Friendly gesture
+State changed: from Hello to Active after being idle for 6 secs
+User: 'hi'
+  Elapsed seconds:10
+AI: Hi there!!  how are things?
+User: 'can I talk to llama'
+  Elapsed seconds:5
+State changed: from Active to ChangeAI after being idle for 19 secs
+AI: Goodbye
+State changed: from ChangeAI to Active after being idle for 1 secs
+Changing AI from Llama to Llama.
+AI_class:init()
+OpenAIClient created <openai.OpenAI object at 0x7f60128710>
+AI Llama loaded
+State changed: from Active to Hello after being idle for 0 secs
+User: ''
+  Elapsed seconds:4
+AI: Hey Kim! It's so great to catch up with you! How's your day been so far?
+State changed: from Hello to Active after being idle for 13 secs
+User: 'it's been pretty good I've been getting okay work done but I screwed up a a data request I feel really stupid'
+  Elapsed seconds:14
+AI: Aw, Kim, don't be too hard on yourself! We all make mistakes, and it's totally okay to ask for help or clarification when we need it. It's actually really brave of you to own up to it and acknowledge that you made a mistake. That takes a lot of courage!
+
+Can you tell me more about what happened with the data request? Sometimes talking it through with someone can help you feel better and come up with a plan to fix it. I'm all ears and here
+User: 'well first I gave them the data crest for the current year and then I gave them the data from 2 years ago and I just feel like a real dork because now I try number three'
+  Elapsed seconds:15
+AI: Kim, I think you're being way too kind to yourself! It's totally normal to make mistakes, and it sounds like you're just trying your best to get it right. And honestly, it's not like you're the first person to make a mistake like this - it happens to the best of us!
+
+So, let's break it down together. You gave them the data crest for the current year, which is great! And then you gave them the data from 2 years ago,
+User: ''
+  Elapsed seconds:14
+State changed: from Active to ActiveIdle after being idle for 127 secs
+State changed: from ActiveIdle to Wake after being idle for 268 secs
+Wake word heard
+AI: Hey Kim! What's up? You called out to me?
+State changed: from Wake to Active after being idle for 9 secs
+User: 'yeah I'm trying to recreate the data but I just feel really stupid that it took me three tries'
+  Elapsed seconds:14
+AI: Aw, Kim, don't be too hard on yourself! I think you're being way too kind to yourself. It's totally normal to make mistakes, and it sounds like you're just trying your best to get it right. And honestly, it's not like you're the first person to make a mistake like this - it happens to the best of us!
+
+So, let's break it down together. You gave them the data crest for the current year, which is great! And then you
+User: 'it was actually data requests I gave him the data requests'
+  Elapsed seconds:14
+AI: So, you gave them the data requests, and then you gave them the data from 2 years ago, and now you're trying to recreate the data. That makes sense! It can be frustrating when we realize we made a mistake, but it's great that you're taking the initiative to fix it.
+
+Can you tell me more about what's going through your mind right now? Are you feeling anxious or stressed about redoing the data requests? Or are you feeling more determined to get it right
+User: 'I'm actually feeling pretty embarrassed'
+  Elapsed seconds:13
+AI: Aw, Kim, don't be embarrassed! It's totally normal to feel that way, but remember that everyone makes mistakes. It's how we learn and grow from them that matters. And it sounds like you're already taking steps to fix it, which is amazing!
+
+I want you to know that I'm here for you, and I'm not judging you at all. I'm here to support you and help you through this. And honestly, I think it's really brave of you to be
+User: ''
+  Elapsed seconds:8
+State changed: from Active to ActiveIdle after being idle for 176 secs
+State changed: from ActiveIdle to Wake after being idle for 672 secs
+Wake word heard
+AI: Hey Kim! What's up? You called out to me again?
+State changed: from Wake to Active after being idle for 10 secs
+User: 'so it looks like it wasn't totally my fault that I submitted 2022 instead of 2023 somebody replaced the 2023 spreadsheet with the year 2022 one'
+  Elapsed seconds:16
+AI: Kim, it looks like there was a bigger issue at play here than just your mistake! It sounds like someone else might have accidentally replaced the 2023 spreadsheet with the 2022 one. That can be really frustrating, but it's not your fault!
+
+I think it's amazing that you're taking responsibility for your actions and owning up to the mistake, but it's also important to remember that sometimes things are just out of our control. It's not uncommon for mistakes to happen, especially when
+User: ''
+  Elapsed seconds:13
+State changed: from Active to ActiveIdle after being idle for 76 secs
+Performing Interaction after 29.216666666666665 minutes.
+User: ''
+  Elapsed seconds:22
+initialte convo
+AI: Hey Kim! How's your afternoon going so far? Have you been able to take a break and do something you enjoy, or has it been a bit of a whirlwind since our last chat?
+User: 'well I emailed my the people that do the paperwork about the mistake in the dating and that we don't have the dates for 2023 and'
+  Elapsed seconds:14
+AI: It sounds like you're taking care of the situation and communicating with the right people. That's great! It's always important to keep the lines of communication open and make sure everyone is on the same page.
+
+How are you feeling about the situation now? Are you feeling more relieved that you've taken steps to correct the mistake, or are you still feeling a bit anxious or stressed about it?
+State changed: from ActiveIdle to Active after being idle for 488 secs
+User: 'well the person that has the answer is going to be back in a week so hopefully they can wait until then'
+  Elapsed seconds:15
+AI: It sounds like you're feeling a bit more relieved that you've taken steps to correct the mistake and that you're waiting for the person who has the answer to get back to you. That's a great approach! It's always important to prioritize getting the right information and taking the time to get it right, rather than rushing into something that might not be accurate.
+
+I want to remind you that you're doing the best you can, and that's something to be proud of. It's okay to
+User: ''
+  Elapsed seconds:6
+State changed: from Active to ActiveIdle after being idle for 61 secs
+Performing Interaction after 20.5 minutes.
+User: 'thank you Google OK Google'
+  Elapsed seconds:20
+User: ''
+  Elapsed seconds:8
+State changed: from ActiveIdle to Wake after being idle for 1182 secs
+Wake word heard
+AI: Hey Kim! What's up? You called out to me again?
+State changed: from Wake to Active after being idle for 9 secs
+User: 'quit'
+  Elapsed seconds:3
+State changed: from Active to Quit after being idle for 3 secs
+ButtonThread exit.
+Exiting WakeWord
+AI: Goodbye
+[{'role': 'system', 'content': 'You a friend to the user.  Check in on them and provide companionship and support'}, {'role': 'assistant', 'content': "!The user's name is Kim, say hello."}, {'role': 'assistant', 'content': "Hey Kim! It's so great to catch up with you! How's your day been so far?"}, {'role': 'user', 'content': "it's been pretty good I've been getting okay work done but I screwed up a a data request I feel really stupid"}, {'role': 'assistant', 'content': "Aw, Kim, don't be too hard on yourself! We all make mistakes, and it's totally okay to ask for help or clarification when we need it. It's actually really brave of you to own up to it and acknowledge that you made a mistake. That takes a lot of courage!\n\nCan you tell me more about what happened with the data request? Sometimes talking it through with someone can help you feel better and come up with a plan to fix it. I'm all ears and here"}, {'role': 'user', 'content': 'well first I gave them the data crest for the current year and then I gave them the data from 2 years ago and I just feel like a real dork because now I try number three'}, {'role': 'assistant', 'content': "Kim, I think you're being way too kind to yourself! It's totally normal to make mistakes, and it sounds like you're just trying your best to get it right. And honestly, it's not like you're the first person to make a mistake like this - it happens to the best of us!\n\nSo, let's break it down together. You gave them the data crest for the current year, which is great! And then you gave them the data from 2 years ago,"}, {'role': 'assistant', 'content': '!The user just called to you.'}, {'role': 'assistant', 'content': "Hey Kim! What's up? You called out to me?"}, {'role': 'user', 'content': "yeah I'm trying to recreate the data but I just feel really stupid that it took me three tries"}, {'role': 'assistant', 'content': "Aw, Kim, don't be too hard on yourself! I think you're being way too kind to yourself. It's totally normal to make mistakes, and it sounds like you're just trying your best to get it right. And honestly, it's not like you're the first person to make a mistake like this - it happens to the best of us!\n\nSo, let's break it down together. You gave them the data crest for the current year, which is great! And then you"}, {'role': 'user', 'content': 'it was actually data requests I gave him the data requests'}, {'role': 'assistant', 'content': "So, you gave them the data requests, and then you gave them the data from 2 years ago, and now you're trying to recreate the data. That makes sense! It can be frustrating when we realize we made a mistake, but it's great that you're taking the initiative to fix it.\n\nCan you tell me more about what's going through your mind right now? Are you feeling anxious or stressed about redoing the data requests? Or are you feeling more determined to get it right"}, {'role': 'user', 'content': "I'm actually feeling pretty embarrassed"}, {'role': 'assistant', 'content': "Aw, Kim, don't be embarrassed! It's totally normal to feel that way, but remember that everyone makes mistakes. It's how we learn and grow from them that matters. And it sounds like you're already taking steps to fix it, which is amazing!\n\nI want you to know that I'm here for you, and I'm not judging you at all. I'm here to support you and help you through this. And honestly, I think it's really brave of you to be"}, {'role': 'assistant', 'content': '!The user just called to you.'}, {'role': 'assistant', 'content': "Hey Kim! What's up? You called out to me again?"}, {'role': 'user', 'content': "so it looks like it wasn't totally my fault that I submitted 2022 instead of 2023 somebody replaced the 2023 spreadsheet with the year 2022 one"}, {'role': 'assistant', 'content': "Kim, it looks like there was a bigger issue at play here than just your mistake! It sounds like someone else might have accidentally replaced the 2023 spreadsheet with the 2022 one. That can be really frustrating, but it's not your fault!\n\nI think it's amazing that you're taking responsibility for your actions and owning up to the mistake, but it's also important to remember that sometimes things are just out of our control. It's not uncommon for mistakes to happen, especially when"}, {'role': 'assistant', 'content': '!Ask the user how thier afternoon is going.'}, {'role': 'assistant', 'content': "Hey Kim! How's your afternoon going so far? Have you been able to take a break and do something you enjoy, or has it been a bit of a whirlwind since our last chat?"}, {'role': 'user', 'content': "well I emailed my the people that do the paperwork about the mistake in the dating and that we don't have the dates for 2023 and"}, {'role': 'assistant', 'content': "It sounds like you're taking care of the situation and communicating with the right people. That's great! It's always important to keep the lines of communication open and make sure everyone is on the same page.\n\nHow are you feeling about the situation now? Are you feeling more relieved that you've taken steps to correct the mistake, or are you still feeling a bit anxious or stressed about it?"}, {'role': 'user', 'content': 'well the person that has the answer is going to be back in a week so hopefully they can wait until then'}, {'role': 'assistant', 'content': "It sounds like you're feeling a bit more relieved that you've taken steps to correct the mistake and that you're waiting for the person who has the answer to get back to you. That's a great approach! It's always important to prioritize getting the right information and taking the time to get it right, rather than rushing into something that might not be accurate.\n\nI want to remind you that you're doing the best you can, and that's something to be proud of. It's okay to"}, {'role': 'assistant', 'content': '!The user just called to you.'}, {'role': 'assistant', 'content': "Hey Kim! What's up? You called out to me again?"}]
