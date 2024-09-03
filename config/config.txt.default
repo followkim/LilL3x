@@ -6,6 +6,7 @@ AINAME|El3ktra|str|description
 AINAMEP|elektra|str|description
 AI_ENGINE|Dude|str|description
 LAST_INTERACTION|2024-08-01|dt|
+CPU_MAX_TEMP|75|int
 
 # sleep/state vals - how long to sleep in each state
 ACTIVE_IDLE_SLEEP|30|int|description
@@ -42,7 +43,7 @@ MIC_LIMIT|10|int|description
 AMBIENT|1|int
 START_LISTEN_MP3|./media/listen_start.mp3|path|
 END_LISTEN_MP3|./media/listen_end.mp3|path
-LISTEN_ENGINE|speech_recognition|str|desc
+LISTEN_ENGINE|google|str|desc
 
 #wake
 WAKEWORD_PATH|/home/el3ktra/LilL3x/wake/|path
@@ -51,7 +52,7 @@ WAKE_MP3|./media/wake.mp3|path
 
 # voice
 SPEECH_FILE|temp.mp3|str|description
-VOLUME|50|int|description
+VOLUME|5|int|description
 CHATGPT_VOICE|nova|str|Voice for CHAT GPT
 GTTS_VOICE|us|str|Voice for gTTS
 SPEECH_ENGINE|amazon|str|desc
@@ -76,6 +77,9 @@ CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
 LLAMA_KEY|LA-0084ce8eba314ab1be1264dfcb27e797dead4ca4d08c410fab6c4978600bf281|str|
 LLAMA_MODEL|llama-13b-chat|str|
 LLAMA_MODEL_SLOW|llama-13b-chat|str|
+GEMMA_MODEL|gemma2-27b|str
+GEMMA_MODEL_SLOW|gemma2-9b|str
+
 
 KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str   
 KINDRIOD_GMPID|1:1094175837779:web:29d21b7b59dbe56d09c0a6|str

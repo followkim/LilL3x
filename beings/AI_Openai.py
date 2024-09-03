@@ -60,6 +60,13 @@ function_tools =  [
 
 
 class AI_OpenAI(AI):
+    base_url = ""
+    api_key = ""
+    model = ''
+    slow_model=model
+    name = ""
+    token_mult = 1
+    tools = False
 
     def __init__(self):
         AI.__init__(self)
@@ -85,11 +92,17 @@ class AI_OpenAI(AI):
         reply = ""
         response = ""
         try:
-            if tools:
-                response = self.client.chat.completions.create(model=this_model, messages=self.memory, max_tokens=max_tokens,tools=tools)
-            else:
-                response = self.client.chat.completions.create(model=this_model, messages=self.memory, max_tokens=max_tokens)
+            args = {
+                'model': self.model,
+                'messages': self.memory
+            }
+            if max_tokens:
+                args['max_tokens'] = max_tokens
 
+            if tools:
+                args['tools'] = tools
+
+            response = self.client.chat.completions.create(**args)
             print(str(response))
             if response.choices[0].message.content:
                 reply = response.choices[0].message.content
@@ -262,7 +275,7 @@ class AI_Llama(AI_OpenAI):
     base_url = "https://api.llama-api.com"
     api_key =cf.g('LLAMA_KEY')
     model =cf.g('LLAMA_MODEL')
-    slow_model=cf.g('LLAMA_MODEL_SLOW')
+    slow_model=cf.g('LLAMA_MODEL_SLOW')    
     name = "Llama"
     tools = False
     token_mult = 0.5
@@ -270,25 +283,64 @@ class AI_Llama(AI_OpenAI):
         AI_OpenAI.__init__(self)
         print("AI Llama loaded")
 
+class AI_Gemma(AI_Llama):
+    model = cf.g('GEMMA_MODEL')
+    slow_model = cf.g('GEMMA_MODEL_SLOW')
+    name = "Gemma"
+
+class AI_Qwen(AI_Llama):
+    model = cf.g('QWEN_MODEL')
+    slow_model = cf.g('QWEN_MODEL_SLOW')
+    name = "Qwen"
+
+class AI_Local(AI_OpenAI):
+    base_url = "http://localhost:11434/v1"
+    api_key = "unused"
+    model = 'qwen2:0.5b'
+    slow_model=model
+    name = "Local"
+
 class AI_Corgi(AI_OpenAI):
-    base_url = "http://192.168.15.58:11434/api/chat/completions"
-    api_key = ""
+    base_url = "http://192.168.15.58:11434/v1"
+    api_key = "unused"
     model = 'llama3.1:8b'
     slow_model=model
-    tools = {}
-    token_mult = 0.5
     name = "Corgi"
 
     def __init__(self):
         AI_OpenAI.__init__(self)
         print(f"{self.name} loaded")
 
+class AI_Adhoc(AI_OpenAI):
+    base_url = ""
+    api_key = ""
+    model = ''
+    slow_model=model
+    tools = {}
+    token_mult = 1
+    name = "AD Hoc"
+
+    def __init__(self):
+        AI_OpenAI.__init__(self)
+        print("Enter the base url, including http: ")
+        self.base_url = input()
+
+        print("Enter the model name: ")
+        self.model = input()
+        self.model_slow = input()
+
+        print("Enter the API Key, or leave blank to use OpenAI Key: ")
+        self.key = input()
+        if not self.key:
+            self.key = cf.g('OPEN_AI_API_KEY')
+         
+        print(f"{self.name} loaded")
+
 
 
 if __name__ == '__main__':
-    from camera_tools import Camera
-
-    eyes = Camera()
+#    from camera_tools import Camera
+#    eyes = Camera()
  
     global STATE
     STATE.ChangeState('Idle')
@@ -303,7 +355,7 @@ if __name__ == '__main__':
         def off(self):
              return
  
-    ai = AI_Llama()
+    ai = AI_Local()
     ai.leds = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()

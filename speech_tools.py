@@ -12,6 +12,7 @@ import pygame
 import warnings
 from config import cf
 from error_handling import RaiseError
+from globals import STATE
 import requests
 voices = {}
 
@@ -37,7 +38,7 @@ class speech_generator:
                 leds.thinking()
                 filename = self.engine.tts(txt)
                 leds.talking()
-                self.PlaySound(filename)
+                self.PlaySound(filename, True)
                 print(f"AI: {txt}")
             except Exception as e:
                 leds.off()
@@ -45,12 +46,17 @@ class speech_generator:
         leds.off()
         return txt
 
-    def PlaySound(self, filename):
+    def PlaySound(self, filename, watchState=False):
+        if STATE.CheckState('Wake'): # if we start out in WAke, don't stop if we encouter it
+            watchState = False
         if filename:
+            pygame.mixer.music.set_volume(min(cf.g('VOLUME'), 10)/10) # does not go to 11
             pygame.mixer.music.load(filename)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
-                continue
+                if watchState and STATE.CheckState('Wake'):
+                    pygame.mixer.music.stop()
+
 
     def StopSound(self):
         if pygame.mixer.music.get_busy():
@@ -79,10 +85,12 @@ class pytts_tts:
 
     def __init__(self):
         self.engine = pyttsx3.init()
+        self.engine.setProperty('voice', self.engine.getProperty('voices')[1].id)
         print("Speech Engine: pytts")
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+       self.engine.setProperty('volume', (min(cf.g('VOLUME'), 10)/10)) # does not go to 11
        self.engine.say(txt)
        self.engine.runAndWait()
        return False
@@ -217,6 +225,6 @@ if __name__ == '__main__':
     sr = speech_generator()
     sr.say("Hello world", leds)
 
-    sr.SwitchEngine('amazon')
+    sr.SwitchEngine('pytts')
     sr.say("Hello world", leds)
 

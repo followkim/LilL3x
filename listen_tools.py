@@ -13,17 +13,13 @@ from error_handling import RaiseError
 
 class speech_listener:
 
-    engines = {}
+    engine = 0
 #    pygame_start = 0  # try to preload mp3s
 #    pygame_end = 0
 
     def __init__(self):
+        self.engine = cf.g('LISTEN_ENGINE')
         self.speech = sr.Recognizer()
-        self.engines = {   # TODO: make globals
-            'sphinx': self.sphinx,
-            'google': self.google 
-#            'googleCloud' : self.googleCloud
-        }
 
         return
 
@@ -60,7 +56,8 @@ class speech_listener:
 
                 if audio:
                     try:
-                        imp = self.speech.recognize_google(audio)
+#                        imp = self.speech.recognize_google(audio)
+                        imp = eval(f"self.speech.recognize_{self.engine}(audio)")
                     except sr.exceptions.UnknownValueError:
                         pass
                     except Exception as e:
@@ -113,6 +110,12 @@ class speech_listener:
                 self.speech.recognize_google(audio)
         except sr.RequestError as e:
             print("Google Speech Recognition service RequestError; {0}".format(e))
+
+    def vosk(self, audio):
+        try:
+            return self.speech.recognize_vosk(audio)
+        except sr.RequestError as e:
+            print("Sphinx RequestError; {0}".format(e))
 '''
 
     def googleCloud(self, audio):
@@ -247,8 +250,10 @@ if __name__ == '__main__':
 #    while True:
 #        print("Can I hear you?", end="")
 #        print(sg.CanIHearYou())
-    
-    while True:
+    txt = ""
+    print("Engine: ", end="")
+    sg.engine = input()
+    while txt != 'quit':
         dt  = datetime.now()
         print("Timeout: ", end="")
         to = input()

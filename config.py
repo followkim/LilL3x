@@ -1,6 +1,8 @@
 from datetime import datetime 
 import os.path
 import re
+from word2number import w2n
+
 from state import STATE
 
 class Config:
@@ -83,20 +85,24 @@ class Config:
             return True
         return False
 
-    def g(self, key):
+    def g(self, key, default=False):
         try:
             return self.config[key]
-        except:
-            print(f"ERR: {key} not found!")
-            return 0
+        except Exception as e:
+            print(f"Config.g ERR: {key} not found! ({str(e)})")
+            return default
 
     def s(self, key, val):
         try:
+            if re.search(r"^int", self.config_desc[key]):
+                val = w2n.word_to_num(val)
+            print(f"Setting {key} to {val}.")
             self.config[key] = val
             self.WriteConfig()  # save whenever dirty
-        except:
-            print(f"ERR: {key} not found!")
-            return 0
+            return val
+        except Exception as e:
+            print(f"Config.s ERR: {key} not found! ({str(e)})")
+            return False
 
 
 

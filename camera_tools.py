@@ -3,6 +3,7 @@ from picamera2.outputs import FileOutput
 import cv2
 import requests
 import base64
+from gpiozero import CPUTemperature
 #import pyimgur
 #import flickrapi
 #import webbrowser
@@ -18,24 +19,31 @@ import time
 from globals import STATE
 from config import cf
 import re
+
 class Camera:
 
     cam = None
 
     def __init__(self):
         print("Camera() called")
-        os.environ["LIBCAMERA_LOG_LEVELS"] = "2"
-        self.cam = Picamera2()
-        video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"},
+        Picamera2.set_logging(Picamera2.ERROR)
+        try:
+            self.cam = Picamera2()
+            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"},
                                                  lores={"size": (320,240), "format": "YUV420"})
-        self.cam.configure(video_config)
-
+            self.cam.configure(video_config)
+        except Exception as e:
+            RaiseError(f"Unable to init Picamera: {str(e)}")
+            self.cam = False
         return
        
     def GetCamera(self):
         if self.cam:
-            self.cam.start()
-            return self.cam
+            if CPUTemperature().temperature < cf.g('CPU_MAX_TEMP'):
+                self.cam.start()
+                return self.cam
+            else:
+                return RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
         else:
             return False
         
@@ -162,6 +170,7 @@ class Camera:
     def TakePictures(self, num=4, fname=cf.g('TEMP_PATH_DEFAULT'),  dur=0.25, seeUser=False):
         filename = ""
         retVal = False
+        cisu = True
         # if there is not a folder create ii
         if not os.path.exists(os.path.dirname(fname)) :
             
@@ -177,20 +186,22 @@ class Camera:
                 filename = fname
             print(f"Writing file '{filename}'")
             if seeUser:
-                retVal = self.CanISeeYou(cf.g('LOOK_SECS_TO_DEFAULT'), filename)
-            else:
+                cisu = self.CanISeeYou(cf.g('LOOK_SECS_TO_DEFAULT'), filename)
+            if cisu:
                 try:
-                    self.GetCamera()
-                    if self.cam:
+                    if self.GetCamera():
                         self.cam.capture_file(filename)
-                        print(f"took pict '{filename}'")
                         self.CloseCamera()
                         retVal = filename
                 except Exception as e:
                     RaiseError(f"TakePicutres: Error writing file '{filename}' ({str(e)})")
+                    return False
         return retVal
 
     def UploadPicture(self, pict_path):
+        if not pict_path:
+            return pict_path
+
         # Set API endpoint and headers
         url = "https://api.imgur.com/3/image"
         headers = {"Authorization": "Client-ID " + cf.g('IMGUR_ID')}
@@ -246,7 +257,7 @@ if __name__ == '__main__':
 #    with open('image_name.jpg', 'wb') as handler:
 #        handler.write(img_data)   
 #    print("Detect Motion:" + str(c.IsUserMoving()))
-    while True: 
+    for x in range(1, 10): 
         print("CanISeeYou:" + str(c.CanISeeYou(10)))
 #    for x in range(1,5):
 #        print("IsDark: "+str(c.IsDark()))

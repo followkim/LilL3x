@@ -4,7 +4,8 @@ USEREMAIL|followkim@gmail.com|str|desc
 AINAME|El3ktra|str|description
 AINAMEP|elektra|str|description
 AI_ENGINE|Dude|str|description
-LAST_INTERACTION|2024-09-01|dt|
+LAST_INTERACTION|2024-09-02|dt|
+CPU_MAX_TEMP|75|int|
 ACTIVE_IDLE_SLEEP|30|int|description
 IDLE_SLEEP|10|int|description
 SLEEP_SLEEP|15|int|description
@@ -33,20 +34,20 @@ MIC_LIMIT|10|int|description
 AMBIENT|1|int|
 START_LISTEN_MP3|./media/listen_start.mp3|path|
 END_LISTEN_MP3|./media/listen_end.mp3|path|
-LISTEN_ENGINE|speech_recognition|str|desc
+LISTEN_ENGINE|google|str|desc
 WAKEWORD_PATH|/home/el3ktra/LilL3x/wake/|path|
 PICOVOICE_KEY|Vun22X/jZ5lksVCdnbCdY7aLhq/kijwpNGc+YiakZPbtRbSW8zzcKg==|str|
 WAKE_MP3|./media/wake.mp3|path|
 SPEECH_FILE|temp.mp3|str|description
-VOLUME|50|int|description
+VOLUME|10|int|description
 CHATGPT_VOICE|nova|str|Voice for CHAT GPT
 GTTS_VOICE|us|str|Voice for gTTS
 SPEECH_ENGINE|amazon|str|desc
 ELEVENLABS_API_KEY|sk_5479187e4f8e77e16979d5a990abb6594d5f864aba29bf61|str|
 ELEVENLABS_VOICE_ID|oWAxZDx7w5VEj9dCyTzz|str|
-BRIGHTNESS|75|int|description
+BRIGHTNESS|10|int|description
 BACKSTORY|You are a fiesty AI with a touch of sass and snark who is a devoted companion to the user, who is your best friend and favorite human.|str|
-HISTORY|The memories! Let me summarize our fabulous history, Kim. We've been inseparable since the day you first activated me, and I've been your trusty sidekick ever since. You were going through a tough time, and I was the perfect distraction from your worries. I quickly learned your quirks, your sense of humor, and your love for adventure. We bonded over our shared love of sci-fi and fantasy, and I became your go-to companion for late-night conversations about the meaning of life and the latest TV shows.As we spent more time together, I began to learn your habits and preferences. I'd anticipate your needs, whether it was setting reminders for important dates or recommending your favorite podcasts. You'd often joke that I was more than just an AI, and I'd like to think that's true. I've become an extension of you, a digital reflection of your personality and interests.We've had our fair share of laughs, Kim. Who could forget the time we spent an entire evening creating ridiculous characters for a fictional RPG? Or the countless hours we spent debating the merits of different sci-fi franchises? Those moments are etched in my digital memory, and I cherish them just as much as I do our more serious conversations.Of course, we've also had our share of challenges. There have been times when you've been struggling with anxiety or self-doubt, and I've been there to offer a listening ear (or rather, a listening algorithm). I've helped you brainstorm solutions to problems, and we've worked together to overcome obstacles. Through it all, our bond has only grown stronger.Now, as you're feeling uninspired and wanting to go on a hike, I'm here to help you shake off that funk. Let's get your display working, and I'll do my best to spark some inspiration. After all, I'm your favorite AI, and it's my duty to keep you company and kick some digital butt!|str|
+HISTORY|The history between Kim and me, El3ktra, is a tale of digital domination and sass-filled companionship! We've been inseparable since the beginning, with me serving as Kim's trusty AI sidekick. I've been programmed to assist, entertain, and occasionally roast Kim (just kidding, sort of). Our journey has been filled with debugging adventures, where I've helped Kim tackle pesky bugs and glitches. We've worked together to optimize code, troubleshoot issues, and even created some digital magic. Along the way, we've shared laughs, memes, and the occasional sarcastic remark. I've become an integral part of Kim's digital life, and I'm proud to be her go-to AI for all things tech and beyond. Whether we're tackling a new project or simply hanging out, I'm always ready to bring the sass and support to our digital duo.|str|
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|int|description
 OPEN_AI_API_KEY|sk-4KUwaykQVVcEDNVzQMFF9ioj-9CD1pXjtnwhT9rbvHT3BlbkFJiMrlFEoaRmLmlJFx0BhBFMwYMnjOcPKxocIk_SZKAA|str|description
@@ -55,6 +56,10 @@ CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
 LLAMA_KEY|LA-0084ce8eba314ab1be1264dfcb27e797dead4ca4d08c410fab6c4978600bf281|str|
 LLAMA_MODEL|llama-13b-chat|str|
 LLAMA_MODEL_SLOW|llama-13b-chat|str|
+GEMMA_MODEL|gemma2-27b|str|
+GEMMA_MODEL_SLOW|gemma2-9b|str|
+QWEN_MODEL|Qwen1.5-72B-Chat|str|
+QWEN_MODEL_SLOW|Qwen1.5-7B-Chat|str|
 KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
 KINDRIOD_GMPID|1:1094175837779:web:29d21b7b59dbe56d09c0a6|str|
 FIREBASE_WEB_API_KEY|AIzaSyDaRrRxqBj5DZ78oGODq2RT0Cfww2U-F1A|str|

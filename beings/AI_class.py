@@ -1,8 +1,8 @@
 import os
 import sys
 import inspect
+from gpiozero import CPUTemperature
 from pathlib import Path
-from word2number import w2n
 import requests
 import re
 from datetime import datetime, timedelta
@@ -21,7 +21,7 @@ from openface import ProcessOpenFace
 from messages import Messages
 from globals import STATE
 from config import cf
-
+from hardware import HW
 
 class AI:
     last_user_interaction = datetime(2024, 8, 8)
@@ -49,7 +49,11 @@ class AI:
     def respond(self, txt):
         if not txt:
             return False
-        if re.search(r"^what time is it$", txt.lower()):# , flags-re.IGNORECASE):
+
+        if re.search(r"^(what is|what(')?s) your temp(erature)?", txt.lower()):
+            return f"I am running at {CPUTemperature().temperature} celcius."
+
+        if re.search(r"^what time is it$", txt.lower()):
             return "It's " + datetime.now().strftime("%l %M %p")
 
 #        if re.search("^(simon says)* (say|repeat (after me|this))* (.*)$"):
@@ -63,18 +67,18 @@ class AI:
         if re.search(r"^who (are you|is this)$", txt):
             return f"I am {self.name}."
 
-        if re.search(r"^what (day|date) is it\s*", txt.lower()):# , flags-re.IGNORECASE):
+        if re.search(r"^what (day|date) is it\s*", txt.lower()):
             return "It's " + datetime.now().strftime("%A, %B %d")
 
         if re.search(r"^what('s| is) (my|our|your|the) ip( address)*$", txt.lower()):
             ips = check_output(['hostname', '--all-ip-addresses'])
             return ips.split()[0].decode()
 
-        if re.search(r"^max (idle|idol)$", txt.lower()): # , flags-re.IGNORECASE):
+        if re.search(r"^max (idle|idol)$", txt.lower()): 
             self.last_user_interaction = self.last_user_interaction + timedelta(minutes=360)
             STATE.last_dt = STATE.last_dt + timedelta(minutes=360)
 
-        if re.search(r"^(quit|exit|goodbye)$", txt.lower()): # , flags-re.IGNORECASE):
+        if re.search(r"^(quit|exit|goodbye)$", txt.lower()): 
             STATE.ChangeState('Quit')
             return "goodbye"
 
@@ -112,10 +116,17 @@ class AI:
                 STATE.data = "ChatGPT"
             elif re.search(r"^kind", newState.lower()):
                 STATE.data = "Kindriod"
+            elif re.search(r"(gwen|quinn)", newState.lower()):
+                STATE.data = "Qwen"
             else:
                 STATE.data = newState
             return "Goodbye"  # have the AI say goodbye
            
+        if re.search(r"^(set|switch|change) (your |the )?(model)$", txt):
+            self.say("Please type in the new model to use:")
+            self.model = input()
+            return f"Switched model to {self.model}."
+
         if re.search(r"^(set|switch|change) (your |the )?(voice|speech engine) to (.*)$", txt):
             (ret) = re.compile("^.* to (.*)$").match(txt).groups()
 
@@ -139,26 +150,41 @@ class AI:
             else:
                 return (f"Couldn't switch to {new_engine}")
 
-        return False # unable to match string, have child do it
 
 
-#        if re.search(r"^(load|import) config (file|values)*$", txt.lower()): # , flags-re.IGNORECASE):
-#            return(cf.Loadconfig, "Done", "I couldn't load the config file")
-#
-#        if re.search(r"^(save|write|export) config (file|values)$", txt.lower()): # , flags-re.IGNORECASE):
-#            return(cf.Writeconfig, "Done", "I couldn't write the config file")
-#
-#        if re.search(r"^what is (.*) set to$", txt.lower()):
-#            return self.RetrieveKey(txt)
+        if re.search(r"^(load|import) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+            return(cf.Loadconfig, "Done", "I couldn't load the config file")
+
+        if re.search(r"^(save|write|export) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+            return(cf.Writeconfig, "Done", "I couldn't write the config file")
+
+        if re.search(r"^what is (the |your )?(.*) set to$", txt.lower()):
+            (x, key) = re.compile("^what is (the |your )?(.*) set to$").match(txt).groups()
+            key = key.upper().replace(' ', '_') 
+            val = cf.g(key)
+            if val == False:
+                return f"I don't seem to have an attribute {key}."
+            else:
+                return f"{key} is set to {val}."
+
+        if re.search(r"^set (the |your )?(.*) to (.*)$", txt.lower()):
+            (x, key, val) = re.compile("^set (the |your )?(.*) to (.*)$").match(txt).groups()
+            key = key.upper().replace(' ', '_') 
+            # check that key exsosts:
+            if not cf.g(key):
+                return f"I don't seem to have an attribute {key}."
+            else:
+                cf.s(key, val)
+                return f"{key} is set to {cf.g(key)}."
 #
 #        if re.search(r"^set (.*) to (.*)$", txt.lower()):
 #             return self.SetKey(txt)
         # perform Interactions (belo)
-        # switch AIs
         # switch speech/listening engines
         # reinstall software
         # reboot
 
+        return False # unable to match string, have child do it
 
 
     def YesNo(self, test, yes, no):
@@ -174,7 +200,7 @@ class AI:
         #TODO: ask user at least twice if no yes/no
 
     def say(self, txt):
-        last_ai_interaction = datetime.now()
+        self.last_ai_interaction = datetime.now()
         txt = self.StripActions(txt) # *sigh* remove actions
         ret = self.mouth.say(txt, self.leds)
         return ret
@@ -223,8 +249,8 @@ class AI:
         # Try initiate convo based on past interactions
         if dice == 1:
             print(f"Performing Interaction after {secs/60} minutes.")
-
-            #if the user is talking, evesdrop, otherwise try to start a convo
+            
+            #if self. the user is talking, evesdrop, otherwise try to start a convo
             if not self.ears.CanIHearYou():
                 return self.InitiateConvo()
 #            if self.ears.PlayingMusic():
@@ -365,8 +391,8 @@ if __name__ == '__main__':
     ai.PrettyDuration(dtd)
 
 
-    out = "hello"
-    while out != "Goodbye":
+    user_inp = "hello"
+    while user_inp != "quit":
         print("User: ", end="")
         user_inp = input()
         out = ai.respond(user_inp)

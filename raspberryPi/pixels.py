@@ -10,8 +10,6 @@ try:
 except ImportError:
     import Queue as Queue
 
-LIGHTS = 0
-
 class Pixels:
     PIXELS_N = 3
 
@@ -32,30 +30,25 @@ class Pixels:
         self.thread.start()
 
     def wakeup(self, direction=0):
-        print("wakeup")
         def f():
             self._wakeup(direction)
 
         self.next.set()
         self.queue.put(f)
 
-    def listen(self):
-        print("listen")
+    def listening(self):
         self.next.set()
         self.queue.put(self._listen)
 
-    def think(self):
-        print("thimk")
+    def thinking(self):
         self.next.set()
         self.queue.put(self._think)
 
-    def speak(self):
-        print("speak")
+    def talking(self):
         self.next.set()
         self.queue.put(self._speak)
 
     def off(self):
-        print("off")
         self.next.set()
         self.queue.put(self._off)
 
@@ -137,12 +130,6 @@ class Pixels:
             self.dev.set_pixel(i, int(colors[3*i]), int(colors[3*i + 1]), int(colors[3*i + 2]))
 
         self.dev.show()
-
-
-
-LIGHTS = Pixels()
-LIGHTS.think()
-
 
 if __name__ == '__main__':
     pixels = Pixels()

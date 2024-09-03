@@ -95,7 +95,7 @@ class wake_word:
                     self.recorder.start()
 #                    print ("WakeWord: taking the mic")
 
-                    while (not MIC_STATE.MicRequested() and not STATE.CheckState('Quit')):
+                    while (not MIC_STATE.MicRequested() and not STATE.CheckState('Quit') and not STATE.IsInteractive()):
                         try:
                             pcm = self.recorder.read()
                             result = self.wakeword_listener.process(pcm)
