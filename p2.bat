@@ -1,8 +1,0 @@
-sudo postconf -e 'smtp_tls_security_level = may'
-sudo postconf -e 'smtpd_tls_security_level = may'
-sudo postconf -e 'smtp_tls_note_starttls_offer = yes'
-sudo postconf -e 'smtpd_tls_key_file = /etc/ssl/private/server.key'
-sudo postconf -e 'smtpd_tls_cert_file = /etc/ssl/certs/server.crt'
-sudo postconf -e 'smtpd_tls_loglevel = 1'
-sudo postconf -e 'smtpd_tls_received_header = yes'
-sudo postconf -e 'myhostname = mail.el3ktra.net'
