@@ -20,9 +20,7 @@ from gpiozero import CPUTemperature
 import RPi.GPIO as GPIO
 BUTTON = 17
 
-print("Loading Speech Tools.  ", end="")
 from speech_tools import speech_generator
-print("Done.")
 from listen_tools import speech_listener
 from camera_tools import Camera
 
@@ -265,7 +263,7 @@ class lill3x:
         curr_state = STATE.GetState()
         target_time = datetime.now() + timedelta(seconds=secs)
         sleep_for = min(cf.g('SLEEP_DURATION'), secs)
-        while (datetime.now() < target_time) and STATE.GetState() == curr_state and not STATE.IsInteractive():
+        while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.CheckState('Quit') or  STATE.IsInteractive()):
             sleep(sleep_for)
 
     def ButtonThread(self):
