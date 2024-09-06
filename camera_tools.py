@@ -25,7 +25,6 @@ class Camera:
     cam = None
 
     def __init__(self):
-        RaiseError("Camera() called")
         Picamera2.set_logging(Picamera2.ERROR)
         try:
             self.cam = Picamera2()
