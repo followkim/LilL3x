@@ -70,7 +70,7 @@ class AI_OpenAI(AI):
     def __init__(self):
         AI.__init__(self)
         if self.base_url:
-            self.client = openai.Client(api_key=self.api_key,)
+            self.client = openai.Client(api_key=self.api_key,base_url=self.base_url)
         else:
             self.client = openai.Client(api_key=self.api_key,)
         self.memory = [ 
