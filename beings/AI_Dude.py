@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import re
 from AI_class import AI
-import random 
+import random
 
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))

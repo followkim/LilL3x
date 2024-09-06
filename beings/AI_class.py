@@ -17,11 +17,11 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 print(f'Importing modules from {os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))}')
-from openface import ProcessOpenFace
+
+#from openface import ProcessOpenFace
 from messages import Messages
 from globals import STATE
 from config import cf
-from hardware import HW
 
 class AI:
     last_user_interaction = datetime(2024, 8, 8)
@@ -95,16 +95,16 @@ class AI:
 
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
-#
-#        if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
-#                re.search(r"^(hey )?look at (this|that)$", txt.lower())):
-#            pict = self.eyes.SendPicture()
-#            if pict:
-#                self.say("What is this a picture of?")
-#                desc=self.listen()
-#                return '#'+desc+'#'+pict
-#            else:
-#                return "Sorry, I couldn't take a picture"
+
+        if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
+                re.search(r"^(hey )?look at (this|that)$", txt.lower())):
+            pict = self.eyes.SendPicture()
+            if pict:
+                self.say("What is this a picture of?")
+                desc=self.listen()
+                return '#'+desc+'#'+pict
+            else:
+                return "Sorry, I couldn't take a picture"
 
         if re.search(r"^((can i )?talk|switch|let me (talk|speak)) to (.*)*$", txt.lower()):    # , flags-re.IGNORECASE):
             AI = txt.split()[-1]

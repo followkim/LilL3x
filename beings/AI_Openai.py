@@ -60,7 +60,6 @@ function_tools =  [
 
 
 class AI_OpenAI(AI):
-    base_url = ""
     api_key = ""
     model = ''
     slow_model=model
@@ -70,40 +69,40 @@ class AI_OpenAI(AI):
 
     def __init__(self):
         AI.__init__(self)
-        if self.base_url == "":
+        if self.base_url:
             self.client = openai.Client(api_key=self.api_key,)
         else:
-            self.client = openai.Client(api_key=self.api_key,base_url=self.base_url)
+            self.client = openai.Client(api_key=self.api_key,)
         self.memory = [ 
             {"role": "system", "content": f"You name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
             {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
         ]
-
         return
 
     def respond(self, user_input, canParaphrase=False):
+        self.leds.thinking()
         this_model = self.model
         class_resp = AI.respond(self, user_input)  # will return either a response
         (user_input, max_tokens, tools) = self.HandleResponse(class_resp, user_input)
         if not user_input:
+            self.leds.off()
             return class_resp #hacky
 
-        self.leds.thinking()
         reply = ""
         response = ""
         try:
             args = {
                 'model': self.model,
-                'messages': self.memory
+                'messages': self.memory,
+                'temperature': cf.g('TEMPERATURE')
             }
             if max_tokens:
                 args['max_tokens'] = max_tokens
 
             if tools:
                 args['tools'] = tools
-
             response = self.client.chat.completions.create(**args)
-            print(str(response))
+
             if response.choices[0].message.content:
                 reply = response.choices[0].message.content
                 self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
@@ -121,7 +120,6 @@ class AI_OpenAI(AI):
                 if response.choices[0].message.content:
                     reply = response.choices[0].message.content
                     self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
-
         except Exception as e:
 
             reply = f"There was an error talking to OpenAI. {str(e)}"
@@ -224,9 +222,9 @@ class AI_OpenAI(AI):
         print("Calling Taking Picture from ChatGPT")
         url = self.eyes.SendPicture()
         try:
-            return f"#{eval(str(context))['picture_context']}#{url}"
+            return f"#{eval(str(context)['picture_context'])}#{url}"
         except Exception as e:
-            print("0 Didn't work: " + str(e))
+            print("eval() Didn't work: " + str(e))
         return f"#{context}#{url}"
  
     def Intruder(self):
@@ -235,7 +233,7 @@ class AI_OpenAI(AI):
         #email URL
 
     def SaveMemories(self):
-        memStr = self.respond(f"^Summarize your history with {cf.g('USERNAME')} in a single paragraph of 500 words or less to be used later as your memory.  FOcus on key events and topics.")
+        memStr = self.respond(f"^Summarize your history with {cf.g('USERNAME')}.  Fcus on key events and topics.  Return the answer in a single short paragraph of 500 words or less to be used later as your memory log")
         memStr = ''.join(memStr.splitlines())
         self.memory = [
             {"role": "system", "content": cf.g('BACKSTORY')}, 
@@ -264,24 +262,20 @@ class AI_ChatGPT(AI_OpenAI):
     name = "Chat GPT"
     tools = False # turn this on if asked
     token_mult = 1
-    
+
     def __init__(self):
         AI_OpenAI.__init__(self)
-        print("AI ChatGPT loaded")
-
+        print(f"AI {self.name} loaded")
 
 class AI_Llama(AI_OpenAI):
 
     base_url = "https://api.llama-api.com"
-    api_key =cf.g('LLAMA_KEY')
+    api_key = cf.g('LLAMA_KEY')
     model =cf.g('LLAMA_MODEL')
-    slow_model=cf.g('LLAMA_MODEL_SLOW')    
+    slow_model=cf.g('LLAMA_MODEL_SLOW')
     name = "Llama"
     tools = False
     token_mult = 0.5
-    def __init__(self):
-        AI_OpenAI.__init__(self)
-        print("AI Llama loaded")
 
 class AI_Gemma(AI_Llama):
     model = cf.g('GEMMA_MODEL')
@@ -301,41 +295,11 @@ class AI_Local(AI_OpenAI):
     name = "Local"
 
 class AI_Corgi(AI_OpenAI):
-    base_url = "http://192.168.15.58:11434/v1"
-    api_key = "unused"
-    model = 'llama3.1:8b'
+    base_url = cf.g('CORGI_URL')
+    api_key = cf.g('CORGI_API_KEY')
+    model = cf.g('CORGI_MODEL')
     slow_model=model
     name = "Corgi"
-
-    def __init__(self):
-        AI_OpenAI.__init__(self)
-        print(f"{self.name} loaded")
-
-class AI_Adhoc(AI_OpenAI):
-    base_url = ""
-    api_key = ""
-    model = ''
-    slow_model=model
-    tools = {}
-    token_mult = 1
-    name = "AD Hoc"
-
-    def __init__(self):
-        AI_OpenAI.__init__(self)
-        print("Enter the base url, including http: ")
-        self.base_url = input()
-
-        print("Enter the model name: ")
-        self.model = input()
-        self.model_slow = input()
-
-        print("Enter the API Key, or leave blank to use OpenAI Key: ")
-        self.key = input()
-        if not self.key:
-            self.key = cf.g('OPEN_AI_API_KEY')
-         
-        print(f"{self.name} loaded")
-
 
 
 if __name__ == '__main__':
@@ -355,7 +319,7 @@ if __name__ == '__main__':
         def off(self):
              return
  
-    ai = AI_Local()
+    ai = AI_ChatGPT()
     ai.leds = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()

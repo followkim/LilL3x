@@ -25,7 +25,7 @@ class Camera:
     cam = None
 
     def __init__(self):
-        print("Camera() called")
+        RaiseError("Camera() called")
         Picamera2.set_logging(Picamera2.ERROR)
         try:
             self.cam = Picamera2()
@@ -248,17 +248,17 @@ def is_dir(path):
 if __name__ == '__main__':
     global STATE
 
-    STATE.ChangeState('Idle')
-    c = Camera()
+ #   STATE.ChangeState('Idle')
+#    c = Camera()
 
-    file = c.SendPicture()
-    print(file)
+  #  file = c.SendPicture()
+   # print(file)
 #    img_data = requests.get(file).content
 #    with open('image_name.jpg', 'wb') as handler:
 #        handler.write(img_data)   
 #    print("Detect Motion:" + str(c.IsUserMoving()))
-    for x in range(1, 10): 
-        print("CanISeeYou:" + str(c.CanISeeYou(10)))
+   # for x in range(1, 10): 
+   #     print("CanISeeYou:" + str(c.CanISeeYou(10)))
 #    for x in range(1,5):
 #        print("IsDark: "+str(c.IsDark()))
 

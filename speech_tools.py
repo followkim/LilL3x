@@ -185,7 +185,7 @@ class amazon_tts:
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
         try:
             # Request speech synthesis
-            response = self.polly.synthesize_speech(Text=txt, OutputFormat="mp3", VoiceId="Joanna")
+            response = self.polly.synthesize_speech(Engine=cf.g('AWS_VOICE_ENGINE'), Text=txt, OutputFormat="mp3", VoiceId=cf.g('AWS_VOICE_ID'))
         except Exception as e:
             # The service returned an error, exit gracefully
             RaiseError(f"AWS returned error: {str(e)}")

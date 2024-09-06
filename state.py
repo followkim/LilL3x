@@ -39,7 +39,7 @@ class State:
         return self.current == "Wake"
 
     def IsInteractive(self):
-        return self.current in ('Wake', 'Active')
+        return self.current in ('Hello', 'Wake', 'Active')
 
 class MicStatus:
     def __init__(self):

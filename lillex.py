@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 import inspect
@@ -14,7 +13,6 @@ from multiprocessing import Process
 import signal
 import sys
 from globals import STATE
-from hardware import HW
 import wake_word
 from error_handling import RaiseError
 from config import cf
@@ -22,12 +20,17 @@ from gpiozero import CPUTemperature
 import RPi.GPIO as GPIO
 BUTTON = 17
 
+print("Loading Speech Tools.  ", end="")
 from speech_tools import speech_generator
+print("Done.")
 from listen_tools import speech_listener
 from camera_tools import Camera
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 print(currentdir)
+
+sys.path.insert(0, currentdir+'/raspberryPi/')
+from rasp_leds import LEDS
 
 # import AI sub modules
 sys.path.insert(0, currentdir+'/beings/')
@@ -36,6 +39,8 @@ from AI_Openai import *
 from AI_Kindriod import AI_Kindriod
 from AI_Gemini import AI_Gemini
 #from AI_Bard import AI_Bard
+
+# reset the current direectory back to root
 sys.path.insert(0, currentdir)
 
 # how many seconds we should sleep in each state.
@@ -53,19 +58,39 @@ timeout_secs = {
     'Idle': cf.g('IDLE_TO')*60
 }
 
- 
+
 class lill3x:
 
     ai = False
     ww_thread = 0
     button_thread = 0
     def __init__(self):
+        print("LilL3x INIT")        
+        # create the hardware objects
+        try:
+            self.mouth = speech_generator()
+        except Exception as e:
+            RaiseError("AI():Could not init speech generator. " + str(e))
+            return # fatal
+        try:
+            self.ears = speech_listener()
+        except Exception as e:
+            RaiseError("AI():Could not init listener. " + str(e))
+            return # fatal
+        try:
+            self.eyes = Camera()
+        except Exception as e:
+            RaiseError("AI():Could not init camera. " + str(e))
+        try:
+            self.leds = LEDS()
+#            self.leds = Pixels()
+        except Exception as e:
+            RaiseError("AI():Could not init LEDs. " + str(e))
 
-        
         # get AI (depending on config)
         try:
             self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
-            self.ai.SetBody(HW.ears, HW.eyes, HW.mouth, HW.leds)
+            self.ai.SetBody(self.ears, self.eyes, self.mouth, self.leds)
 
         except Exception as e:
             RaiseError("Unable to create AI: "+ str(e))
@@ -79,7 +104,7 @@ class lill3x:
         GPIO.setup(BUTTON, GPIO.IN)
 
         # finally start the wakeword thread
-        self.ww_thread = threading.Thread(target=wake_word.Wake_word_thread, args=(HW.mouth,))
+        self.ww_thread = threading.Thread(target=wake_word.Wake_word_thread, args=(self.mouth,))
         self.ww_thread.start()
         self.button_thread = threading.Thread(target=self.ButtonThread)
         self.button_thread.start()
@@ -90,7 +115,7 @@ class lill3x:
             temp = CPUTemperature().temperature
             if temp >= cf.g('CPU_MAX_TEMP'):
                 if temp >= 80:
-                    HW.say(f"I am {temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
+                    self.say(f"I am {temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
                     RaiseError(f"Heat error: {temp}.  Quitting.")
                     STATE.ChangeState('Quit') 
                 else: sleep(2)
@@ -117,21 +142,27 @@ class lill3x:
         # were able to create the AI!
         self.ai.Close()
         self.ai = new_ai
-        self.ai.SetBody(HW.ears, HW.eyes, HW.mouth, HW.leds)
+        self.ai.SetBody(self.ears, self.eyes, self.mouth, self.leds)
 
         STATE.ChangeState('Hello')
         return True
 
     # Hello: Give a greeting to the user:
     def Hello(self):
-        HW.ears.clear()
+        self.ears.clear()
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
         return
 
     def Quit(self):
 #       self.ww_thread.kill()  # will exit on its own
-       HW.Close()
+        return
+
+    def Close(self):
+       self.mouth.Close()
+       self.ears.Close()
+       self.eyes.Close()
+       self.leds.Close()
        self.ai.Close()
        cf.WriteConfig()
        exit()
@@ -159,12 +190,12 @@ class lill3x:
         if STATE.StateDuration() > timeout_secs.get(STATE.GetState(), 0):
             STATE.ChangeState('Idle')
 
-        if HW.eyes.IsDark():
+        if self.eyes.IsDark():
              STATE.ChangeState('SleepState')
         elif self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
-            HW.leds.purple()
+            self.leds.purple()
             thought = self.ai.Interact()  
-            HW.leds.off()
+            self.leds.off()
             if thought:
                 self.ai.say(thought)
                 user_input = self.ai.listen()
@@ -183,7 +214,7 @@ class lill3x:
         self.ai.Think()  # will need a flag that data should be saved for later
 
 #        if STATE.StateDuration() > timeout_secs[STATE.GetState()]:
-        if HW.eyes.IsDark():
+        if self.eyes.IsDark():
             STATE.ChangeState('SleepState')
 
         # Check for the user
@@ -201,7 +232,7 @@ class lill3x:
         # IDEA: start a IsDark Camera thread that will change the state
  
         # user returned
-        if not HW.eyes.IsDark() and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+        if not self.eyes.IsDark() and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
             self.ai.say(self.ai.Greet())
             user_input = self.ai.listen()
             if user_input:
@@ -216,7 +247,7 @@ class lill3x:
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
     def Surveil(self):
         # DEBUG: change 1 to 60 when working
-        if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and HW.eyes.IsUserMoving(secs=cf.g('SURVEIL_LOOK')):
+        if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving(secs=cf.g('SURVEIL_LOOK')):
             self.ai.say(self.ai.Intruder())
             user_input = self.ai.listen()
             if user_input:
