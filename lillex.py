@@ -104,7 +104,7 @@ class lill3x:
         # finally start the wakeword thread
         self.ww_thread = threading.Thread(target=wake_word.Wake_word_thread, args=(self.mouth,))
         self.ww_thread.start()
-        self.button_thread = threading.Thread(target=self.ButtonThread)
+        self.button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
         self.button_thread.start()
 #        self.ww_thread.join()
 
@@ -266,11 +266,13 @@ class lill3x:
         while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.CheckState('Quit') or  STATE.IsInteractive()):
             sleep(sleep_for)
 
-    def ButtonThread(self):
+    def ButtonThread(self, audio):
         while STATE.GetState() not in ('Quit'):
             if not STATE.IsInteractive() and not (GPIO.input(BUTTON)):
                 STATE.ChangeState('Wake')
                 print("Button Wake")
+                if not audio.IsBusy():
+                    audio.PlaySound(cf.g('WAKE_MP3'))
                 while (GPIO.input(BUTTON)):
                      continue
             else:

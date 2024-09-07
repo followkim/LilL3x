@@ -60,9 +60,8 @@ function_tools =  [
 
 
 class AI_OpenAI(AI):
+    base_url = ""
     api_key = ""
-    model = ''
-    slow_model=model
     name = ""
     token_mult = 1
     tools = False
@@ -77,6 +76,7 @@ class AI_OpenAI(AI):
             {"role": "system", "content": f"You name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
             {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
         ]
+        print(f"AI {self.name}, ({self.model}) loaded.")
         return
 
     def respond(self, user_input, canParaphrase=False):
@@ -102,7 +102,7 @@ class AI_OpenAI(AI):
             if tools:
                 args['tools'] = tools
             response = self.client.chat.completions.create(**args)
-
+            print(str(response))
             if response.choices[0].message.content:
                 reply = response.choices[0].message.content
                 self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
@@ -255,7 +255,6 @@ class AI_OpenAI(AI):
 
 class AI_ChatGPT(AI_OpenAI):
 
-    base_url = ""
     model= cf.g('CHATGPT_MODEL')
     slow_model=cf.g('CHATGPT_MODEL_SLOW')
     api_key=cf.g('OPEN_AI_API_KEY')
@@ -265,10 +264,8 @@ class AI_ChatGPT(AI_OpenAI):
 
     def __init__(self):
         AI_OpenAI.__init__(self)
-        print(f"AI {self.name} loaded")
 
 class AI_Llama(AI_OpenAI):
-
     base_url = "https://api.llama-api.com"
     api_key = cf.g('LLAMA_KEY')
     model =cf.g('LLAMA_MODEL')
@@ -319,7 +316,7 @@ if __name__ == '__main__':
         def off(self):
              return
  
-    ai = AI_ChatGPT()
+    ai = AI_Llama()
     ai.leds = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()

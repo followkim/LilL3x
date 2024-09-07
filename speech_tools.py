@@ -68,13 +68,16 @@ class speech_generator:
 
     def SwitchEngine(self, engine_name=cf.g('SPEECH_ENGINE')):
         new_engine = 0
-        new_engine = eval(engine_name+'_tts()')
+        try:
+            new_engine = eval(engine_name+'_tts()')
+        except:
+            new_engine = False
         if new_engine:
             self.engine.Close()
             self.engine = new_engine
             return True
         else:
-            print(f"Unable to switch to engine {engine}")
+            print(f"Unable to switch to engine {engine_name}")
             return False
 
     def Close(self):

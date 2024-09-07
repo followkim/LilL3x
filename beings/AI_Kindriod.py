@@ -14,8 +14,6 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 from config import cf
 
-
-
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
@@ -183,9 +181,9 @@ class AI_Kindriod(AI):
     #ON Startup
     def Hello(self):
         if cf.g('LAST_INTERACTION') > datetime(2024, 8, 8):
-             return f"Hello {cf.g('AINAMEP')}"
+             return self.respond(f"Hello {cf.g('AINAMEP')}")
         else:
-             return f"Its good to meet you {cf.g('AINAMEP')}"
+             return self.respond(f"Its good to meet you {cf.g('AINAMEP')}")
 
     def WakeMessage(self):
         resp = f"Hey {cf.g('AINAME')}"

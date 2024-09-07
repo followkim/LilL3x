@@ -41,7 +41,8 @@ class speech_listener:
                     leds.listening()
  
                 try:
-                    audio = self.speech.listen(source, timeout=time_out, phrase_time_limit=phrase_time_limit)
+                    audio = self.speech.listen(source, 
+                             timeout=time_out, phrase_time_limit=phrase_time_limit)
                 except sr.exceptions.WaitTimeoutError:
                     pass
                 except Exception as e:
