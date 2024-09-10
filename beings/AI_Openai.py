@@ -298,6 +298,14 @@ class AI_Corgi(AI_OpenAI):
     slow_model=model
     name = "Corgi"
 
+class AI_El3ktra(AI_OpenAI):
+    base_url = 'http://el3ktra.net:11434/v1'
+    base_url = 'http://192.168.0.128:11434/v1'
+    api_key = 'el3ktra'
+    model = 'qwen2'
+    slow_model=model
+    name = "Elektra"
+
 
 if __name__ == '__main__':
 #    from camera_tools import Camera
@@ -316,7 +324,7 @@ if __name__ == '__main__':
         def off(self):
              return
  
-    ai = AI_Llama()
+    ai = AI_El3ktra()
     ai.leds = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()

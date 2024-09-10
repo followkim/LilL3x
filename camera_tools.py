@@ -4,9 +4,6 @@ import cv2
 import requests
 import base64
 from gpiozero import CPUTemperature
-#import pyimgur
-#import flickrapi
-#import webbrowser
 
 from time import sleep
 from datetime import datetime
@@ -201,19 +198,11 @@ class Camera:
         if not pict_path:
             return pict_path
 
-        # Set API endpoint and headers
-        url = "https://api.imgur.com/3/image"
-        headers = {"Authorization": "Client-ID " + cf.g('IMGUR_ID')}
-
-        # Read image file and encode as base64
-        with open(pict_path, "rb") as file:
-            data = file.read()
-            base64_data = base64.b64encode(data)
-
-        # Upload image to Imgur and get URL
-        response = requests.post(url, headers=headers, data={"image": base64_data})
-        print(str(response))
-        url = response.json()["data"]["link"]
+        URL = 'http://el3ktra.el3ktra.net/upload.php'
+        files={'fileToUpload': open(pict_path,'rb')}
+        payload = {'submit': 'Upload Image'}
+        r = requests.post(URL, data=payload, files=files)
+        url = r.text
         return url
 
     def _take_picture(self, fname):        
@@ -247,11 +236,11 @@ def is_dir(path):
 if __name__ == '__main__':
     global STATE
 
- #   STATE.ChangeState('Idle')
-#    c = Camera()
+    STATE.ChangeState('Idle')
+    c = Camera()
 
-  #  file = c.SendPicture()
-   # print(file)
+    file = c.SendPicture()
+    print(file)
 #    img_data = requests.get(file).content
 #    with open('image_name.jpg', 'wb') as handler:
 #        handler.write(img_data)   
