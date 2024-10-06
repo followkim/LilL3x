@@ -1,0 +1,13 @@
+sudo apt install -y python3-picamera2
+sudo apt install -y python3-cv2
+pip install opencv-python
+pip install pygame
+pip install SpeechRecognition
+pip install pyttsx3
+pip install openai
+pip install gtts
+pip install vosk
+sudo apt-get install libportaudio2
+pip install sounddevice
+pip install pvporcupine
+pip install pvrecorder
