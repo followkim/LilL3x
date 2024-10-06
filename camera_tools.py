@@ -7,7 +7,7 @@ from gpiozero import CPUTemperature
 
 from time import sleep
 from datetime import datetime
-from  error_handling import RaiseError
+from  error_handling import *
 import os
 import shutil
 from datetime import datetime, timedelta
@@ -15,15 +15,20 @@ import numpy
 import time
 from globals import STATE
 from config import cf
+#from speech_tools import PlaySound
+from deepface import DeepFace
 import re
+
+LogInfo("Camera Loading...")
 
 class Camera:
 
     cam = None
 
     def __init__(self):
-        Picamera2.set_logging(Picamera2.ERROR)
         try:
+
+            os.environ["LIBCAMERA_LOG_LEVELS"] = "3"
             self.cam = Picamera2()
             video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"},
                                                  lores={"size": (320,240), "format": "YUV420"})
@@ -116,7 +121,7 @@ class Camera:
         return icu>=cf.g('MOTDET_THRESH')
 
     #https://github.com/raspberrypi/picamera2/blob/main/examples/opencv_face_detect.py
-    def _look_for_user(self, secs=cf.g('LOOK_SECS_TO_DEFAULT'), pictPath=""):
+    def _look_for_user(self, secs=cf.g('LOOK_SECS_TO_DEFAULT'), pictPath=False):
         global STATE
         # see https://www.geeksforgeeks.org/opencv-python-program-face-detection/
         haarFolder = './haarcascades/'
@@ -128,7 +133,7 @@ class Camera:
         eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml')  
         icu = 0
         end = datetime.now() + timedelta(seconds=secs)
-        
+        ret = False
         # loop runs if capturing has been initialized. 
         while end > datetime.now() and not STATE.ShouldWake() and icu<cf.g('ICU_THRESH'):
           
@@ -145,28 +150,19 @@ class Camera:
             # Detects faces of different sizes in the input image 
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
             if len(faces)>0:
+                LogDebug(f"CISU: {str(faces)}")
                 icu = icu+1
-                if pictPath and icu==1:
-                    filename = pictPath
-                    if is_dir(filename):
-                        filename = pictPath+'capture_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
-                    try:
-                        self.cam.capture_file(filename)
-                        print(f"Writing file '{filename}'")
-                    except Exception as e:
-                        RaiseError(f"_look_for_user: Error writing file '{filename}' ({str(e)})")
-        return icu>=cf.g('ICU_THRESH')
-
-
+                if pictPath and icu==cf.g('ICU_THRESH'):
+                    ret = self._take_picture(pictPath)
+        if pictPath and icu>=cf.g('ICU_THRESH'): return ret
+        else: return icu>=cf.g('ICU_THRESH')
 
     def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), seeUser=False):
-        path = self.TakePictures(1, fname)
+        path = self.TakePictures(1, fname, seeUser=seeUser)
         return path
 
     def TakePictures(self, num=4, fname=cf.g('TEMP_PATH_DEFAULT'),  dur=0.25, seeUser=False):
         filename = ""
-        retVal = False
-        cisu = True
         # if there is not a folder create ii
         if not os.path.exists(os.path.dirname(fname)) :
             
@@ -176,33 +172,30 @@ class Camera:
                 return RaiseError(f"TakePictures: Create Directory '{os.path.dirname(fname)}' failed ({str(e)})")
         #write the file
         for x in range(num):
-            if is_dir(fname):
-                filename = fname+'capture_'+str(x)+'_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
-            else:
-                filename = fname
-            print(f"Writing file '{filename}'")
+            filename = fname
             if seeUser:
                 cisu = self.CanISeeYou(cf.g('LOOK_SECS_TO_DEFAULT'), filename)
-            if cisu:
+                if not cisu: filename = False
+            else:
                 try:
                     if self.GetCamera():
-                        self.cam.capture_file(filename)
+                        filename = self._take_picture(filename)
+                        #PlaySound(cf.g("CAMERA_CLICK_MP3"))
                         self.CloseCamera()
-                        retVal = filename
+                        sleep(dur)
                 except Exception as e:
-                    RaiseError(f"TakePicutres: Error writing file '{filename}' ({str(e)})")
+                    LogError(f"TakePicutres: Error writing file '{filename}' ({str(e)})")
                     return False
-        return retVal
+        return filename
 
     def UploadPicture(self, pict_path):
-        if not pict_path:
-            return pict_path
-
-        URL = 'http://el3ktra.el3ktra.net/upload.php'
-        files={'fileToUpload': open(pict_path,'rb')}
-        payload = {'submit': 'Upload Image'}
-        r = requests.post(URL, data=payload, files=files)
-        url = r.text
+        URL = False
+        if pict_path and os.path.isfile(pict_path):
+            URL = 'http://el3ktra.el3ktra.net/upload.php'
+            files={'fileToUpload': open(pict_path,'rb')}
+            payload = {'submit': 'Upload Image'}
+            r = requests.post(URL, data=payload, files=files)
+            url = r.text
         return url
 
     def _take_picture(self, fname):        
@@ -210,23 +203,48 @@ class Camera:
             filename = fname+'capture_'+str(x)+'_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
             filename = fname
-        print(f"Writing file '{filename}'")
         if self.cam:
-            self.cam.capture_file(filename)
-            print(f"took pict '{filename}'")
-            return filename
-        else:
-            return False
+            try:
+                self.cam.capture_file(filename)
+                LogInfo(f"took pict '{filename}'")
+                return filename
+            except Exception as e:
+                LogError(f"Couldn't take pict '{filename}': str(e)")
+        return False
     
     def SendPicture(self):
-        return self.UploadPicture(self.TakePicture())
+        path = self.TakePicture()
+        if path: return self.UploadPicture(path)
 
+    def GetEmotion(self):
+        mood = ""
+        imagePath = self.TakePicture(seeUser=True)
+        if imagePath:
+            try:
+                objs = DeepFace.analyze(img_path=imagePath,  actions = ['emotion'])
+                if objs: mood = objs[0]['dominant_emotion']
+            except:
+                pass
+            if mood=="neutral": mood=""
+        else:
+             LogInfo(f"Unable to take picture for emotion")
+        return mood
+
+    def WhoAmI(self):
+        user_img = self.TakePicture(seeUser=True)
+        if user_img:
+           try:
+               dfs = DeepFace.find(img_path=user_img, db_path="people/")
+               LogDebug(str(dfs))
+           except: 
+               pass
+        return
+    
     def Close(self):
         return
 
     def SharePict():
         fname=self.TakePicture()
-        print(fname)
         return fname
 
 def is_dir(path):
@@ -238,9 +256,17 @@ if __name__ == '__main__':
 
     STATE.ChangeState('Idle')
     c = Camera()
+    print("Who are you?")
+    name = input()
+    if name:
+        print("Smile!!")
+        path = c.TakePicture(f'people/{name}.jpg', seeUser=True)
+        print("Url: "+c.UploadPicture(path))
+     
+    print(c.WhoAmI())
 
-    file = c.SendPicture()
-    print(file)
+#    print(c.GetEmotion())
+#    print(file)
 #    img_data = requests.get(file).content
 #    with open('image_name.jpg', 'wb') as handler:
 #        handler.write(img_data)   
