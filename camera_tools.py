@@ -4,6 +4,7 @@ import cv2
 import requests
 import base64
 from gpiozero import CPUTemperature
+import pygame
 
 from time import sleep
 from datetime import datetime
@@ -24,7 +25,7 @@ LogInfo("Camera Loading...")
 class Camera:
 
     cam = None
-
+    shutter = 0
     def __init__(self):
         try:
 
@@ -33,6 +34,8 @@ class Camera:
             video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"},
                                                  lores={"size": (320,240), "format": "YUV420"})
             self.cam.configure(video_config)
+            self.shutter = pygame.mixer.Sound(cf.g('CAMERA_CLICK_MP3'))
+
         except Exception as e:
             RaiseError(f"Unable to init Picamera: {str(e)}")
             self.cam = False
@@ -189,22 +192,23 @@ class Camera:
         return filename
 
     def UploadPicture(self, pict_path):
-        URL = False
+        url = False
         if pict_path and os.path.isfile(pict_path):
-            URL = 'http://el3ktra.el3ktra.net/upload.php'
+            ul_url = 'http://el3ktra.el3ktra.net/upload.php'
             files={'fileToUpload': open(pict_path,'rb')}
             payload = {'submit': 'Upload Image'}
-            r = requests.post(URL, data=payload, files=files)
+            r = requests.post(ul_url, data=payload, files=files)
             url = r.text
         return url
 
     def _take_picture(self, fname):        
         if is_dir(fname):
-            filename = fname+'capture_'+str(x)+'_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
+            filename = fname+'capture_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
             filename = fname
         if self.cam:
             try:
+                self.shutter.play()
                 self.cam.capture_file(filename)
                 LogInfo(f"took pict '{filename}'")
                 return filename
@@ -254,6 +258,7 @@ def is_dir(path):
 if __name__ == '__main__':
     global STATE
 
+    pygame.mixer.init()
     STATE.ChangeState('Idle')
     c = Camera()
     print("Who are you?")
@@ -261,8 +266,10 @@ if __name__ == '__main__':
     if name:
         print("Smile!!")
         path = c.TakePicture(f'people/{name}.jpg', seeUser=True)
-        print("Url: "+c.UploadPicture(path))
-     
+        if path: print("Url: "+c.UploadPicture(path))
+        else: 
+            print("I couldn't see you!") 
+            pygame.mixer.init()
     print(c.WhoAmI())
 
 #    print(c.GetEmotion())
