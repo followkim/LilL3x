@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 import os
 import sys
+
+os.chdir('/home/el3ktra/LilL3x/')
+sys.path.append('/home/el3ktra/LilL3x/')
+#print("New Working Directory:", os.getcwd())
+
+
+   # Add the directory containing your module to sys.path
+
 import inspect
 from pathlib import Path
 import logging
@@ -13,32 +21,28 @@ from multiprocessing import Process
 import signal
 import sys
 from globals import STATE
-import wake_word
-from error_handling import RaiseError
+import vosk_wake
+#import wake_word
+from error_handling import *
 from config import cf
 from gpiozero import CPUTemperature
 import RPi.GPIO as GPIO
 BUTTON = 17
 
+currentdir = '/home/el3ktra/LilL3x/'
+sys.path.insert(0, currentdir)
 from speech_tools import speech_generator
 from listen_tools import speech_listener
 from camera_tools import Camera
+from face import Face
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-print(currentdir)
-
-sys.path.insert(0, currentdir+'/raspberryPi/')
-from rasp_leds import LEDS
-
-# import AI sub modules
+LogInfo("Importing AI...")
 sys.path.insert(0, currentdir+'/beings/')
 from AI_Dude import AI_Dude
 from AI_Openai import *
+from AI_Ollama import *
 from AI_Kindriod import AI_Kindriod
 from AI_Gemini import AI_Gemini
-#from AI_Bard import AI_Bard
-
-# reset the current direectory back to root
 sys.path.insert(0, currentdir)
 
 # how many seconds we should sleep in each state.
@@ -60,41 +64,50 @@ timeout_secs = {
 class lill3x:
 
     ai = False
+    ww = 0
     ww_thread = 0
     button_thread = 0
+    animate_thread = 0
+    config_thread = 0
     def __init__(self):
-        print("LilL3x INIT")        
+        LogInfo("Starting LilL3x")        
         # create the hardware objects
         try:
             self.mouth = speech_generator()
         except Exception as e:
             RaiseError("AI():Could not init speech generator. " + str(e))
+            STATE.ChangeState('Quit')
             return # fatal
         try:
             self.ears = speech_listener()
         except Exception as e:
             RaiseError("AI():Could not init listener. " + str(e))
+            STATE.ChangeState('Quit')
             return # fatal
         try:
             self.eyes = Camera()
         except Exception as e:
             RaiseError("AI():Could not init camera. " + str(e))
+
         try:
-            self.leds = LEDS()
-#            self.leds = Pixels()
+            self.face = Face()
         except Exception as e:
-            RaiseError("AI():Could not init LEDs. " + str(e))
+            RaiseError("AI():Could not init Display. " + str(e))
 
         # get AI (depending on config)
         try:
             self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
-            self.ai.SetBody(self.ears, self.eyes, self.mouth, self.leds)
+            self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
 
         except Exception as e:
             RaiseError("Unable to create AI: "+ str(e))
+            STATE.ChangeState('Quit')
+            return # fatal
         if not self.ai:
             RaiseError("Unable to create AI: init failed")
- 
+            STATE.ChangeState('Quit')
+            return
+
         STATE.ChangeState('Hello')
         
 
@@ -102,27 +115,39 @@ class lill3x:
         GPIO.setup(BUTTON, GPIO.IN)
 
         # finally start the wakeword thread
-        self.ww_thread = threading.Thread(target=wake_word.Wake_word_thread, args=(self.mouth,))
+        self.ww = vosk_wake.vosk_wake(self.face)
+        self.ww_thread = threading.Thread(target=self.ww.listen)
         self.ww_thread.start()
         self.button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
         self.button_thread.start()
-#        self.ww_thread.join()
+        self.animate_thread = threading.Thread(target=self.face.screen.AnimateThread)
+        self.animate_thread.start()
+        self.config_thread = threading.Thread(target=cf.config_thread)
+        self.config_thread.start()
+#        self.config_thread.join()
 
     def Loop(self):
-        while STATE.GetState() != 'Quit':
+        LogInfo("Starting Main Loop")
+        while not STATE.CheckState('Quit'):
             temp = CPUTemperature().temperature
             if temp >= cf.g('CPU_MAX_TEMP'):
                 if temp >= 80:
-                    self.say(f"I am {temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
+                    self.ai.say(f"I am {temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
                     RaiseError(f"Heat error: {temp}.  Quitting.")
                     STATE.ChangeState('Quit') 
-                else: sleep(2)
-            eval("self."+STATE.GetState()+"()")
-        self.Quit()
+                else:
+                    RaiseError(f"Temp Warning: {temp}") 
+                    sleep(2)
+            try:
+                eval("self."+STATE.GetState()+"()")
+            except Exception as e:
+                RaiseError(f"Loop(): Uncaught Exception: {str(e)}")
+                STATE.ChangeState('Quit')
+        self.Close()
 
     def ChangeAI(self):
         STATE.ChangeState('Active')
-        print(f"Changing AI to {STATE.data}.")
+        LogInfo(f"Changing AI to {STATE.data}.")
         new_ai = 0
 
         try:
@@ -140,7 +165,7 @@ class lill3x:
         # were able to create the AI!
         self.ai.Close()
         self.ai = new_ai
-        self.ai.SetBody(self.ears, self.eyes, self.mouth, self.leds)
+        self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
 
         STATE.ChangeState('Hello')
         return True
@@ -152,23 +177,21 @@ class lill3x:
         STATE.ChangeState('Active')
         return
 
-    def Quit(self):
-#       self.ww_thread.kill()  # will exit on its own
-        return
-
     def Close(self):
        self.mouth.Close()
        self.ears.Close()
        self.eyes.Close()
-       self.leds.Close()
+       self.face.Close()
        self.ai.Close()
        cf.WriteConfig()
+       CloseLog()
        exit()
 
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
-      #  print("Wake State")
-      #  self.ai.say(self.ai.WakeMessage())
+        wp = self.ww.GetWakePhrase()
+        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.g('AINAME').lower()}$", wp.lower()):
+            self.ai.say(self.ai.respond(wp))
         STATE.ChangeState('Active')
  
     # Active: User is present and activly talking to ai without need for wakeword
@@ -176,6 +199,8 @@ class lill3x:
     def Active(self):
         user_input = self.ai.listen()
         if user_input:
+            update_thread = threading.Thread(target=self.ears.update)
+            update_thread.start()
             self.ai.say(self.ai.respond(user_input))
         else:
             STATE.ChangeState('ActiveIdle')
@@ -190,11 +215,10 @@ class lill3x:
 
         if self.eyes.IsDark():
              STATE.ChangeState('SleepState')
-        elif self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
-            self.leds.purple()
+        elif not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
             thought = self.ai.Interact()  
-            self.leds.off()
             if thought:
+                self.ears.update()  # get ambient noise
                 self.ai.say(thought)
                 user_input = self.ai.listen()
                 if user_input:
@@ -231,6 +255,7 @@ class lill3x:
  
         # user returned
         if not self.eyes.IsDark() and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+            self.ears.update()  # get ambient noise
             self.ai.say(self.ai.Greet())
             user_input = self.ai.listen()
             if user_input:
@@ -268,18 +293,21 @@ class lill3x:
 
     def ButtonThread(self, audio):
         while STATE.GetState() not in ('Quit'):
-            if not STATE.IsInteractive() and not (GPIO.input(BUTTON)):
+            if not (GPIO.input(BUTTON)):
                 STATE.ChangeState('Wake')
-                print("Button Wake")
+                LogInfo("Button Wake")
                 if not audio.IsBusy():
                     audio.PlaySound(cf.g('WAKE_MP3'))
                 while (GPIO.input(BUTTON)):
+                     sleep(0.25)
                      continue
             else:
-               sleep(1)
-        print("ButtonThread exit.")
+               sleep(0.5)
+        LogInfo("ButtonThread exit.")
 
 ## THREADING INFO
-os.chdir(sys.path[0])
+#os.chdir('/home/el3ktra/LilL3x/')
+# Get the current working directory
+
 l3x = lill3x()
 l3x.Loop()
