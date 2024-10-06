@@ -9,16 +9,9 @@
 # specific language governing permissions and limitations under the License.
 #
 
-import argparse
-import struct
-import sys
-from time import sleep
-from threading import Thread
-#from config import config
 from gpiozero import LED
-
 from apa102 import APA102
-from config import cf
+#from config import cf
 
 COLORS_RGB = {
     'blue':(0, 0, 255),
@@ -46,7 +39,7 @@ class LEDS:
             color = COLORS_RGB[inColor]
         else:
             color = inColor
-        color = [int(x*cf.g('BRIGHTNESS')) for x in color]
+ #       color = [int(x*cf.g('BRIGHTNESS')) for x in color]
         for i in range(12):
             self.driver.set_pixel(i, color[0], color[1], color[2])
         try:
@@ -83,15 +76,5 @@ class LEDS:
         self.yellow()
 
     def Close(self):
+        self.off()
         self.power.off()
-
-if __name__ == '__main__':
-
-     l = LEDS()
-     for k in COLORS_RGB.keys():
-         print(k)
-         l.SetColor(k)
-         sleep(1)
-     l.red()
-     sleep(1)
-     l.off()
