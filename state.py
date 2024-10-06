@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
-import traceback 
-
+from time import sleep
+import traceback
+from error_handling import *
 STATE = 0
 MIC_STATUS = 0
 
@@ -23,7 +24,7 @@ class State:
         if self.current == 'Wake' and new_state != 'Active':
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
         elif self.current not in ('Quit'):  # can't change out of quit state
-            print(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
+            LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
             self.current = new_state
             self.last_dt = datetime.now()
         return self.current
@@ -48,11 +49,11 @@ class MicStatus:
 
     def TakeMic(self, timeout=3):
         self.request_mic = True
-        ud = datetime.now() + timedelta(seconds=timeout)
+        if timeout: ud = datetime.now() + timedelta(seconds=timeout)
         while not self.mic_free:          
             self.request_mic = True    ## ask WW for the mic 
-            if datetime.now() > ud:
-                print("Unable to get mic (timeout)")
+            if timeout and datetime.now() > ud:
+                LogError("Unable to get mic (timeout)")
                 return False
             continue
         self.mic_free = False
@@ -69,9 +70,13 @@ class MicStatus:
 
     def MicFree(self):
         return self.mic_free
-    
+
+    def WaitMic(self):
+        while not self.mic_free:
+            sleep(0.5)
+        return self.mic_free
+
     def CanUse(self):
- #       print(f"Listen_tools:CanUse: self.mic_free={self.mic_free}, self.request_mic={self.request_mic}")
         return (not self.request_mic and self.mic_free)
         return True
     
