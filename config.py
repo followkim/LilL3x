@@ -2,12 +2,13 @@ from datetime import datetime
 import os.path
 import re
 from word2number import w2n
-
-from state import STATE
+from error_handling import *
+from globals import STATE
+from time import sleep
 
 class Config:
-    configFileBK = "/home/el3ktra/LilL3x/config/config.txt.default"
-    configFile = "/home/el3ktra/LilL3x/config/config.txt"
+    configFileBK = "./config/config.txt.default"
+    configFile = "./config/config.txt"
 
     config= {}
     config_desc = {}
@@ -33,14 +34,15 @@ class Config:
 
     def LoadConfig(self):
         # variables that would cause a restart
-        currAI = self.config.get('AIENGINE', '')
-        currentListen = self.config.get('LISTEN_ENGINE', '')
-        currentSpeech = self.config.get('SPEECH_ENGINE', '')
-        
+        currAI = self.config.get('AI_ENGINE','')
+        currentListen = self.config.get('LISTEN_ENGINE','')
+        currentSpeech = self.config.get('SPEECH_ENGINE','')
         type_f = {
             'int' : self.to_int,
             'str' : self.to_str,
             'path' : self.to_str,
+            'key' : self.to_str,
+            'blob' : self.to_str,
             'dt' : self.to_dt
         }
         
@@ -60,12 +62,13 @@ class Config:
                             self.config[key]=type_f[type](val)
                             self.config_desc[key]=type+"|"+desc
                         except Exception as e:
-                            print(f'Error inserting {key}:{val}: {str(e)}')
+                            LogWarn(f'Error inserting {key}:{val}: {str(e)}')
 
         self.lastLoad = datetime.now()
-        if currAI != self.config['GTTS_VOICE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
+        if currAI != self.config['AI_ENGINE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
             # need to change the engines here
             return False
+        SetErrorLevel(cf.g('DEBUG'))
         self.WriteConfig()
         return True
 
@@ -78,6 +81,7 @@ class Config:
                 file.write(key + "|" + self.to_str(self.config[key]) + "|" + self.to_str(self.config_desc.get(key, 'str')) + "\n")
         file.close()
         self.lastLoad = datetime.now()  # theself.configfile is up to date
+        return True
 
     def IsConfigDirty(self):
         f_dt = datetime.fromtimestamp(os.path.getmtime(self.configFile))
@@ -89,30 +93,43 @@ class Config:
         try:
             return self.config[key]
         except Exception as e:
-            print(f"Config.g ERR: {key} not found! ({str(e)})")
+            LogWarn(f"Config.g ERR: {key} not found! ({str(e)})")
             return default
 
     def s(self, key, val):
         try:
             if re.search(r"^int", self.config_desc[key]):
                 val = w2n.word_to_num(val)
-            print(f"Setting {key} to {val}.")
+            LogInfo(f"Setting {key} to {val}.")
             self.config[key] = val
             self.WriteConfig()  # save whenever dirty
+            SetErrorLevel(cf.g('DEBUG'))
             return val
         except Exception as e:
-            print(f"Config.s ERR: {key} not found! ({str(e)})")
+            LogWarn(f"Config.s ERR: {key} not found! ({str(e)})")
             return False
 
 
+    def config_thread(self):
+        while not STATE.CheckState('Quit'):
+            if self.IsConfigDirty():
+                LogInfo("Reloading config")
+                self.LoadConfig()
+            sleep(15)
+
+currentdir = '/home/el3ktra/LilL3x/'
+sys.path.insert(0, currentdir)
+
 
 cf = Config()
-print("Loaded Configuration.")
+LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
     cf.config['fdafdasfdsa']='test'
     print(f'WriteConfig returned {cf.WriteConfig()}')
-    print(str(cf.config))
+    print(str(cf.g('fdafdasfdsa')))
     print(f'LoadConfig returned {cf.LoadConfig()}')
+    print(str(cf.g('fdafdasfdsa')))
     print(str(cf.config))
+    cf.config_thread()
