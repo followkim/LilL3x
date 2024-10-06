@@ -11,3 +11,13 @@ sudo apt-get install libportaudio2
 pip install sounddevice
 pip install pvporcupine
 pip install pvrecorder
+pip install word2number
+pip install gpiozero
+pip install rpi.gpio
+
+sudo apt install -y python3-libcamera python3-kms++ libcap-dev
+pip install picamera2
+pip install libcamera
+
+pip install llamapi
+pip install ollama
