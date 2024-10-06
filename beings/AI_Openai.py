@@ -8,35 +8,35 @@ import re
 import openai
 import llamaapi
 from AI_class import AI
-
+from error_handling import *
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
 from config import cf
 
 function_tools =  [
-    {
-    "type":"function",
-    "function": {
-        "name": "SetEvent",
-        "description": "Return the date and time for an upcoming event.  Call when a user describes a future event, for example when the user says 'Have have a doctors appoint tomarrow'",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "event_name": {
-                    "type": "string",
-                    "description": "The description of the event.",
-                },
-                "event_date": {
-                    "type": "string",
-                    "description": "The date and (if applicable) the time",
-                },
-            },
-            "required": ["event_name", "event_date"],
-            "additionalProperties": False,
-        }
-     }
-  },
+#    {
+#    "type":"function",
+#    "function": {
+#        "name": "SetEvent",
+#        "description": "Return the date and time for an upcoming event.  Call when a user describes a future event, for example when the user says 'Have have a doctors appoint tomarrow'",
+#        "parameters": {
+#            "type": "object",
+#            "properties": {
+#                "event_name": {
+#                    "type": "string",
+#                    "description": "The description of the event.",
+#                },
+#                "event_date": {
+#                    "type": "string",
+#                    "description": "The date and (if applicable) the time",
+#                },
+#            },
+#            "required": ["event_name", "event_date"],
+#            "additionalProperties": False,
+#        }
+#     }
+#  },
   {
     "type":"function",
     "function": {
@@ -47,7 +47,7 @@ function_tools =  [
             "properties": {
                 "picture_context": {
                     "type": "string",
-                    "description": "The description of the picture subject.",
+                    "description": "The description and context of the picture subject.",
                 },
             },
             "required": ["picture_subject"],
@@ -59,7 +59,7 @@ function_tools =  [
 
 
 
-class AI_OpenAI(AI):
+class AI_openAI(AI):
     base_url = ""
     api_key = ""
     name = ""
@@ -73,19 +73,19 @@ class AI_OpenAI(AI):
         else:
             self.client = openai.Client(api_key=self.api_key,)
         self.memory = [ 
-            {"role": "system", "content": f"You name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
+            {"role": "system", "content": f"Your name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
             {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
         ]
-        print(f"AI {self.name}, ({self.model}) loaded.")
+        LogInfo(f"AI {self.name}, ({self.model}) loaded.")
         return
 
     def respond(self, user_input, canParaphrase=False):
-        self.leds.thinking()
+        self.thinking()
         this_model = self.model
         class_resp = AI.respond(self, user_input)  # will return either a response
         (user_input, max_tokens, tools) = self.HandleResponse(class_resp, user_input)
         if not user_input:
-            self.leds.off()
+            self.off()
             return class_resp #hacky
 
         reply = ""
@@ -101,11 +101,14 @@ class AI_OpenAI(AI):
 
             if tools:
                 args['tools'] = tools
+            LogDebug("Input: " + str(self.memory[-1]))
             response = self.client.chat.completions.create(**args)
-            print(str(response))
+            LogDebug("\n\nResponce: " + str(response))
+
             if response.choices[0].message.content:
                 reply = response.choices[0].message.content
                 self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
+                self.TrainData(user_input, reply)
 
             if (response.choices[0].finish_reason) == "tool_calls":
                 tool_call =  response.choices[0].message.tool_calls[0]
@@ -125,7 +128,7 @@ class AI_OpenAI(AI):
             reply = f"There was an error talking to OpenAI. {str(e)}"
             self.memory.pop()  #get rid of that bad membry!
 
-        self.leds.off()
+        self.off()
         return str(reply.encode('ascii', 'ignore').decode("utf-8"))
 
     #NOte: this function alters the memory
@@ -167,10 +170,9 @@ class AI_OpenAI(AI):
 
         #reply is a picture
         elif user_input[:1] == '#': #picture-- TODO!!!
-             print(user_input)
-             (x, user_input, url) = user_input.split('#')
+             (x, user_input, file, url) = user_input.split('#')
              self.memory.append({"role": role,
-                  "content": [{"type": "text", "text": user_input + ", briefly describe the subject and say what you think"}, 
+                  "content": [{"type": "text", "text": user_input + ", what do you see and what do you think"}, 
                               {"type": "image_url", "image_url": {"url": url,}, },],
                   })
 
@@ -198,34 +200,27 @@ class AI_OpenAI(AI):
     def Think(self):      
         return AI.Think(self)
         
-    def InitiateConvo(self):
-        print("initialte convo")
-        ret = self.ProcessMessages()
-        if not ret:
-            ret = f"!Ask the user how thier {AI.TimeOfDay(self)} is going."
+    def InitiateConvo(self, topic=""):
+        LogInfo("initialte convo")
+        if topic: ret = f"!The user looked {topic}, ask about that."
+        else: ret = f"!Ask the user how thier {AI.TimeOfDay(self)} is going."
 #        return ret
         return self.respond(ret)
-
-    # called from init convo -- do not process (InitCOnvo will process)
-    def ProcessMessages(self):
-       ret = ""
-       for m in  self.messages.GetMessages():
-            message = m[1]
-#            ret = responces_past[m[0]] % message
-       return ret
 
 
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
         return "!"+AI.SetEvent(self, event)
 
     def TakePicture(self, context):
-        print("Calling Taking Picture from ChatGPT")
-        url = self.eyes.SendPicture()
+        LogInfo("Calling Taking Picture from ChatGPT")
+        file = self.eyes.TakePicture()
+        url = self.eyes.UploadPicture(file)
+        LogInfo(f"URL: {url}")
         try:
-            return f"#{eval(str(context)['picture_context'])}#{url}"
+            return f"#{eval(str(context['picture_context']))}#{file}#{url}"
         except Exception as e:
-            print("eval() Didn't work: " + str(e))
-        return f"#{context}#{url}"
+            LogWarn("eval() Didn't work: " + str(e))
+        return f"#{context}#{file}#{url}"
  
     def Intruder(self):
         AI.Intruder(self)
@@ -239,33 +234,28 @@ class AI_OpenAI(AI):
             {"role": "system", "content": cf.g('BACKSTORY')}, 
             {"role": "system", "content": memStr},
         ]
-        print(memStr)
         cf.s('HISTORY', memStr)
         return memStr
 
     def Close(self):
        AI.Close(self)
        self.SaveMemories()
-       # Remember the last convo
        return
 
-
-    def get_emotion(self):
-        return self.respond("in one word does user feel happy, sad, afraid or angry?")
-
-class AI_ChatGPT(AI_OpenAI):
+class AI_ChatGPT(AI_openAI):
 
     model= cf.g('CHATGPT_MODEL')
     slow_model=cf.g('CHATGPT_MODEL_SLOW')
     api_key=cf.g('OPEN_AI_API_KEY')
-    name = "Chat GPT"
-    tools = False # turn this on if asked
+    name = "ChatGPT"
+    tools = function_tools # False # turn this on if asked
     token_mult = 1
-
+    training = True
+    
     def __init__(self):
-        AI_OpenAI.__init__(self)
+        AI_openAI.__init__(self)
 
-class AI_Llama(AI_OpenAI):
+class AI_Llama(AI_openAI):
     base_url = "https://api.llama-api.com"
     api_key = cf.g('LLAMA_KEY')
     model =cf.g('LLAMA_MODEL')
@@ -284,29 +274,6 @@ class AI_Qwen(AI_Llama):
     slow_model = cf.g('QWEN_MODEL_SLOW')
     name = "Qwen"
 
-class AI_Local(AI_OpenAI):
-    base_url = "http://localhost:11434/v1"
-    api_key = "unused"
-    model = 'qwen2:0.5b'
-    slow_model=model
-    name = "Local"
-
-class AI_Corgi(AI_OpenAI):
-    base_url = cf.g('CORGI_URL')
-    api_key = cf.g('CORGI_API_KEY')
-    model = cf.g('CORGI_MODEL')
-    slow_model=model
-    name = "Corgi"
-
-class AI_El3ktra(AI_OpenAI):
-    base_url = 'http://el3ktra.net:11434/v1'
-    base_url = 'http://192.168.0.128:11434/v1'
-    api_key = 'el3ktra'
-    model = 'qwen2'
-    slow_model=model
-    name = "Elektra"
-
-
 if __name__ == '__main__':
 #    from camera_tools import Camera
 #    eyes = Camera()
@@ -324,8 +291,10 @@ if __name__ == '__main__':
         def off(self):
              return
  
-    ai = AI_El3ktra()
+ 
+    ai = AI_ChatGPT()
     ai.leds = LEDS()
+    ai.face = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()
 #    ai.WakeMessage()
@@ -333,6 +302,12 @@ if __name__ == '__main__':
 #    dtd = timedelta(seconds=65)
 #    ai.PrettyDuration(dtd)
     user_inp  = "hello"
+    print(ai.Hello())
+    user_inp = "#this is a picture of me, waht do you think?#temp/capture_0_20240912133342132801.jpg#http://el3ktra.el3ktra.net/uploads/capture_0_20240911223907988147.jpg"
+    out = ai.respond(user_inp)
+    print(f'AI: {out}')
+
+
     while user_inp != "quit":
         print("User: ", end="")
         user_inp = input()
@@ -340,4 +315,3 @@ if __name__ == '__main__':
         print(f'AI: {out}')
 
     ai.Close()
-

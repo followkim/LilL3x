@@ -10,15 +10,13 @@ import random
 import threading
 import socket
 from subprocess import check_output
-
 # import parent modules
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-print(f'Importing modules from {os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))}')
-
 #from openface import ProcessOpenFace
+from error_handling import *
 from messages import Messages
 from globals import STATE
 from config import cf
@@ -32,19 +30,22 @@ class AI:
     ears = 0
     eyes =0
     mouth = 0
-    leds =0
+    face = 0
     has_auth = False
+    training = False
+
+
     def __init__(self):
-        print("AI_class:init()")
         self.last_user_interaction = datetime.now()
         self.last_ai_interaction = datetime.now()
         self.has_auth = True
 
-    def SetBody(self, ears, eyes, mouth, leds):
+    def SetBody(self, ears, eyes, mouth, face):
         self.ears = ears
         self.eyes = eyes
         self.mouth = mouth
-        self.leds = leds
+        self.face = face
+        self.face.message(f"Hello, {cf.g('USERNAME')}")
 
     def respond(self, txt):
         if not txt:
@@ -70,9 +71,10 @@ class AI:
         if re.search(r"^what (day|date) is it\s*", txt.lower()):
             return "It's " + datetime.now().strftime("%A, %B %d")
 
-        if re.search(r"^what('s| is) (my|our|your|the) ip( address)*$", txt.lower()):
+        if re.search(r"^what('s| is) (my|our|your|the) ip( address)?$", txt.lower()):
             ips = check_output(['hostname', '--all-ip-addresses'])
-            return ips.split()[0].decode()
+            self.face.message(ips.split()[0].decode())
+            return "My IP address is " + ips.split()[0].decode()
 
         if re.search(r"^max (idle|idol)$", txt.lower()): 
             self.last_user_interaction = self.last_user_interaction + timedelta(minutes=360)
@@ -98,11 +100,14 @@ class AI:
 
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
                 re.search(r"^(hey )?look at (this|that)$", txt.lower())):
-            pict = self.eyes.SendPicture()
-            if pict:
+            path = self.eyes.TakePicture()
+#            pict_path = self.eyes.TakePicture()
+#            pict = open(pict_path,'rb')
+            if path:
+                url  = self.eyes.UploadPicture(path)
                 self.say("What is this a picture of?")
-                desc=self.listen()
-                return '#'+desc+'#'+pict
+                desc = self.listen()
+                return f'#{desc}#{path}#{url}'
             else:
                 return "Sorry, I couldn't take a picture"
 
@@ -118,14 +123,16 @@ class AI:
                 STATE.data = "Kindriod"
             elif re.search(r"(gwen|quinn)", newState.lower()):
                 STATE.data = "Qwen"
+            elif re.search(r"(ele(k|c)tra|alexa)", newState.lower()):
+                STATE.data = "El3ktra"
             else:
                 STATE.data = newState
             return "Goodbye"  # have the AI say goodbye
            
-        if re.search(r"^(set|switch|change) (your |the )?(model)$", txt):
-            self.say("Please type in the new model to use:")
-            self.model = input()
-            return f"Switched model to {self.model}."
+#        if re.search(r"^(set|switch|change) (your |the )?(model)$", txt):
+#            self.say("Please type in the new model to use:")
+#            self.model = input()
+#            return f"Switched model to {self.model}."
 
         if re.search(r"^(set|switch|change) (your |the )?(voice|speech engine) to (.*)$", txt):
             (ret) = re.compile("^.* to (.*)$").match(txt).groups()
@@ -152,11 +159,11 @@ class AI:
 
 
 
-        if re.search(r"^(load|import) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
-            return(cf.Loadconfig, "Done", "I couldn't load the config file")
+        if re.search(r"^((re)?load|import) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+            return(self.YesNo(cf.LoadConfig(), "Configuration variables updated.", "I couldn't load the config file"))
 
         if re.search(r"^(save|write|export) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
-            return(cf.Writeconfig, "Done", "I couldn't write the config file")
+            return(self.YesNo(cf.WriteConfig(), "Configuration variables saved.", "I couldn't write the config file"))
 
         if re.search(r"^what is (the |your )?(.*) set to$", txt.lower()):
             (x, key) = re.compile("^what is (the |your )?(.*) set to$").match(txt).groups()
@@ -180,7 +187,7 @@ class AI:
 #        if re.search(r"^set (.*) to (.*)$", txt.lower()):
 #             return self.SetKey(txt)
         # perform Interactions (belo)
-        # switch speech/listening engines
+        # switch speech/listening enginespicture
         # reinstall software
         # reboot
 
@@ -195,41 +202,52 @@ class AI:
 
     # end config helpers
     def AreYouSure(self):
-        self.say("Are you sure?")        
+        self.say("Are you sure?")
         return self.listen() == "yes"
+
         #TODO: ask user at least twice if no yes/no
 
-    def say(self, txt):
+    def say(self, txt, asyn=False):
         self.last_ai_interaction = datetime.now()
         txt = self.StripActions(txt) # *sigh* remove actions
-        ret = self.mouth.say(txt, self.leds)
+        ret = self.mouth.say(txt, self.face, asyn=asyn)
         return ret
 
     def listen(self, beQuiet=False):
-        resp = self.ears.listen(beQuiet=False, leds=self.leds)
+        resp = self.ears.listen(face=self.face, beQuiet=beQuiet)
+        resp = resp.replace('Alexa', 'El3ktra')
         if resp and not beQuiet:
             last_user_interaction = datetime.now()
         return resp
 
+    def TrainData(self, user_input, reply):
+        if self.training:
+            filename = "training/AI_"+self.name + "_trn.dat"
+            f = open(filename, 'a')
+            f.write(user_input + "|" + reply.strip("\n") + "\n")
+            f.close()
+
     def Intruder(self):
         url = self.eyes.SendPicture()
-        print(f"INTRUDER!!! {url}")
+        LogConvo(f"INTRUDER!!! {url}")
         #email URL
         return
 
     def LookForUser(self, duration=10):
+        self.face.looking()
         ret = self.eyes.CanISeeYou(duration)
-        #print(f"LookForUser: {ret}")
+        LogInfo(f"LookForUser: {ret}")
+        self.face.off()
         return ret
 
     def Think(self):
-        self.leds.thinking()
+        self.face.thinking()
         if cf.IsConfigDirty():
             cf.LoadConfig()
         # Process OpenFace
         # get opinions on photos or messages
         # machine learning
-        self.leds.off()
+        self.face.off()
         return
 
     def Interact(self, dice=False):
@@ -248,20 +266,21 @@ class AI:
 
         # Try initiate convo based on past interactions
         if dice == 1:
-            print(f"Performing Interaction after {secs/60} minutes.")
+            self.face.thinking()
+            LogInfo(f"Performing Interaction after {secs/60} minutes.")
             
             #if self. the user is talking, evesdrop, otherwise try to start a convo
             if not self.ears.CanIHearYou():
-                return self.InitiateConvo()
+                return(self.InitiateConvo(topic=self.eyes.GetEmotion()))
 #            if self.ears.PlayingMusic():
 #                self.messages.SetMessage("music", something, datetime.now())
 
             else:
-                print("Can't Interact: Talking heard.  Evesdropping instead.")
+                LogInfo("Can't Interact: Talking heard.  Evesdropping instead.")
                 heard = self.ears.Evesdrop()
                 if heard:
                     self.messages.SetMessage("evesdrop", heard, datetime.now())
-                return
+            self.face.off()
         return
 
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
@@ -346,6 +365,7 @@ class AI:
                 continue    
             elif not exclude:
                 newStr += s
+        newStr = str(newStr.encode('ascii', 'ignore').decode("utf-8"))
         return newStr
 '''
     # these helpers should probably go into config.py TODO

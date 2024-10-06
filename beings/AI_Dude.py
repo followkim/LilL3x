@@ -26,7 +26,7 @@ responces_now = {
 class AI_Dude(AI):
 
     name = "Dude"
-
+    training = True
     def __init__(self):
         AI.__init__(self)
         print("Welcome to D.U.D.E!")
@@ -55,7 +55,9 @@ class AI_Dude(AI):
         # joke
         # google results
         # weather 
-        return cp[random.randint(0, len(cp)-1)]
+        reply= cp[random.randint(0, len(cp)-1)]
+        self.TrainData(user_input, reply)
+        return reply
 
     #ON Startup
     def Hello(self):
@@ -102,24 +104,18 @@ if __name__ == '__main__':
     STATE.ChangeState('Idle')
  
     ai = AI_Dude()
-    print(ai.InitiateConvo())
-    print(ai.ProcessMessages())
-
-    ai.messages.SetMessage('mood', 'sad', datetime.now())
-    ai.messages.SetMessage('evesdrop', 'i like pie', datetime.now())
-    ai.messages.SetMessage('mood', 'angry', datetime.now())
-    print(ai.ProcessMessages())
-
-
+    inp = ""
+    while inp != "quit":
+        inp = input()
+        print("AI: "+ ai.respond(inp))
+  
 
 
 
 
 
     
-#    ai.say("Hello!  ")
-#    imp = ai.listen()
-#    ai.say(f'You said {imp}')
+#    ai.say("Hello!  ") imp = ai.listen() ai.say(f'You said {imp}')
 
 #    print(f"Can I see you? {ai.LookForUser()}")
 #    print(f'Evesdrop: {ai.Interact(2)}') # set evesdrop

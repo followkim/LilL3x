@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import re
 import openai
 from AI_class import AI
+from error_handling import *
 import requests
 import json
 # import parent modules
@@ -24,11 +25,11 @@ class AI_Kindriod(AI):
     bearer_token = ''
     has_auth = False
     name = "Kindriod"
-
+    training = True
     def __init__(self):
         AI.__init__(self)
         self.Auth()
-        print("AI Kindriod Loaded") 
+        LogInfo("AI Kindriod Loaded") 
         return
 
     def Auth(self):
@@ -56,13 +57,13 @@ class AI_Kindriod(AI):
                     'clientType': 'CLIENT_TYPE_WEB', 'continueUrl': 'https://kindroid.ai/', 'canHandleCodeInApp': True}
                 email_responce = requests.post(email_url, headers=email_headers, data=json.dumps(email_data))
                 if email_responce.status_code == 400:
-                    print(f"OOb Code Request Failed: {email_responce.json()}")
+                    LogInfo(f"OOb Code Request Failed: {email_responce.json()}")
                     return False
 
-                print("Please give me the OobCode: ", end="")
+                RaiseError("Resent Oob code... check email and save in config file")
                 Oob=input()
             else:
-                print(f"Using Oob codee {Oob}")
+                LogInfo(f"Using Oob codee {Oob}")
             if not need_refresh:
                 refresh_token = cf.g('KINDRIOD_REFRESH_TOKEN')
 
@@ -77,12 +78,12 @@ class AI_Kindriod(AI):
                 }
                 refresh_response = requests.post(refresh_url, headers=refresh_headers, data=json.dumps(refresh_data))
                 if refresh_response.status_code == 400:
-                    print(f"Get Refresh failed: {refresh_responce.json()}")
+                    LogError(f"Get Refresh failed: {refresh_responce.json()}")
                     cf.s('KINDRIOD_REFRESH_TOKEN', '')
                     cf.s('KINDRIOD_OOB', '')  # OOB used up
                     return False
                 refresh_token = refresh_response.json().get("refreshToken")
-                print(f"Refresh Token: {refresh_token}")
+                LogInfo(f"Refresh Token: {refresh_token}")
                 self.AuthBearer()
         cf.s('KINDRIOD_OOB', Oob)
         cf.s('KINDRIOD_REFRESH_TOKEN', refresh_token)
@@ -114,10 +115,10 @@ class AI_Kindriod(AI):
 
         bearer_responce = requests.post(bearer_url, headers=bearer_headers, data=bearer_data)
         if bearer_responce.status_code == 400:
-            print(f"Bearer Token failed: {bearer_responce.json()}")
+            LogWarn(f"Bearer Token failed: {bearer_responce.json()}")
             return False
         self.bearer_token=bearer_responce.json().get("access_token")
-        print("Bearer Token retrieved successfully")
+        LogInfo("Bearer Token retrieved successfully")
         return True
 
     def respond(self, user_input, canParaphrase=True):
@@ -163,7 +164,7 @@ class AI_Kindriod(AI):
         responce = requests.post(chat_url, headers=chat_headers, data=json.dumps(chat_data))
         if responce.status_code == 200:
             reply = responce.text
-
+            self.TrainData(user_input, reply)
         # otherise, there was an error
         else:
             if not self.AuthBearer():
@@ -193,23 +194,13 @@ class AI_Kindriod(AI):
     # From Sleep State return greeting
     def Greet(self):
           resp = "Hello"
-#         resp = cf.g('USERNAMEP')+" just returned after "+AI.PrettyDuration(self, datetime.now() - self.last_interaction) +", greet them."
-
- #       resp = AI.Greet(self)
-             # and you haven't seen the user for  " + AI.PrettyDuration(datetime.now() - self.last_interaction) + ".  Greet them."
           return self.respond(resp)
-    
+
     def Think(self):
         return AI.Think(self)
 
-    def ObserveUser(self):
-        print("looking at user")
-        path = eyes.TakePicture()
-        url = eyes.UploadPicture(path)
-        self.respond("@" + url)
-        
     def InitiateConvo(self):
-        print("initialte convo")
+        LogInfo("initialte convo")
         ret = self.ProcessMessages()
         if not ret:
             ret = f"Hey there"
