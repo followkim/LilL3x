@@ -11,11 +11,14 @@ from contextlib import closing
 import pygame
 import warnings
 from config import cf
-from error_handling import RaiseError
+from error_handling import *
 from globals import STATE
 import requests
-voices = {}
 
+LogInfo("Speech Engine Loading...")
+
+def dummy():
+    return
 
 class speech_generator:
 
@@ -29,33 +32,37 @@ class speech_generator:
         # set Volume
         return
 
-    def say(self, txt, leds):
+    def say(self, txt, face=False, asyn=False):
 #        if self.volume != config["VOLUME"]
 #            set volume
         filename = "temp.mp3"
         if txt:
             try:
-                leds.thinking()
+                if face: face.thinking()
                 filename = self.engine.tts(txt)
-                leds.talking()
-                self.PlaySound(filename, True)
-                print(f"AI: {txt}")
+                if face: face.talking()
+                self.PlaySound(filename, watchState=True, asyn=asyn)
+                LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
-                leds.off()
-                return RaiseError("speech_tools:say error: " + str(e))
-        leds.off()
+                if face: face.off()
+                RaiseError("speech_tools:say error: " + str(e))
+                txt = "There was a speech error  " + str(e)
+        elif not asyn: # in the case where the last file sent has no data but is not asyn
+            if face: face.talking()
+            while self.IsBusy(): sleep(0.5)
+        if face: face.off()
         return txt
 
-    def PlaySound(self, filename, watchState=False):
-        if STATE.CheckState('Wake'): # if we start out in WAke, don't stop if we encouter it
-            watchState = False
+    def PlaySound(self, filename, watchState=False, asyn=False):
+        if STATE.CheckState('Wake'): watchState = False
         if filename:
-            pygame.mixer.music.set_volume(min(cf.g('VOLUME'), 10)/10) # does not go to 11
-            pygame.mixer.music.load(filename)
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                if watchState and STATE.CheckState('Wake'):
-                    pygame.mixer.music.stop()
+            while pygame.mixer.get_busy(): sleep(0.5)
+            s = pygame.mixer.Sound(filename)
+            s.set_volume(min(cf.g('VOLUME'), 10)/10) # does not go to 11
+            channel = s.play()
+            while channel.get_busy() and not asyn:
+                if watchState and STATE.CheckState('Wake'): s.stop()
+                else: sleep(0.5)
 
 
     def StopSound(self):
@@ -64,7 +71,7 @@ class speech_generator:
         return not pygame.mixer.music.get_busy()
 
     def IsBusy(self):
-        return pygame.mixer.music.get_busy()
+        return pygame.mixer.get_busy()
 
     def SwitchEngine(self, engine_name=cf.g('SPEECH_ENGINE')):
         new_engine = 0
@@ -77,7 +84,7 @@ class speech_generator:
             self.engine = new_engine
             return True
         else:
-            print(f"Unable to switch to engine {engine_name}")
+            LogWarn(f"Unable to switch to engine {engine_name}")
             return False
 
     def Close(self):
@@ -89,7 +96,7 @@ class pytts_tts:
     def __init__(self):
         self.engine = pyttsx3.init()
         self.engine.setProperty('voice', self.engine.getProperty('voices')[1].id)
-        print("Speech Engine: pytts")
+        LogInfo("Speech Engine: pytts")
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
@@ -103,7 +110,7 @@ class pytts_tts:
 
 class gTTS_tts:
     def __init__(self):
-        print("Speech Engine: gTTS")
+        LogInfo("Speech Engine: gTTS")
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
@@ -118,7 +125,7 @@ class ChatGPT_tts:
     client = 0
     def __init__(self):
         self.client = OpenAI(api_key=cf.g('OPEN_AI_API_KEY'))
-        print("Speech Engine: ChatGPT")
+        LogInfo("Speech Engine: ChatGPT")
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
@@ -150,7 +157,7 @@ class elevenLabs_tts:
     def __init__(self):
 #        self.client = El3venLabs(api_key=cf.g('ELEVENLABS_API_KEY'))
 #        return self.client
-         print("Speech Engine: ElevenLabs")
+         LogInfo("Speech Engine: ElevenLabs")
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
@@ -181,7 +188,7 @@ class amazon_tts:
          )
 
          self.polly = self.session.client("polly")
-         print("Speech Engine: Amazon AWS Polly")
+         LogInfo("Speech Engine: Amazon AWS Polly")
 
          return
 
@@ -223,11 +230,11 @@ if __name__ == '__main__':
              return
         def off(self):
              return
-    leds = LEDS()
-
+    l = LEDS()
+    
     sr = speech_generator()
-    sr.say("Hello world", leds)
-
-    sr.SwitchEngine('pytts')
-    sr.say("Hello world", leds)
+    sr.say("the big red dog jumped over the lazy fox", asyn=True)
+    sr.say("oh what a beautiful day!", asyn=True)
+    sr.say("I have a wonderful feeling", asyn=False)
+    print("done")
 
