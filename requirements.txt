@@ -9,6 +9,8 @@ pip install gtts
 pip install vosk
 sudo apt-get install libportaudio2
 pip install sounddevice
+sudo apt install portaudio19-dev
+pip install PyAudio
 pip install pvporcupine
 pip install pvrecorder
 pip install word2number
