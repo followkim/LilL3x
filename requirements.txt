@@ -1,6 +1,6 @@
 sudo apt install -y python3-picamera2
 sudo apt install -y python3-cv2
-pip install opencv-python
+pip install opencv-contrib-python
 pip install pygame
 pip install SpeechRecognition
 pip install pyttsx3
