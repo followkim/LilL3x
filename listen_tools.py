@@ -52,6 +52,8 @@ class speech_listener:
             self.audio = self.speech.listen(source, timeout) #,dynamic_energy_threshold=False)
         except sr.exceptions.UnknownValueError:
             pass
+        except Exception as e:
+            LogError(f"listen_thread error {str(e)}")
         
     def listen(self, beQuiet=False, face=False, time_out=cf.g('MIC_TO'), adjust_for_ambient=cf.g('AMBIENT')):
         imp = ""
@@ -74,20 +76,23 @@ class speech_listener:
                     listen_thread.start()
                     run_avg = []
                     x=0
+                    last_listen = datetime.now()
                     while listen_thread.is_alive():
+                        x += 1
                         run_avg.append(self.speech.current_energy-self.speech.energy_threshold)
-                        if len(run_avg) == 25000: run_avg.pop(0) # only keep 100 frames at a time
-                        if x % 25000 == 0:
-                             x=0
-                             LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{round(self.speech.current_energy-self.speech.energy_threshold)}\t{round(sum(run_avg)/len(run_avg),0)}\t{(datetime.now()-dt).seconds}s")
-#                        if sum(run_avg)/len(run_avg)<0: self.speech.energy_threshold = self.speech.energy_threshold*1.25
-                        if (datetime.now()-dt).seconds>cf.g('MIC_TO') and len(run_avg)+1>=25000 and (sum(run_avg)/len(run_avg))<0:
-                            self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
-                            run_avg.clear()
-                        x+=1
+                        if (x % 120) == 0: LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{round(self.speech.current_energy-self.speech.energy_threshold)}\t{round(sum(run_avg)/len(run_avg),0)}\t{(datetime.now()-dt).seconds}s")
+                        if len(run_avg) == 120: 
+                            run_avg.pop(0) # only keep 1s frames at a time
+                            if (datetime.now()-last_listen).seconds>cf.g('MIC_TO'):
+                                if (sum(run_avg)/len(run_avg))<0:
+                                    self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
+                                    run_avg.clear()
+                                else: last_listen = datetime.now()
+                        sleep(1/120)
                 except Exception as e:
+                    while listen_thread.is_alive(): self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
                     MIC_STATE.ReturnMic()
-                    RaiseError("speech_listener.listener() returned error:" + str(e))
+                    LogError("speech_listener.listener() returned error:" + str(e))
                 if not beQuiet:
                     self.end_mp3.play()
                     if face: face.thinking()

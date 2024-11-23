@@ -15,6 +15,7 @@ import queue
 AUDIO_DEVICE = None
 
 q = queue.Queue()
+regex = "(ele(k|c)tr(a|ic)|alexis)"
 LogInfo("Importing Vosk Wake...")
 def callback(indata, frames, time, status):
     q.put(bytes(indata))
@@ -44,33 +45,34 @@ class vosk_wake:
         while (not STATE.CheckState('Quit')):
             if not STATE.IsInteractive() and MIC_STATE.TakeMic(False):
                 while not q.empty(): q.get()  # empty the q
+                self.is_speaking = False
                 stream = sd.RawInputStream(samplerate=self.samplerate, blocksize = 8000, device=AUDIO_DEVICE, dtype="int16", channels=1, callback=callback)
                 with stream:
                     input = ""
                     will_wake = False
-                    while (not MIC_STATE.MicRequested() and not STATE.CheckState('Quit') and not STATE.IsInteractive()) or not q.empty():
+                    while (not MIC_STATE.MicRequested() and not STATE.CheckState('Quit') and not STATE.IsInteractive()):
                         data = q.get()
                         if self.rec.AcceptWaveform(data):
                             jt = json.loads(self.rec.Result())
-                            if will_wake or re.search("(ele(k|c)tr(a|ic)|alexis)", jt["text"].lower()):
+                            if will_wake or re.search(regex, jt["text"].lower()):
                                 input = jt["text"]
-                                match = re.findall("(ele(k|c)tr(a|ic)|alexis|lecturn)", input.lower())
-                                if match: input = input.lower().replace(match[0][0], cf.g('AINAME'))
+                                match = re.findall(regex, input.lower())
+                                if match: input = input.lower().replace(match[0][0], cf.g('AINAMEP'))
                                 self.wake_phrase = input.strip()
                                 LogConvo(f"{cf.g('USERNAME')}: {self.wake_phrase}") 
                                 STATE.ChangeState("Wake")
-                                while not q.empty(): q.get()  # empty the q
-                            else: 
+                            elif len(jt['text'])>0 and jt['text'] != 'huh':
                                 LogDebug(f"WW: heard '{jt['text']}'")
                             self.is_speaking=False
                         elif self.rec.PartialResult():
                             pr = self.rec.PartialResult()
                             self.is_speaking=True
-                            if not will_wake and re.search("(ele(k|c)tr(a|ic)|alexis)", pr.lower()):
+                            if not will_wake and re.search(regex, pr.lower()):
                                 self.wake_mp3.play()
                                 will_wake = True
                                 self.face.listening()
 
+                while not q.empty(): q.get()  # empty the q
                 self.face.off()
                 MIC_STATE.last = datetime.now()
                 MIC_STATE.ReturnMic()

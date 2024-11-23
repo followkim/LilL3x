@@ -42,6 +42,9 @@ class State:
     def IsInteractive(self):
         return self.current in ('Hello', 'Wake', 'Active')
 
+    def IsInactive(self):
+        return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive()
+
 class MicStatus:
     def __init__(self):
         self.mic_free = True

@@ -98,15 +98,22 @@ class AI:
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
 
+        if re.search(r"^show (me|us) what you see$", txt.lower()):
+            self.face.looking()
+            self.eyes.ShowView()
+            return "here is what I see"
+
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
                 re.search(r"^(hey )?look at (this|that)$", txt.lower())):
+            self.face.looking()
             path = self.eyes.TakePicture()
 #            pict_path = self.eyes.TakePicture()
-#            pict = open(pict_path,'rb')
+#            pict = open(pict_path,'rb')  # for email
             if path:
                 url  = self.eyes.UploadPicture(path)
-                self.say("What is this a picture of?")
-                desc = self.listen()
+#                self.say("What is this a picture of?")
+#                desc = self.listen()
+                desc = "This is a picture of what is in front of you.  Describe and comment."
                 return f'#{desc}#{path}#{url}'
             else:
                 return "Sorry, I couldn't take a picture"
@@ -147,7 +154,7 @@ class AI:
                 new_engine = "ChatGPT"
             elif re.search(r"(11|eleven) labs$", txt.lower()):
                 new_engine = "elevenLabs"
-            elif re.search(r"Amazon$", txt.lower()):
+            elif re.search(r"amazon$", txt.lower()):
                 new_engine = "amazon"
             else:
                 new_engine = ret[0]
@@ -217,7 +224,7 @@ class AI:
         resp = self.ears.listen(face=self.face, beQuiet=beQuiet)
         resp = resp.replace('Alexa', 'El3ktra')
         if resp and not beQuiet:
-            last_user_interaction = datetime.now()
+            self.last_user_interaction = datetime.now()
         return resp
 
     def TrainData(self, user_input, reply):
@@ -236,7 +243,7 @@ class AI:
     def LookForUser(self, duration=10):
         self.face.looking()
         ret = self.eyes.CanISeeYou(duration)
-        LogInfo(f"LookForUser: {ret}")
+#        LogDebug(f"LookForUser: {ret}")
         self.face.off()
         return ret
 
@@ -314,8 +321,8 @@ class AI:
         years = dtd.days // 365
         months = (dtd.days-(years*365)) // 30
         days = (dtd.days - (years*365) - (months * 30)) % 30 
-        hours =(dtd.seconds//(60*60)) % 60 
-        minutes =((dtd.seconds//60)) % 60
+        hours =(dtd.seconds//(60*60)) % 60
+        minutes =(dtd.seconds//60) % 60
         seconds =(dtd.seconds) % 60
 
         if years>1 :
@@ -367,34 +374,6 @@ class AI:
                 newStr += s
         newStr = str(newStr.encode('ascii', 'ignore').decode("utf-8"))
         return newStr
-'''
-    # these helpers should probably go into config.py TODO
-    def SetKey(self, txt):
-
-         (key, val) = re.compile("^set (.*) to (.*)$").match(txt.lower()).groups()
-         try:
-            key = key.upper().replace(" ", "_")
-            print(config.config_desc)
-            if key in config.keys():
-                if re.search(r"^int", config.config_desc[key]):
-                   val = w2n.word_to_num(val)
-                config[key] = val
-                return f'Ok, I set {key} to {val}'
-            else:
-                raise KeyError
-         except KeyError:
-            return "I don't have an attribite called "+ key
-         except Exception as e:
-            return "I couldn't set "+ key + " to " + val + ".   " + str(e)
-
-    def RetrieveKey(self, txt):
-         key = re.compile("^what is (.*) set to$").match(txt.lower()).groups()[0].replace(" ", "_").upper()
-         try:
-            return f'{key} is set to {config[key]}'
-         except KeyError:
-               return f"I don't have an attribite called {key}."
-         return f"Sorry, I couldn't get {key} from config data."
-'''
 
 if __name__ == '__main__':
 

@@ -22,7 +22,7 @@ import signal
 import sys
 from globals import STATE
 import vosk_wake
-#import wake_word
+import wake_word
 from error_handling import *
 from config import cf
 from gpiozero import CPUTemperature
@@ -43,6 +43,7 @@ from AI_Openai import *
 from AI_Ollama import *
 from AI_Kindriod import AI_Kindriod
 from AI_Gemini import AI_Gemini
+from AI_Claude import AI_Claude
 sys.path.insert(0, currentdir)
 
 # how many seconds we should sleep in each state.
@@ -115,7 +116,9 @@ class lill3x:
         GPIO.setup(BUTTON, GPIO.IN)
 
         # finally start the wakeword thread
-        self.ww = vosk_wake.vosk_wake(self.face)
+#        self.ww = vosk_wake.vosk_wake(self.face)
+#        self.ww_thread = threading.Thread(target=self.ww.listen)
+        self.ww = wake_word.wake_word(self.mouth)
         self.ww_thread = threading.Thread(target=self.ww.listen)
         self.ww_thread.start()
         self.button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
@@ -178,14 +181,13 @@ class lill3x:
         return
 
     def Close(self):
+       self.ai.Close()
        self.mouth.Close()
        self.ears.Close()
        self.eyes.Close()
        self.face.Close()
-       self.ai.Close()
        cf.WriteConfig()
        CloseLog()
-       exit()
 
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
@@ -215,7 +217,7 @@ class lill3x:
 
         if self.eyes.IsDark():
              STATE.ChangeState('SleepState')
-        elif not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+        elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
             thought = self.ai.Interact()  
             if thought:
                 self.ears.update()  # get ambient noise
@@ -254,17 +256,15 @@ class lill3x:
         # IDEA: start a IsDark Camera thread that will change the state
  
         # user returned
-        if not self.eyes.IsDark() and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+        if not self.eyes.IsDark() and not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
             self.ears.update()  # get ambient noise
             self.ai.say(self.ai.Greet())
             user_input = self.ai.listen()
             if user_input:
                 self.ai.say(self.ai.respond(user_input))
                 STATE.ChangeState('Active')
-            else:
-                STATE.ChangeState('ActiveIdle')
-        else:
-            self.Sleep(sleep_secs.get(STATE.GetState(), 0))
+            else: STATE.ChangeState('ActiveIdle')
+        else: self.Sleep(sleep_secs.get(STATE.GetState(), 0))
 
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user

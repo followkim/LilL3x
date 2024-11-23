@@ -6,8 +6,6 @@ from boto3 import Session
 from botocore.exceptions import BotoCoreError, ClientError
 from contextlib import closing
 
-#from playsound import playsound
-#import pygobject
 import pygame
 import warnings
 from config import cf
@@ -35,17 +33,22 @@ class speech_generator:
     def say(self, txt, face=False, asyn=False):
 #        if self.volume != config["VOLUME"]
 #            set volume
-        filename = "temp.mp3"
+        filename = False
         if txt:
             try:
                 if face: face.thinking()
-                filename = self.engine.tts(txt)
+                try:
+                    filename = self.engine.tts(txt)
+                except Exception as e:
+                    LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {str(e)}, using gTTS")
+                    filename = self.tts(txt)
+
                 if face: face.talking()
-                self.PlaySound(filename, watchState=True, asyn=asyn)
+                if filename: self.PlaySound(filename, watchState=True, asyn=asyn)
                 LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
                 if face: face.off()
-                RaiseError("speech_tools:say error: " + str(e))
+                LogError("speech_tools: tts error: " + str(e))
                 txt = "There was a speech error  " + str(e)
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
@@ -63,7 +66,6 @@ class speech_generator:
             while channel.get_busy() and not asyn:
                 if watchState and STATE.CheckState('Wake'): s.stop()
                 else: sleep(0.5)
-
 
     def StopSound(self):
         if pygame.mixer.music.get_busy():
@@ -86,6 +88,11 @@ class speech_generator:
         else:
             LogWarn(f"Unable to switch to engine {engine_name}")
             return False
+
+    def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+        tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
+        tts.save(filename)
+        return filename
 
     def Close(self):
         pygame.quit()
@@ -168,10 +175,13 @@ class elevenLabs_tts:
         }
 
         response = requests.post(self.url, json=data, headers=self.headers)
-        with open(filename, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=self.CHUNK_SIZE):
-                if chunk:
-                    f.write(chunk)
+        if response.status_code != 200:
+            raise Exception(f"elevenLabs_tts returned error {response.status_code}")
+        else:
+            with open(filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=self.CHUNK_SIZE):
+                    if chunk:
+                        f.write(chunk)
         return filename
 
     def Close(self):
@@ -198,7 +208,7 @@ class amazon_tts:
             response = self.polly.synthesize_speech(Engine=cf.g('AWS_VOICE_ENGINE'), Text=txt, OutputFormat="mp3", VoiceId=cf.g('AWS_VOICE_ID'))
         except Exception as e:
             # The service returned an error, exit gracefully
-            RaiseError(f"AWS returned error: {str(e)}")
+            LogError(f"AWS returned error: {str(e)}")
             return False
 
         if "AudioStream" in response:
@@ -210,11 +220,11 @@ class amazon_tts:
                        return filename
                except IOError as error:
                   # Could not write to file, exit gracefully
-                  RaiseError(f"AWS returned error creating file: {str(e)}")
+                  LogError(f"AWS returned error creating file: {str(e)}")
                   return False
         else:
             # The response didn't contain audio data, exit gracefully
-            RaiseError(f"AWS returned error: {str(e)}")
+            LogError(f"AWS returned error: {str(e)}")
 
 
     def Close(self):

@@ -80,12 +80,12 @@ class AI_openAI(AI):
         return
 
     def respond(self, user_input, canParaphrase=False):
-        self.thinking()
+        self.face.thinking()
         this_model = self.model
         class_resp = AI.respond(self, user_input)  # will return either a response
         (user_input, max_tokens, tools) = self.HandleResponse(class_resp, user_input)
         if not user_input:
-            self.off()
+            self.face.off()
             return class_resp #hacky
 
         reply = ""
@@ -128,7 +128,7 @@ class AI_openAI(AI):
             reply = f"There was an error talking to OpenAI. {str(e)}"
             self.memory.pop()  #get rid of that bad membry!
 
-        self.off()
+        self.face.off()
         return str(reply.encode('ascii', 'ignore').decode("utf-8"))
 
     #NOte: this function alters the memory
@@ -213,6 +213,7 @@ class AI_openAI(AI):
 
     def TakePicture(self, context):
         LogInfo("Calling Taking Picture from ChatGPT")
+        self.face.looking()
         file = self.eyes.TakePicture()
         url = self.eyes.UploadPicture(file)
         LogInfo(f"URL: {url}")
@@ -220,6 +221,7 @@ class AI_openAI(AI):
             return f"#{eval(str(context['picture_context']))}#{file}#{url}"
         except Exception as e:
             LogWarn("eval() Didn't work: " + str(e))
+        self.face.off()
         return f"#{context}#{file}#{url}"
  
     def Intruder(self):

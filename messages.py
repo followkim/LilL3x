@@ -1,4 +1,5 @@
 from datetime import datetime
+from error_handling import *
 
 class Messages:
     messages = []
@@ -18,7 +19,7 @@ class Messages:
 
     def SetMessage(self, type, message, dt=datetime.now()):
         self.messages.append([type, message, dt])
-        print(f"Message added to Q: {self.messages[-1][0]} : {self.messages[-1][1]}")
+        LogInfo(f"Message added to Q: {self.messages[-1][0]} : {self.messages[-1][1]}")
         return self.messages
 
 if __name__ == '__main__':

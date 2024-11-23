@@ -62,10 +62,11 @@ function_tools =  [
 
 
 
-class AI_Ollama(AI_openAI):
+class AI_ollama(AI_openAI):
 
     tools = False
     token_mult = 1
+
     def __init__(self):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
 #        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model, temperature=cf.g('TEMPERATURE'))
@@ -203,21 +204,21 @@ class AI_Ollama(AI_openAI):
        self.SaveMemories()
        return
 
-class AI_Local(AI_Ollama):
+class AI_Local(AI_ollama):
     base_url = "http://localhost:11434"
     api_key = "unused"
     model = 'qwen2:0.5b'
     slow_model=model
     name = "Local"
 
-class AI_Corgi(AI_Ollama):
+class AI_Corgi(AI_ollama):
     base_url = cf.g('CORGI_URL')
     api_key = cf.g('CORGI_API_KEY')
     model = cf.g('CORGI_MODEL')
     slow_model=model
     name = "Corgi"
 
-class AI_El3ktra(AI_Ollama):
+class AI_El3ktra(AI_ollama):
 #    base_url = cf.g('EL3KTRA_URL')
     base_url = cf.g('EL3KTRA_URL')
     api_key = 'el3ktra'

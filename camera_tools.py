@@ -67,8 +67,8 @@ class Camera:
         end = datetime.now() + timedelta(seconds=secs)
         self.cam = self.GetCamera()
         if not self.cam:
-            return RaiseError(f"IsDark: not able to get camera")
-
+            LogError(f"IsDark: not able to get camera")
+            return False
         means = []
         while end > datetime.now() and (not STATE.IsInteractive()):
             try:
@@ -81,6 +81,7 @@ class Camera:
             return numpy.mean(means) <= cf.g('IS_DARK_THRESH')
         else:
             return False
+
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT'), pictPath=""):
         try:
             self.cam = self.GetCamera()
@@ -152,22 +153,58 @@ class Camera:
                 return RaiseError("_look_for_user: error in cv2.cvtColor ("+str(e)+")")
             # Detects faces of different sizes in the input image 
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-            if len(faces)>0:
+            for (x, y, w, h) in faces:
                 LogDebug(f"CISU: {str(faces)}")
-                icu = icu+1
-                if pictPath and icu==cf.g('ICU_THRESH'):
-                    ret = self._take_picture(pictPath)
+                if w>100 and h>100:
+                    icu = icu+1
+                    if pictPath and icu==cf.g('ICU_THRESH'):
+                        ret = self._take_picture(pictPath)
+
+            self._whatISee()
+        self._whatISeeEnd()
         if pictPath and icu>=cf.g('ICU_THRESH'): return ret
         else: return icu>=cf.g('ICU_THRESH')
 
-    def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), seeUser=False):
+    def ShowView(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
+        try:
+            self.cam = self.GetCamera()
+            if self.cam:
+                self._show_view(secs)
+                self.CloseCamera()
+            else: RaiseError(f"ShowView: No Camera object returned!")
+        except Exception as e:
+            return RaiseError("ShowView error: "+str(e))
+
+    def _show_view(self, secs=cf.g('LOOK_SECS_TO_DEFAULT'), pictPath=False):
+        global STATE
+        end = datetime.now() + timedelta(seconds=secs)
+        while end > datetime.now():
+            dt = datetime.now()
+            self._whatISee()
+            sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
+        self._whatISeeEnd()
+
+    def _whatISee(self):
+
+            self._take_picture("./frames/wis.jpg", beQuiet=True)
+            jpg = cv2.imread('./frames/wis.jpg')
+            resized_image = cv2.resize(jpg, (128, 64))
+            cv2.imwrite('./frames/wis.ppm', resized_image)
+
+    def _whatISeeEnd(self):
+        try:
+           os.remove('.frames/wis.ppm')
+        except:
+           pass
+        
+    def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), seeUser=False, beQuiet=False):        
         path = self.TakePictures(1, fname, seeUser=seeUser)
         return path
 
-    def TakePictures(self, num=4, fname=cf.g('TEMP_PATH_DEFAULT'),  dur=0.25, seeUser=False):
+    def TakePictures(self, num=4, fname=cf.g('TEMP_PATH_DEFAULT'),  dur=0.25, seeUser=False, beQuiet=False):
         filename = ""
         # if there is not a folder create ii
-        if not os.path.exists(os.path.dirname(fname)) :
+        if is_dir(fname) and not os.path.exists(os.path.dirname(fname)) :
             
             try:
                 os.makedirs(os.path.dirname(fname))
@@ -175,21 +212,22 @@ class Camera:
                 return RaiseError(f"TakePictures: Create Directory '{os.path.dirname(fname)}' failed ({str(e)})")
         #write the file
         for x in range(num):
-            filename = fname
+            retpath = fname
             if seeUser:
-                cisu = self.CanISeeYou(cf.g('LOOK_SECS_TO_DEFAULT'), filename)
+                cisu = self.CanISeeYou(cf.g('LOOK_SECS_TO_DEFAULT'), retpath)
                 if not cisu: filename = False
             else:
                 try:
                     if self.GetCamera():
-                        filename = self._take_picture(filename)
-                        #PlaySound(cf.g("CAMERA_CLICK_MP3"))
+                        self._show_view(secs=3)
+                        retpath = self._take_picture(retpath)
+                        self._whatISeeEnd()
                         self.CloseCamera()
                         sleep(dur)
                 except Exception as e:
                     LogError(f"TakePicutres: Error writing file '{filename}' ({str(e)})")
                     return False
-        return filename
+        return retpath
 
     def UploadPicture(self, pict_path):
         url = False
@@ -201,19 +239,21 @@ class Camera:
             url = r.text
         return url
 
-    def _take_picture(self, fname):        
+    def _take_picture(self, fname, beQuiet=False):        
         if is_dir(fname):
             filename = fname+'capture_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
             filename = fname
         if self.cam:
             try:
-                self.shutter.play()
+                if not beQuiet: self.shutter.play()
                 self.cam.capture_file(filename)
-                LogInfo(f"took pict '{filename}'")
+                LogDebug(f"_take_picture: '{filename}'")
+                # show the image for 3 secs
+                if not beQuet: sleep(cf.g('CAMERA_PICT_SEC'))
                 return filename
             except Exception as e:
-                LogError(f"Couldn't take pict '{filename}': str(e)")
+                LogError(f"_take_picture: Couldn't take pict '{filename}': str(e)")
         return False
     
     def SendPicture(self):
@@ -222,7 +262,7 @@ class Camera:
 
     def GetEmotion(self):
         mood = ""
-        imagePath = self.TakePicture(seeUser=True)
+        imagePath = self.TakePicture(seeUser=True, beQuiet=True)
         if imagePath:
             try:
                 objs = DeepFace.analyze(img_path=imagePath,  actions = ['emotion'])
@@ -235,7 +275,7 @@ class Camera:
         return mood
 
     def WhoAmI(self):
-        user_img = self.TakePicture(seeUser=True)
+        user_img = self.TakePicture(seeUser=True, beQuiet=True)
         if user_img:
            try:
                dfs = DeepFace.find(img_path=user_img, db_path="people/")
@@ -261,6 +301,10 @@ if __name__ == '__main__':
     pygame.mixer.init()
     STATE.ChangeState('Idle')
     c = Camera()
+    c.ShowView()
+    c.TakePicture("test.ppm")
+    c.UploadPicture("test.ppm")
+    '''
     print("Who are you?")
     name = input()
     if name:
@@ -271,15 +315,15 @@ if __name__ == '__main__':
             print("I couldn't see you!") 
             pygame.mixer.init()
     print(c.WhoAmI())
-
+    '''
 #    print(c.GetEmotion())
 #    print(file)
 #    img_data = requests.get(file).content
 #    with open('image_name.jpg', 'wb') as handler:
 #        handler.write(img_data)   
 #    print("Detect Motion:" + str(c.IsUserMoving()))
-   # for x in range(1, 10): 
-   #     print("CanISeeYou:" + str(c.CanISeeYou(10)))
+#    for x in range(1, 10): 
+#        print("CanISeeYou:" + str(c.CanISeeYou(10)))
 #    for x in range(1,5):
 #        print("IsDark: "+str(c.IsDark()))
 

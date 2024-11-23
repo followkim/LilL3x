@@ -4,8 +4,7 @@ from datetime import datetime
 import shutil
 
 ERROR_LEVEL = 6
-logFile = open("/home/el3ktra/LilL3x/lill3x.log", "w")
-logFile.close()
+log_file_name = "lill3x.log"
 
 def SetErrorLevel(level):
     global ERROR_LEVEL
@@ -13,7 +12,7 @@ def SetErrorLevel(level):
     return
 
 def RaiseError(e):
-    print ("ERR: " + e)
+    LogError(e)
     DumpStack()
     return False
 
@@ -21,7 +20,8 @@ def LogFatal(text):
     return RaiseError(text)
 
 def LogError(text):
-    return RaiseError(text)
+    Log(text, "ERR:")
+    return
 
 def LogConvo(txt):
     if ERROR_LEVEL >= 1:
@@ -45,7 +45,7 @@ def LogDebug(txt):
 
 def Log(text, level=""):
     print(f"{level}{text}")
-    logFile = open("/home/el3ktra/LilL3x/lill3x.log", "a")
+    logFile = open(log_file_name, "a")
     logFile.write(f"{level}{text}\n")
     logFile.close()
 
@@ -53,4 +53,4 @@ def DumpStack():
     traceback.print_stack()
 
 def CloseLog():
-    shutil.move("home/el3ktra/LilL3x/lill3x.log", "/home/el3ktra/LilL3x/log/lill3x_"+datetime.now().strftime("%Y%m%d%H%M")+".log")
+    shutil.move(log_file_name, 'log/'+log_file_name+datetime.now().strftime("%Y%m%d%H%M")+".log")

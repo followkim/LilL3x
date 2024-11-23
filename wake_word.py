@@ -23,7 +23,8 @@ from pvrecorder import PvRecorder
 from config import cf
 
 class wake_word:
-
+    is_speaking = False
+    
     wakeword_listener = None
     keyword_path = None
     audio_device_index = -1  #RasperbyPI  TODO PULL FROM GLOBALS
@@ -120,16 +121,14 @@ class wake_word:
         recorder.delete()
         sd.default.reset()
         return
+    def GetWakePhrase(self):
+        return False
 
     def Close(self):
         LogInfo("Exiting WakeWord")
         self.wakeword_listener.delete()
         exit()
         
-def Wake_word_thread(audio):
-    ww = wake_word(audio)
-    ww.listen()
-
 
 if __name__ == '__main__':
    from speech_tools import speech_generator
@@ -138,5 +137,6 @@ if __name__ == '__main__':
    STATE.ChangeState('Idle')
    mouth = speech_generator()
 
+   ww = wake_word(mouth)
 
-   Wake_word_thread(mouth)
+   ww.listen()

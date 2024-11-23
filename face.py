@@ -38,8 +38,12 @@ class Face:
         self.screen.thinking()
 
     def looking(self):
-        self.leds.looking()
+#        self.leds.looking()
         self.screen.looking()
+
+    def off(self):
+        self.screen.off()
+        self.leds.off()
 
     def message(self, text):
         self.screen.message(text)
