@@ -246,14 +246,15 @@ class Camera:
             filename = fname
         if self.cam:
             try:
-                if not beQuiet: self.shutter.play()
                 self.cam.capture_file(filename)
                 LogDebug(f"_take_picture: '{filename}'")
-                # show the image for 3 secs
-                if not beQuet: sleep(cf.g('CAMERA_PICT_SEC'))
+                # show the image for 3 secs and play a shutter sound
+                if not beQuiet:
+                    self.shutter.play()
+                    sleep(cf.g('CAMERA_PICT_SEC'))
                 return filename
             except Exception as e:
-                LogError(f"_take_picture: Couldn't take pict '{filename}': str(e)")
+                LogError(f"_take_picture: Couldn't take pict '{filename}': {str(e)}")
         return False
     
     def SendPicture(self):
