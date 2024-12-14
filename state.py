@@ -9,6 +9,8 @@ class State:
     current = ''
     last_dt = ''
     data = ''
+    cx=-1
+    cy=-1
 
     def __init__(self):
         self.current = 'Hello'

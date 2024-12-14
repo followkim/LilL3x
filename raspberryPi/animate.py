@@ -70,6 +70,13 @@ class Screen:
         y= 0
         width = self.disp.width
         height = self.disp.height
+        draw = 0
+        eyeWidth = 22
+        pupilSize = 5
+        eyeL = 20
+        eyeR = 86
+        eyeY = 3
+        eyeHeight=30
 
         # Load default font.
         font = ImageFont.load_default()
@@ -79,34 +86,48 @@ class Screen:
             last_fps = round(1000000/(datetime.now()-dt).microseconds)
             dt = datetime.now()
             try:
-                # Turn off display in idle/sleep state
-                if STATE.IsInactive() and self.state == 'Idle':
-                    self.disp.fill(0)
-                    self.disp.show()
-                    sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
-                    continue
+                # Turn off display in idle/sleep state, or show tracking
+                if self.state == 'Idle':
+                    if STATE.IsInactive():
+                        self.disp.fill(0)
+                        self.disp.show()
+                        sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
+                        continue
 
-                # animate the avatar
-                if frame >= len(self.displayPicts):
-                    frame = 0
+                    else:
+                        if STATE.cx > 0: self.displayPicts = self.picts['tracking']
+                        else: self.displayPicts = self.picts['active']
+
+                # get the background image
                 if self.state == 'Look' and os.path.exists("./frames/wis.ppm"):
-                   image = Image.open('./frames/wis.ppm').convert("1")
-                else: image = self.displayPicts[frame].copy()
+                    image = Image.open('./frames/wis.ppm').convert("1")
+                else:
+                    if frame >= len(self.displayPicts): frame = 0
+                    image = self.displayPicts[frame].copy()
+                    frame = frame + 1
                 draw = ImageDraw.Draw(image)
-                frame = frame + 1
-
+              
+                # if tracking, draw the pupils (need to call this AFTER getting the image above)
+                if self.state == 'Idle' and STATE.cx >= 0:
+                        pupilX = int((15/1280)*STATE.cx)
+                        pupilY = int((25/720)*STATE.cy)
+                        LogDebug:(f"pupilX: {pupilX}, pupilY: {pupilY}")
+                        draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="white", fill="black")
+                        draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="white", fill="black")
+ 
                 # Write four lines of text.
                 temp = str(round(CPUTemperature().temperature)) + "C"
                 bb = draw.textbbox((0,0), temp, font=font)
 #                draw.rectangle((width-bb[2], 0, bb.h, bb.w), fill=0, outline=0)
                 draw.text((width-bb[2], 0), f"{temp}", font=font, fill=255)
                 if not self._message:
-#                    bb = draw.textbbox((0,0), self.state, font=font) # get size
-#                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
-                    bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
+                    bb = draw.textbbox((0,0), self.state, font=font) # get size
+                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
+#                    bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
 #                    draw.rectangle(bb, fill=0, outline=0)
-                    draw.text((width-bb[2], height-bb[3]), f"{last_fps}fps ({real_fps})", font=font, fill=255)
+#                    draw.text((width-bb[2], height-bb[3]), f"{last_fps}fps ({real_fps})", font=font, fill=255)
         #           self.draw.text((x, top + ((height/4)*2)), MemUsage, font=self.font, fill=255)
+                    bb = draw.textbbox((0,0), f"{STATE.GetState()}", font=font) # get size
                     draw.text((0, height-bb[3]), f"{STATE.GetState()}", font=font, fill=255)
                 else:
                     bb = draw.textbbox((0,0), self._message, font=font)
@@ -114,7 +135,8 @@ class Screen:
                     draw.text(((width-bb[2])/2, height-bb[3]), self._message, font=font, fill=255)
 
                 # Display image.
-                self.disp.image(image.transpose(Image.ROTATE_180))
+#                self.disp.image(image.transpose(Image.ROTATE_180))
+                self.disp.image(image)
                 self.disp.show()
                 real_fps = round(1000000/(datetime.now()-dt).microseconds, 1)
                 sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
@@ -155,4 +177,5 @@ if __name__ == '__main__':
 
     global STATE
     s = Screen()
-    STATE.ChangeState('Looking')
+    STATE.ChangeState('ActiveIdle')
+    s.off()

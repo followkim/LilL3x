@@ -92,6 +92,7 @@ class lill3x:
 
         try:
             self.face = Face()
+            self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
             RaiseError("AI():Could not init Display. " + str(e))
 
@@ -118,6 +119,8 @@ class lill3x:
         # finally start the wakeword thread
 #        self.ww = vosk_wake.vosk_wake(self.face)
 #        self.ww_thread = threading.Thread(target=self.ww.listen)
+        cam_thread = threading.Thread(target=self.eyes.CameraLoopThread)
+        cam_thread.start()
         self.ww = wake_word.wake_word(self.mouth)
         self.ww_thread = threading.Thread(target=self.ww.listen)
         self.ww_thread.start()
@@ -217,7 +220,7 @@ class lill3x:
 
         if self.eyes.IsDark():
              STATE.ChangeState('SleepState')
-        elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+        elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
             thought = self.ai.Interact()  
             if thought:
                 self.ears.update()  # get ambient noise
@@ -243,7 +246,7 @@ class lill3x:
 
         # Check for the user
         else:
-            is_user_there = self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT'))
+            is_user_there = self.ai.LookForUser()
             if is_user_there:
                 STATE.ChangeState('ActiveIdle')  # siliently move into Active state, might want to Interact right away?
             else:
@@ -253,10 +256,8 @@ class lill3x:
     #       AI can: machine learning, check lights/sound
     def SleepState(self):
 
-        # IDEA: start a IsDark Camera thread that will change the state
- 
         # user returned
-        if not self.eyes.IsDark() and not self.ww.is_speaking and self.ai.LookForUser(cf.g('LOOK_SECS_TO_DEFAULT')):
+        if not self.eyes.IsDark() and not self.ww.is_speaking and self.ai.LookForUser():
             self.ears.update()  # get ambient noise
             self.ai.say(self.ai.Greet())
             user_input = self.ai.listen()
@@ -269,7 +270,6 @@ class lill3x:
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
     def Surveil(self):
-        # DEBUG: change 1 to 60 when working
         if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving(secs=cf.g('SURVEIL_LOOK')):
             self.ai.say(self.ai.Intruder())
             user_input = self.ai.listen()

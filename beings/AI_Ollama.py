@@ -187,7 +187,7 @@ class AI_ollama(AI_openAI):
         elif user_input[:1] == '#': #picture-- TODO!!!
              LogDebug(f"Input is pict: {user_input}")
              (x, user_input, path, url) = user_input.split('#')
-             arg['model']='llava'
+             arg['model']=cf.g('EL3KTRA_VISION_MODEL')
              self.memory.append({"role": role, "content": user_input,  "id": cf.g('CONVO_ID'), 'images':[path]})
 
         #reply is just text

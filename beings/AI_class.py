@@ -93,6 +93,8 @@ class AI:
             return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
 
         if re.search(r"^can you see me$", txt.lower()):
+            self.face.looking()
+            dt = datetime.now()
             return self.YesNo(self.LookForUser(), "Yes",  "No, I can't")
 
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
@@ -100,12 +102,13 @@ class AI:
 
         if re.search(r"^show (me|us) what you see$", txt.lower()):
             self.face.looking()
-            self.eyes.ShowView()
-            return "here is what I see"
+            sleep(5)
+            return ""
 
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
                 re.search(r"^(hey )?look at (this|that)$", txt.lower())):
             self.face.looking()
+            sleep(5)
             path = self.eyes.TakePicture()
 #            pict_path = self.eyes.TakePicture()
 #            pict = open(pict_path,'rb')  # for email
@@ -240,10 +243,12 @@ class AI:
         #email URL
         return
 
-    def LookForUser(self, duration=10):
+    def LookForUser(self, duration=0):
         self.face.looking()
-        ret = self.eyes.CanISeeYou(duration)
-#        LogDebug(f"LookForUser: {ret}")
+        ret = self.eyes.CanISeeYou()
+        end = datetime.now() + timedelta(seconds=duration)
+        while end > datetime.now() and not ret:
+            ret = self.eyes.CanISeeYou()
         self.face.off()
         return ret
 

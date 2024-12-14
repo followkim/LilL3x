@@ -303,13 +303,13 @@ if __name__ == '__main__':
 #    ai.Interact()    
 #    dtd = timedelta(seconds=65)
 #    ai.PrettyDuration(dtd)
-    user_inp  = "hello"
-    print(ai.Hello())
-    user_inp = "#this is a picture of me, waht do you think?#temp/capture_0_20240912133342132801.jpg#http://el3ktra.el3ktra.net/uploads/capture_0_20240911223907988147.jpg"
-    out = ai.respond(user_inp)
-    print(f'AI: {out}')
+#    user_inp  = "hello"
+#    print(ai.Hello())
+#    user_inp = "#this is a picture of me, waht do you think?#temp/capture_0_20240912133342132801.jpg#http://el3ktra.el3ktra.net/uploads/capture_0_20240911223907988147.jpg"
+#    out = ai.respond(user_inp)
+#    print(f'AI: {out}')
 
-
+    user_inp = ""
     while user_inp != "quit":
         print("User: ", end="")
         user_inp = input()
