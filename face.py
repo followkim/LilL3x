@@ -12,6 +12,8 @@ sys.path.insert(0, './raspberryPi/')
 from apa102 import APA102
 from animate import Screen
 from rasp_leds import LEDS
+from config import cf
+
 sys.path.insert(0, '..')
 
 class Face:
@@ -75,9 +77,19 @@ if __name__ == '__main__':
         return
     face = Face()
     face.SetViewControl(dummy, dummy)
+    STATE.ChangeState('ActiveIdle')
+
+    # brightness test
+    face.listening()
+    b = 1
+    sleep(3)
+    while b != 0:
+        b = input("Brightness: 1-10: ")
+        cf.s('BRIGHTNESS', b)
+        face.listening() # reset the color
+
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
-    STATE.ChangeState('ActiveIdle')
     face.idle()
     sleep(10)
     face.looking()

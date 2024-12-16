@@ -52,6 +52,9 @@ class LEDS:
             self.color = COLORS_RGB[inColor]
         else:
             self.color = inColor
+        factor = round(0 + (cf.g('BRIGHTNESS')/10),2)
+        print(f"brightness factor is {factor}")
+        self.color = tuple(int(c * factor) for c in self.color)
  #       color = [int(x*cf.g('BRIGHTNESS')) for x in color]
 
     def LEDThread(self):
