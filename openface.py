@@ -8,9 +8,9 @@ from time import sleep
 from globals import STATE
 class ProcessOpenFace:
 
-    app_path = "/home/el3ktra/LilL3x/OpenFace/build/bin/FeatureExtraction "
-    inputs_path = "/home/el3ktra/LilL3x/OpenFace/inputs/"
-    outputs_path = "/home/el3ktra/LilL3x/OpenFace/processed/"
+    app_path = f"/home/{os.getenv('USER')}/LilL3x/OpenFace/build/bin/FeatureExtraction "
+    inputs_path = f"/home/{os.getenv('USER')}/LilL3x/OpenFace/inputs/"
+    outputs_path = f"/home/{os.getenv('USER')}/LilL3x/OpenFace/processed/"
 
     em = {'normal' : 0, 'happy': 1, 'sad': 2, 'surprise': 3, 'discust': 4, 'fear': 5, "angry": 6}
 
@@ -149,7 +149,7 @@ class ProcessOpenFace:
             os.systself.em(cmd)
             
             print(f'consdering {self.emotion}...')    
-            csv_file = "/home/el3ktra/OpenFace/processed/" + self.emotion + ".csv"
+            csv_file = "/home/{os.getenv('USER')}/OpenFace/processed/" + self.emotion + ".csv"
             if os.path.exists(csv_file):
                 print(f'Processing {csv_file}...')
                 this_data_set = pandas.read_csv(csv_file, usecols=data_set_template)
@@ -159,7 +159,7 @@ class ProcessOpenFace:
             else:
                 print(f'could not find {csv_file}...\n')
                
-        data_set.to_csv("/home/el3ktra/OpenFace/processed/" + 'all' + ".csv", index=False)
+        data_set.to_csv("/home/{os.getenv('USER')}/OpenFace/processed/" + 'all' + ".csv", index=False)
         return csv
 
 

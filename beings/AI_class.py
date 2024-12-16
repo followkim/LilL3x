@@ -3,6 +3,7 @@ import sys
 import inspect
 from gpiozero import CPUTemperature
 from pathlib import Path
+from time import sleep
 import requests
 import re
 from datetime import datetime, timedelta
@@ -93,16 +94,13 @@ class AI:
             return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
 
         if re.search(r"^can you see me$", txt.lower()):
-            self.face.looking()
-            dt = datetime.now()
-            return self.YesNo(self.LookForUser(), "Yes",  "No, I can't")
+            return self.YesNo(self.LookForUser(5), "Yes",  "No, I can't")
 
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
 
         if re.search(r"^show (me|us) what you see$", txt.lower()):
-            self.face.looking()
-            sleep(5)
+            self.LookForUser(10)
             return ""
 
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
@@ -244,10 +242,10 @@ class AI:
         return
 
     def LookForUser(self, duration=0):
-        self.face.looking()
+        if duration>0: self.face.looking()
         ret = self.eyes.CanISeeYou()
         end = datetime.now() + timedelta(seconds=duration)
-        while end > datetime.now() and not ret:
+        while end > datetime.now(): # and not ret:
             ret = self.eyes.CanISeeYou()
         self.face.off()
         return ret

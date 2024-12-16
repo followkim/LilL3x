@@ -20,6 +20,12 @@ class Face:
     def __init__(self):
         self.screen = Screen()
         self.leds = LEDS()
+        animate_thread = threading.Thread(target=self.screen.AnimateThread)
+        animate_thread.start()
+        
+        led_thread = threading.Thread(target=self.leds.LEDThread)
+        led_thread.start()
+ 
 
     def SetViewControl(self, showViewStartFunc, showViewEndFunc):
         self.view_start = showViewStartFunc
@@ -45,7 +51,7 @@ class Face:
         self.screen.thinking()
 
     def looking(self):
-#        self.leds.looking()
+        self.leds.looking()
         self.view_start()
         self.screen.looking()
 
@@ -69,13 +75,24 @@ if __name__ == '__main__':
         return
     face = Face()
     face.SetViewControl(dummy, dummy)
-    animate_thread = threading.Thread(target=face.screen.AnimateThread)
-    animate_thread.start()
+#    animate_thread = threading.Thread(target=face.screen.AnimateThread)
+#    animate_thread.start()
+    STATE.ChangeState('ActiveIdle')
+    face.idle()
+    sleep(10)
     face.looking()
-    sleep(600)
+    sleep(10)
     face.listening()
     sleep(10)
     face.idle()
+    STATE.ChangeState('ActiveIdle')
+    sleep(10)
+    STATE.ChangeState('Idle')
+    sleep(10)
+    STATE.ChangeState('SleepState')
+    sleep(10)
+    STATE.ChangeState('ActiveIdle')
+    sleep(10)
     face.Close()
     '''
     while face:

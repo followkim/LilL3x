@@ -10,6 +10,7 @@ import re
 import sys
 import os
 import threading
+import random
 from datetime import datetime, timedelta
 from time import sleep
 from board import SCL, SDA
@@ -82,23 +83,26 @@ class Screen:
         font = ImageFont.load_default()
         dt = datetime.now() + timedelta(seconds=-1)
         real_fps = 0
+        LogInfo(f"Animate Thread started")
         while not self.state=='Quit':
             last_fps = round(1000000/(datetime.now()-dt).microseconds)
             dt = datetime.now()
             try:
                 # Turn off display in idle/sleep state, or show tracking
                 if self.state == 'Idle':
-                    if STATE.IsInactive():
+                    if STATE.CheckState('SleepState'):
                         self.disp.fill(0)
                         self.disp.show()
                         sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
                         continue
+                    elif random.randint(0, cf.g('FPS')*5) == 1 or STATE.CheckState('Idle'):
+                        self.displayPicts = self.picts['blinking']
 
                     else:
                         if STATE.cx > 0: self.displayPicts = self.picts['tracking']
                         else: self.displayPicts = self.picts['active']
 
-                # get the background image
+                # get the background image, otherwise use what is assigned to displayPicts
                 if self.state == 'Look' and os.path.exists("./frames/wis.ppm"):
                     image = Image.open('./frames/wis.ppm').convert("1")
                 else:
@@ -111,9 +115,9 @@ class Screen:
                 if self.state == 'Idle' and STATE.cx >= 0:
                         pupilX = int((15/1280)*STATE.cx)
                         pupilY = int((25/720)*STATE.cy)
-                        LogDebug:(f"pupilX: {pupilX}, pupilY: {pupilY}")
-                        draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="white", fill="black")
-                        draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="white", fill="black")
+                        LogDebug(f"pupilX: {pupilX}, pupilY: {pupilY}")
+                        draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
+                        draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
  
                 # Write four lines of text.
                 temp = str(round(CPUTemperature().temperature)) + "C"
@@ -144,7 +148,7 @@ class Screen:
                 LogError(f"AnimateThreadException: {str(e)}")
         self.disp.fill(0)
         self.disp.show()
-
+        LogInfo(f"Animate Thread ended")
     def talking(self):
         self.state = 'Talk'
         self.displayPicts = self.picts['talking']
@@ -178,4 +182,5 @@ if __name__ == '__main__':
     global STATE
     s = Screen()
     STATE.ChangeState('ActiveIdle')
+    sleep(60)
     s.off()

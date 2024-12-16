@@ -117,6 +117,7 @@ class AI_ollama(AI_openAI):
         reply = ""
         full_reply = ""
         response = self.client.chat(**args)
+        self.face.talking()
 #        for chunk in self.client.stream(input=args['messages'], kwargs=args):
         for chunk in response:
             m = chunk['message']['content']
@@ -130,6 +131,7 @@ class AI_ollama(AI_openAI):
                 reply = m[(eos.span()[0])+2:]
             else: reply = reply + m
         self.mouth.say(self.StripActions(reply), asyn=False)
+        self.face.off()
         return self.StripActions(full_reply)
 
 

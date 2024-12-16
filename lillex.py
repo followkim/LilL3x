@@ -2,12 +2,8 @@
 import os
 import sys
 
-os.chdir('/home/el3ktra/LilL3x/')
-sys.path.append('/home/el3ktra/LilL3x/')
-#print("New Working Directory:", os.getcwd())
-
-
-   # Add the directory containing your module to sys.path
+os.chdir(f"/home/{os.getenv('USER')}/LilL3x/")
+sys.path.append(f"/home/{os.getenv('USER')}/LilL3x/")
 
 import inspect
 from pathlib import Path
@@ -29,8 +25,7 @@ from gpiozero import CPUTemperature
 import RPi.GPIO as GPIO
 BUTTON = 17
 
-currentdir = '/home/el3ktra/LilL3x/'
-sys.path.insert(0, currentdir)
+currentdir = os.getcwd()
 from speech_tools import speech_generator
 from listen_tools import speech_listener
 from camera_tools import Camera
@@ -66,10 +61,6 @@ class lill3x:
 
     ai = False
     ww = 0
-    ww_thread = 0
-    button_thread = 0
-    animate_thread = 0
-    config_thread = 0
     def __init__(self):
         LogInfo("Starting LilL3x")        
         # create the hardware objects
@@ -91,7 +82,7 @@ class lill3x:
             RaiseError("AI():Could not init camera. " + str(e))
 
         try:
-            self.face = Face()
+            self.face = Face() # note this spawns two threads: animate and led threads
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
             RaiseError("AI():Could not init Display. " + str(e))
@@ -118,19 +109,19 @@ class lill3x:
 
         # finally start the wakeword thread
 #        self.ww = vosk_wake.vosk_wake(self.face)
-#        self.ww_thread = threading.Thread(target=self.ww.listen)
+#        ww_thread = threading.Thread(target=self.ww.listen)
         cam_thread = threading.Thread(target=self.eyes.CameraLoopThread)
         cam_thread.start()
+
         self.ww = wake_word.wake_word(self.mouth)
-        self.ww_thread = threading.Thread(target=self.ww.listen)
-        self.ww_thread.start()
-        self.button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
-        self.button_thread.start()
-        self.animate_thread = threading.Thread(target=self.face.screen.AnimateThread)
-        self.animate_thread.start()
-        self.config_thread = threading.Thread(target=cf.config_thread)
-        self.config_thread.start()
-#        self.config_thread.join()
+        ww_thread = threading.Thread(target=self.ww.listen)
+        ww_thread.start()
+        
+        button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
+        button_thread.start()
+
+        config_thread = threading.Thread(target=cf.config_thread)
+        config_thread.start()
 
     def Loop(self):
         LogInfo("Starting Main Loop")
@@ -220,6 +211,7 @@ class lill3x:
 
         if self.eyes.IsDark():
              STATE.ChangeState('SleepState')
+             self.face.off()
         elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
             thought = self.ai.Interact()  
             if thought:
@@ -243,7 +235,7 @@ class lill3x:
 #        if STATE.StateDuration() > timeout_secs[STATE.GetState()]:
         if self.eyes.IsDark():
             STATE.ChangeState('SleepState')
-
+            self.face.off()
         # Check for the user
         else:
             is_user_there = self.ai.LookForUser()

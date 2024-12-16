@@ -130,7 +130,7 @@ class Camera:
 #                    printf("IsDark")
 #                    sleep(30)
             prev = self._detect_motion(img, prev)
-            if tracker and self.mood == "" and not mood_thrd.is_alive():  # get the mood
+            if tracker and not mood_thrd.is_alive():  # get the mood
                 mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,))
                 mood_thrd.start()
             if self.show_view: self._whatISee(img)
@@ -284,6 +284,7 @@ class Camera:
         except: pass
 
         sleep(5*60)  # don't call more then ev ery 5 minutes
+        self.mood = ""    # assume that whatever they were feeling is past
 
     def WhoAmI(self):
         user_img = self.TakePicture(seeUser=True, beQuiet=True)

@@ -194,7 +194,10 @@ class AI_openAI(AI):
 
     # From Sleep State return greeting
     def Greet(self):
-          resp = "!The user just returned just returned after "+AI.PrettyDuration(self, datetime.now() - self.last_user_interaction) +", greet them."
+          if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_user_interaction).total_seconds() / 3600) > 6:
+              resp = "!The user just woke up for the day, say good morning."
+
+          else: resp = "!The user just returned just returned after "+AI.PrettyDuration(self, datetime.now() - self.last_user_interaction) +", greet them."
           return self.respond(resp)
     
     def Think(self):      

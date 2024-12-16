@@ -3,6 +3,11 @@ import sys
 from datetime import datetime
 import shutil
 
+#1-Conversation 
+#2-Warnings
+#3-Info Messages
+#4-Debug Messages
+
 ERROR_LEVEL = 6
 log_file_name = "lill3x.log"
 

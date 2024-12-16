@@ -1,5 +1,5 @@
 from datetime import datetime 
-import os.path
+import os
 import re
 from word2number import w2n
 from error_handling import *
@@ -117,7 +117,7 @@ class Config:
                 self.LoadConfig()
             sleep(15)
 
-currentdir = '/home/el3ktra/LilL3x/'
+currentdir = f"/home/os.getenv('USER')/LilL3x/"
 sys.path.insert(0, currentdir)
 
 

@@ -9,9 +9,18 @@
 # specific language governing permissions and limitations under the License.
 #
 
+import sys
+import os
+from time import sleep
+
 from gpiozero import LED
 from apa102 import APA102
 #from config import cf
+
+sys.path.insert(0, '..')
+from globals import STATE
+from config import cf
+from error_handling import *
 
 COLORS_RGB = {
     'blue':(0, 0, 255),
@@ -25,28 +34,51 @@ COLORS_RGB = {
     'off':(0, 0, 0),
 }
 
+print("Loading LEDs...")
 class LEDS:
     driver = 0
     power = 0
-    
+    color = COLORS_RGB['white']
+    should_quit = False
+    is_idle = True
     def __init__(self):
         self.driver = APA102(num_led=12)
         self.power = LED(5)
         self.power.on()
 
     def SetColor(self, inColor):
+        self.is_idle = False
         if isinstance(inColor, str):
-            color = COLORS_RGB[inColor]
+            self.color = COLORS_RGB[inColor]
         else:
-            color = inColor
+            self.color = inColor
  #       color = [int(x*cf.g('BRIGHTNESS')) for x in color]
-        for i in range(12):
-            self.driver.set_pixel(i, color[0], color[1], color[2])
-        try:
-            self.driver.show()
-        except Exception as e:
-            self.off()
-            return
+
+    def LEDThread(self):
+        jr = 0
+        ir = 0
+        thisColor = self.color
+        LogInfo("LEDThread started")
+        while not self.should_quit:
+            if thisColor != self.color: # don't change colors if not asked to change
+                thisColor = self.color
+                for i in range(12):
+                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2])
+                try:
+                    self.driver.show()
+                except Exception as e:
+                    self.off()
+            if self.is_idle:
+                if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
+                    (ir, jr, self.color) = rainbow_cycle(ir, jr)
+                    sleep(0.05)
+                elif STATE.CheckState('SleepState') and thisColor != COLORS_RGB['off']: self.color = COLORS_RGB['off']
+
+        # set to black and quit
+        for i in range(12): self.driver.set_pixel(i, 0, 0, 0)
+        self.driver.show()
+        LogInfo("LEDThread ended")
+
     def blue(self):
         self.SetColor(COLORS_RGB['blue'])
     def green(self):
@@ -65,6 +97,7 @@ class LEDS:
         self.SetColor(COLORS_RGB['yellow'])
     def off(self):
         self.SetColor(COLORS_RGB['off'])
+        self.is_idle = True
 
     def talking(self):
         self.red()
@@ -73,8 +106,41 @@ class LEDS:
     def thinking(self):
         self.purple()
     def looking(self):
-        self.yellow()
-
-    def Close(self):
+        self.blue()
+    def idle(self):
         self.off()
+ 
+    def Close(self):
+        self.should_quit = True
+        sleep(0.5)
         self.power.off()
+
+
+
+
+def rainbow_cycle(i, j):
+    color = wheel((i+j) & 255)
+    i = i + 1
+    if i == 256:
+        i = 0
+        j = j + 1
+        if j == 256: j = 0
+    return (i, j, color)
+#        for j in range(256):
+#            for i in range(256):
+#                color = wheel((i+j) & 255)
+#                # Use the color variable as needed
+#                return color
+
+#rainbow_cycle(0.01) # Adjust the wait time as needed
+
+def wheel(pos):
+    """Generate rainbow colors across 0-255 positions."""
+    if pos < 85:
+        return (pos * 3, 255 - pos * 3, 0)
+    elif pos < 170:
+        pos -= 85
+        return (255 - pos * 3, 0, pos * 3)
+    else:
+        pos -= 170
+        return (0, pos * 3, 255 - pos * 3)
