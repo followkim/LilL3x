@@ -26,22 +26,18 @@ class wake_word:
     is_speaking = False
     
     wakeword_listener = None
-    keyword_path = None
     audio_device_index = -1  #RasperbyPI  TODO PULL FROM GLOBALS
-    keyword_paths = []
+#    keyword_paths = []
     keywords = []
     audio = 0
     def __init__(self, audio):
         self.audio = audio
-        for x in os.listdir(cf.g('WAKEWORD_PATH')):
-            self.keyword_paths.append(cf.g('WAKEWORD_PATH')+x)
-        
-        
+        keyword_path = [f"{cf.g('WAKEWORD_PATH')}{cf.g('AINAMEP').lower()}_en_raspberry-pi_v3_0_0.ppn"]
         try:
             self.wakeword_listener = pvporcupine.create(
                 access_key=cf.g('PICOVOICE_KEY'),
-                keyword_paths=self.keyword_paths #DOTO pass k eywords list: wakeword, amazon, google siri?
-        #        keywords = ('elektra')
+                keyword_paths=keyword_path #DOTO pass k eywords list: wakeword, amazon, google siri?
+        #        keywords = ('bumblebee')
         #                library_path=args.library_path,
         #                model_path=args.model_path,
         #                sensitivities=args.sensitivities
@@ -81,6 +77,7 @@ class wake_word:
         
         recorder = 0
         # create a recorder
+        LogInfo("WW Listen Thread started")
         while not STATE.CheckState('Quit'):
             if not STATE.IsInteractive():     #don't bother listening if in Active or Wake
                 if (MIC_STATE.CanUse()):
@@ -96,8 +93,9 @@ class wake_word:
                 # no wakeword on Wake/Active states
                 continue
         self.Close()
-
+        LogInfo("WW Listen Thread ended")
     def listen_loop(self):
+        LogDebug("ww listen_loop started")
         try:
             recorder = PvRecorder(frame_length=self.wakeword_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
@@ -120,7 +118,9 @@ class wake_word:
         recorder.stop()  # stop the recorder if requested to do so
         recorder.delete()
         sd.default.reset()
+        LogDebug("wakeword listen_loop ended")
         return
+
     def GetWakePhrase(self):
         return False
 
@@ -132,11 +132,18 @@ class wake_word:
 
 if __name__ == '__main__':
    from speech_tools import speech_generator
-
+   import threading
+   from time import sleep
    global STATE
    STATE.ChangeState('Idle')
    mouth = speech_generator()
 
    ww = wake_word(mouth)
-
-   ww.listen()
+   t = threading.Thread(target=ww.listen)
+   t.start()
+   while True:
+      if STATE.CheckState('Wake'):
+          STATE.ChangeState('Active')
+          STATE.ChangeState('Idle')
+      sleep(5)
+      print("STATE= " + STATE.GetState())
