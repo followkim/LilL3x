@@ -143,13 +143,13 @@ class Camera:
 
     def _read_camera_buffer(self):
         try:
-            return self.cam.capture_buffer("lores")
+            return cv2.flip(self.cam.capture_buffer("lores"), 0)
         except Exception as e:
             return RaiseError(f"Error reading camera ({str(e)})")
 
     def _read_camera_array(self):
         try:
-            return self.cam.capture_array()
+            return cv2.flip(self.cam.capture_array(), 0)
         except Exception as e:
             return RaiseError(f"Error reading camera ({str(e)})")
 
@@ -188,9 +188,9 @@ class Camera:
             except Exception as e: 
                 return LogDebug("_detect motion exptn: {str(e)}")
             if mse > cf.g('MOTDET_SENS'):
-                last_motion = datetime.now()
+                self.last_motion = datetime.now()
 #        return icu>=cf.g('MOTDET_THRESH')
-        return cur
+        return cur # allows easy setting of previous frame
 
     def ShowView(self):
         self.show_view=True
