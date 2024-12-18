@@ -43,15 +43,19 @@
 <?php 
 
                exec("sudo ./listwifi.sh", $networks, $ret);
-                foreach ($networks as $line) {
-                     if (preg_match('/freq: ([^"]+)/', $line, $freq)) {
-                       $ssid_list = next($networks);
-                       if (preg_match('/SSID: ([^"]+)/', $ssid_list, $ssid)) {
-                            echo '<option value="'.$ssid[1].'">'.$ssid[1]. '</option>';
-                       }
-                     }
-                } 
-
+               $wifis = [];
+               foreach ($networks as $line) {
+                   if (preg_match('/SSID: ([^"]+)/', $line, $ssid)) {
+                       echo $ssid[0];
+                       echo $ssid[1];
+                       array_push($wifis, $ssid[1]);
+                }
+               }
+               sort($wifis);
+               $wifis = array_unique($wifis);
+		foreach ($wifis as $wifi) {
+                	echo '<option value="'.$wifi.'">'.$wifi. '</option>';
+ 		}
 ?>
                 </select></td></tr>
                 <tr><td>Password:</td><td><input type="passwordd" name="PASSWORD"></td></tr>

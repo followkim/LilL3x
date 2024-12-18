@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 import shutil
 
-#1-Conversation 
-#2-Warnings
-#3-Info Messages
-#4-Debug Messages
+##1-Conversation / Information
+##2-Warnings
+##3-Info Messages
+##4-Debug Messages
 
 ERROR_LEVEL = 6
 log_file_name = "lill3x.log"
@@ -49,7 +49,7 @@ def LogDebug(txt):
     return
 
 def Log(text, level=""):
-    print(f"{level}{text}")
+    print(f"{level} {text}")
     logFile = open(log_file_name, "a")
     logFile.write(f"{level}{text}\n")
     logFile.close()

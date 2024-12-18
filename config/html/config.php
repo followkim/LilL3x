@@ -82,6 +82,30 @@
 								}									
 								echo "</select></td></tr>\n";
 							}
+                                                       elseif ($atts[0] == "LISTEN_ENGINE") {
+                                                                echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
+                                                                echo "<td id='rightHand' >\n";
+                                                                echo "\n<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
+                                                                $pyfile = fopen('/home/el3ktra/LilL3x/sr.py', "r");
+                                                                $engines = [];
+                                                                while(!feof($pyfile)) {
+	                                                                $line = fgets($pyfile);
+                                                                        if (preg_match_all("/def recognize_(.*)\(self/", $line, $matches)) {
+  	                        	                                        array_push($engines, $matches[1][0]);
+                                                                        }
+                                                                        elseif (preg_match_all("/Recognizer.recognize_(.*) = /", $line, $matches)) {
+  	                        	                                        array_push($engines, $matches[1][0]);
+                                                                        }
+                                         
+                                                                }
+								sort($engines);
+								$engines = array_unique($engines);
+								foreach ($engines as $engine) {
+        								echo "\n<option value=\"" . $engine . "\" "  .   (($engine == $atts[1])?"selected":"") . ">" . $engine ."</option>";
+ 								}
+                                                                echo "</select></td></tr>\n";
+                                                        }
+
                                                        elseif ($atts[0] == "SPEECH_ENGINE") {
                                                                 echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
                                                                 echo "<td id='rightHand' >\n";
@@ -92,6 +116,22 @@
                                                                         if (preg_match_all("/class (.*)_tts:/", $line, $matches)) {
   	                        	                                        $engine = $matches[1][0];
                									echo "\n<option value=\"" . $engine . "\" "  .   (($engine == $atts[1])?"selected":"") . ">" . $engine ."</option>";
+                                                                        }
+                                                                }
+                                                                echo "</select></td></tr>\n";
+                                                        }
+
+                                                       elseif ($atts[0] == "DEBUG") {
+                                                                echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
+                                                                echo "<td id='rightHand' >\n";
+                                                                echo "\n<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
+                                                                $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
+                                                                while(!feof($pyfile)) {
+	                                                                $line = fgets($pyfile);
+                                                                        if (preg_match_all("/##(.*)-(.*)/", $line, $matches)) {
+  	                        	                                        $val = $matches[1][0];
+  	                        	                                        $desc = $matches[2][0];
+               									echo "\n<option value=\"" . $val . "\" "  .   (($val == $atts[1])?"selected":"") . ">" . $desc ."</option>";
                                                                         }
                                                                 }
                                                                 echo "</select></td></tr>\n";
