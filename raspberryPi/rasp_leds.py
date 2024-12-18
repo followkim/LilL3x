@@ -72,7 +72,7 @@ class LEDS:
             if self.is_idle:
                 if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
                     (ir, jr, self.color) = rainbow_cycle(ir, jr)
-                    sleep(0.05)
+                    sleep(cf.g('LIGHT_SPEED')/100) # default should be 5
                 elif STATE.CheckState('SleepState') and thisColor != COLORS_RGB['off']: self.color = COLORS_RGB['off']
 
         # set to black and quit

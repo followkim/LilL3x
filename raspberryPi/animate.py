@@ -145,7 +145,7 @@ class Screen:
                 draw.text((width-bb[2], 0), time, font=font, fill=255)
 
                 temp = round(CPUTemperature().temperature)
-                if temp >= 70:
+                if temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10)
                     bb = draw.textbbox((0,0), f"{temp}C", font=font)
                     draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
                     draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
