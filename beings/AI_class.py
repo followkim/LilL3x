@@ -251,13 +251,13 @@ class AI:
         return ret
 
     def Think(self):
-        self.face.thinking()
-        if cf.IsConfigDirty():
-            cf.LoadConfig()
+#        self.face.thinking()
+#        if cf.IsConfigDirty():
+#            cf.LoadConfig()
         # Process OpenFace
         # get opinions on photos or messages
         # machine learning
-        self.face.off()
+#        self.face.off()
         return
 
     def Interact(self, dice=False):

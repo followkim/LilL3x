@@ -32,6 +32,7 @@ class Screen:
     display = 0
     picts = {}
     displayPicts = []
+    blackPict = 0
     state = 'active'
     _message = False
     def __init__(self):
@@ -49,6 +50,7 @@ class Screen:
         self.disp.show()
 
         # laod the images
+        self.blackPict = image = Image.new("1", (128, 64))
         filelist = os.listdir("./frames")
         filelist.sort()
         for file in filelist:
@@ -78,6 +80,10 @@ class Screen:
         eyeR = 86
         eyeY = 3
         eyeHeight=30
+        movX = 1
+        movY = 1
+        locx = 0
+        locy = 0
 
         # Load default font.
         font = ImageFont.load_default()
@@ -101,14 +107,27 @@ class Screen:
                     else:
                         if STATE.cx > 0: self.displayPicts = self.picts['tracking']
                         else: self.displayPicts = self.picts['active']
+                    # offset the image to avoid burnin
 
                 # get the background image, otherwise use what is assigned to displayPicts
                 if self.state == 'Look' and os.path.exists("./frames/wis.ppm"):
                     image = Image.open('./frames/wis.ppm').convert("1")
                 else:
                     if frame >= len(self.displayPicts): frame = 0
-                    image = self.displayPicts[frame].copy()
+                    if self.state == 'Idle' and not self._message:  # dont' float the image if there is a message showing 
+                        image = self.blackPict.copy()
+                        locx = locx + (movX* cf.g('SCREEN_SPEED'))
+                        locy = locy + (movY * cf.g('SCREEN_SPEED'))
+                        image.paste(self.displayPicts[frame], (locx, locy))
+                        if locx > 20 or locx < -20:  movX = movX * -1
+                        if locy > 20 or locy < -5:  movY = movY * -1
+                    else:
+                        image = self.displayPicts[frame].copy()
+                        locx = 0
+                        locy = 0
                     frame = frame + 1
+                
+                # draw the selected image
                 draw = ImageDraw.Draw(image)
               
                 # if tracking, draw the pupils (need to call this AFTER getting the image above)
@@ -120,19 +139,26 @@ class Screen:
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
  
                 # Write four lines of text.
-                temp = str(round(CPUTemperature().temperature)) + "C"
-                bb = draw.textbbox((0,0), temp, font=font)
-#                draw.rectangle((width-bb[2], 0, bb.h, bb.w), fill=0, outline=0)
-                draw.text((width-bb[2], 0), f"{temp}", font=font, fill=255)
+                time = datetime.now().strftime("%-I:%M%p")       
+                bb = draw.textbbox((0,0), time, font=font)
+                draw.rectangle((width-bb[2], 0, width-bb[2] + bb[2], bb[3]), fill=0, outline=0)
+                draw.text((width-bb[2], 0), time, font=font, fill=255)
+
+                temp = round(CPUTemperature().temperature)
+                if temp >= 70:
+                    bb = draw.textbbox((0,0), f"{temp}C", font=font)
+                    draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
+                    draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
                 if not self._message:
-                    bb = draw.textbbox((0,0), self.state, font=font) # get size
-                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
+                     pass
+#                    bb = draw.textbbox((0,0), self.state, font=font) # get size
+#                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
 #                    bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
 #                    draw.rectangle(bb, fill=0, outline=0)
 #                    draw.text((width-bb[2], height-bb[3]), f"{last_fps}fps ({real_fps})", font=font, fill=255)
         #           self.draw.text((x, top + ((height/4)*2)), MemUsage, font=self.font, fill=255)
-                    bb = draw.textbbox((0,0), f"{STATE.GetState()}", font=font) # get size
-                    draw.text((0, height-bb[3]), f"{STATE.GetState()}", font=font, fill=255)
+#                    bb = draw.textbbox((0,0), f"{STATE.GetState()}", font=font) # get size
+#                    draw.text((0, height-bb[3]), f"{STATE.GetState()}", font=font, fill=255)
                 else:
                     bb = draw.textbbox((0,0), self._message, font=font)
 #                    draw.rectangle(bb, fill=0, outline=0)
@@ -149,6 +175,7 @@ class Screen:
         self.disp.fill(0)
         self.disp.show()
         LogInfo(f"Animate Thread ended")
+
     def talking(self):
         self.state = 'Talk'
         self.displayPicts = self.picts['talking']

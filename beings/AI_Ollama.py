@@ -117,9 +117,9 @@ class AI_ollama(AI_openAI):
         reply = ""
         full_reply = ""
         response = self.client.chat(**args)
-        self.face.talking()
 #        for chunk in self.client.stream(input=args['messages'], kwargs=args):
         for chunk in response:
+            self.face.talking()
             m = chunk['message']['content']
 #            m = chunk.content
             full_reply = full_reply + m
