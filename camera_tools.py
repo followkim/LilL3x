@@ -73,7 +73,7 @@ class Camera:
             if CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
                 RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
                 self.cam.stop()
-                while CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
+                while CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
                     sleep(60)
                 self.cam.start()
                 continue
@@ -106,11 +106,8 @@ class Camera:
                     STATE.cx=-1
                     STATE.cy=-1
                     
-            if tracker == False:
-                # convert to gray scale of each frames 
+            if tracker == False:  # don't use an else as tracker might ahve turned false above
                 faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
-
-                # Detects faces of different sizes in the input image 
                 if len(faces)>0:
                     for (x, y, w, h) in faces:
                         eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
@@ -126,17 +123,16 @@ class Camera:
                     STATE.cx=-1
                     STATE.cy=-1
                     tracking_frames = 0
-#            if self._is_dark():
-#                    printf("IsDark")
-#                    sleep(30)
             prev = self._detect_motion(img, prev)
+            self._is_dark(img)
+            # perform camera requests
             if tracker and not mood_thrd.is_alive():  # get the mood
                 mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,))
                 mood_thrd.start()
             if self.show_view: self._whatISee(img)
             if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
-#            if not tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
-            self.is_dark = self._is_dark(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
+#            if self._is_dark(): sleep(30) # don't check for dark if there is movement
+            if not tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
 
 
         if self.cam: self.cam.stop()
@@ -157,19 +153,14 @@ class Camera:
     def IsDark(self):
         return self.is_dark
     
-    def _is_dark(self, secs=cf.g('DARK_SECS_TO_DEFAULT')):
-        end = datetime.now() + timedelta(seconds=secs)
-        means = []
-        while end > datetime.now():
-            try:
-                img = self._read_camera_buffer()
-                means.append(numpy.mean(img) * 100 / 255)
-            except Exception as e:
-                RaiseError(f"Error IsDark: {str(e)}") 
-        if len(means)>0:
-            self.is_dark = numpy.mean(means) <= cf.g('IS_DARK_THRESH')
-        else:
-            self.is_dark =  False
+    def _is_dark(self, image):
+        # Convert image to HSV colorspace
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        # Extract the V channel (Value channel represents brightness)
+        v_channel = hsv[:, :, 2]
+        brightness = numpy.mean(v_channel)
+        self.is_dark= brightness<=cf.g('IS_DARK_THRESH')
         return self.is_dark
 
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
