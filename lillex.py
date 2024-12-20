@@ -2,8 +2,8 @@
 import os
 import sys
 
-os.chdir(f"/home/{os.getenv('USER')}/LilL3x/")
-sys.path.append(f"/home/{os.getenv('USER')}/LilL3x/")
+os.chdir(f"{os.getenv('HOME')}/LilL3x/")
+sys.path.append(f"{os.getenv('HOME')}/LilL3x/")
 
 import inspect
 from pathlib import Path
