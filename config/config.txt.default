@@ -2,7 +2,7 @@ USERNAME|Kim|str|description
 USERNAMEP|Kim|str|description
 USEREMAIL|followkim@gmail.com|str|desc
 AINAME|El3ktra|str|Name of the AI
-AINAMEP|el3ktra|str|description
+AINAMEP|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
 AI_ENGINE|ChatGPT|str|description
 LAST_INTERACTION|2024-12-11|dt|
 CPU_MAX_TEMP|75|int|
