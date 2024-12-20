@@ -96,3 +96,5 @@ FPS|3|int|
 MESSAGE_SHOW_SECS|10|int|
 DEBUG|2|int|
 CONVO_ID||str|
+SCREEN_SPEED|1|int|
+LIGHT_SPEED|10|int|
