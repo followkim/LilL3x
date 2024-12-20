@@ -32,7 +32,7 @@ class wake_word:
     audio = 0
     def __init__(self, audio):
         self.audio = audio
-        keyword_path = [f"{cf.g('WAKEWORD_PATH')}{cf.g('AINAMEP').lower()}_en_raspberry-pi_v3_0_0.ppn"]
+        keyword_path = [cf.g('AINAMEP')]
         try:
             self.wakeword_listener = pvporcupine.create(
                 access_key=cf.g('PICOVOICE_KEY'),
