@@ -112,9 +112,9 @@ class Screen:
                 # get the background image, otherwise use what is assigned to displayPicts
                 if self.state == 'Look' and os.path.exists("./frames/wis.ppm"):
                     image = Image.open('./frames/wis.ppm').convert("1")
-                else:
+                else: # using displayPicts
                     if frame >= len(self.displayPicts): frame = 0
-                    if self.state == 'Idle' and not self._message:  # dont' float the image if there is a message showing 
+                    if self.state == 'Idle' and not STATE.cx > 0 and not self._message:  # dont' float the image if there is a message showing 
                         image = self.blackPict.copy()
                         locx = locx + (movX* cf.g('SCREEN_SPEED'))
                         locy = locy + (movY * cf.g('SCREEN_SPEED'))
@@ -131,10 +131,10 @@ class Screen:
                 draw = ImageDraw.Draw(image)
               
                 # if tracking, draw the pupils (need to call this AFTER getting the image above)
-                if self.state == 'Idle' and STATE.cx >= 0:
+                if self.state == 'Idle' and STATE.cx > 0:
                         pupilX = int((15/1280)*STATE.cx)
                         pupilY = int((25/720)*STATE.cy)
-                        LogDebug(f"pupilX: {pupilX}, pupilY: {pupilY}")
+#                        LogDebug(f"pupilX: {pupilX}, pupilY: {pupilY}")
                         draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
  
@@ -161,7 +161,7 @@ class Screen:
 #                    draw.text((0, height-bb[3]), f"{STATE.GetState()}", font=font, fill=255)
                 else:
                     bb = draw.textbbox((0,0), self._message, font=font)
-#                    draw.rectangle(bb, fill=0, outline=0)
+# TODO                    draw.rectangle(bb, fill=0, outline=0)
                     draw.text(((width-bb[2])/2, height-bb[3]), self._message, font=font, fill=255)
 
                 # Display image.
