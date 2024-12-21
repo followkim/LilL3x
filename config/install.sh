@@ -80,7 +80,7 @@ cd /~Lill3x
 sudo mkdir /var/www/html/includes/
 sudo ln config/html/* /var/www/html/
 sudo ln config/html/includes/* /var/www/html/includes/
-sudo ln config/config.txt /var/www/html/config.txt 
+sudo ln config/config*.txt /var/www/html/config*.txt 
 sudo ln -s /home/el3ktra/LilL3x/beings /var/www/html/beings
 
 sudo chown root:root /var/www/html/*
