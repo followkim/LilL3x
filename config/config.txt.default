@@ -25,6 +25,7 @@ DARK_SECS_TO_DEFAULT|10|int|description
 IS_DARK_THRESH|20|int|description
 CAMERA_CLICK_MP3|./media/camera.mp3|path|
 CAMERA_PICT_SEC|3|int|Number of seconds to show a new picture on the screen
+CAMERA_SLEEP_SEC|5|int
 SFT_FORMAT|%Y%m%d%H%M%S%f|str|description
 TEMP_PATH_DEFAULT|temp/|path|
 IMGUR_ID||str|
