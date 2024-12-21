@@ -45,6 +45,7 @@ sudo ./install.sh
 # test 
 arecord -D "plughw:3,0" -f S16_LE -r 16000 -d 5 -t wav test.wav
 aplay -D "plughw:3,0" test.wav
+pip install picovoicedemo
 
 
 # screen
@@ -77,16 +78,10 @@ echo "www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoer
 
 
 cd /~Lill3x
-sudo mkdir /var/www/html/includes/
 sudo ln config/html/* /var/www/html/
-sudo ln config/html/includes/* /var/www/html/includes/
-sudo ln config/config*.txt /var/www/html/config*.txt 
-sudo ln -s /home/el3ktra/LilL3x/beings /var/www/html/beings
 
-sudo chown root:root /var/www/html/*
 sudo chmod a+x /var/www/html/*.sh
-sudo chmod a+w config/config.txt
-sudo chown root:root /var/www/html/*.php
+sudo chown root:root /var/www/html/*
 sudo chown www-data:www-data config/config.txt
 
 sudo usermod -a -G www-data $USER
@@ -99,4 +94,7 @@ sudo chmod a+rwx /etc/apache2/sites-enabled/000-default.conf
 sudo chmod a+rx /home/el3ktra
 sudo systemctl restart apache2
 
+git clone http://github.com/Picovoice/porcupine.git
+cp porcupine/resources/keyword_files/raspberry-pi/* ~/LilL3x/wake
+rm -r porcupine
 
