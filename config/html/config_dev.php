@@ -82,7 +82,7 @@
 								}									
 								echo "</select></td></tr>\n";
 							}
-                                                       if ($atts[0] == "AINAMEP") {
+                                                       elseif ($atts[0] == "AINAMEP") {
                                                                 echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
                                                                 echo "<td id='rightHand' >\n";
                                                                 echo "<select name=\"".$atts[0]."\" value=".$atts[1].">\n";

@@ -1,0 +1,30 @@
+USERNAME|Name|Your own name
+USERNAMEP|Pronounciation|How you pronounce your name (if different)
+USEREMAIL|Email|Your email
+AINAME|AI Name|Your AI's name
+AINAMEP|Pronunciation|How you pronounce your AI's name (if different)
+AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
+INITIATE_ODDS|Interactivity|Approximate interactions per hour
+INTERACT_MIN|Interactivity Min|The time to wait before interacting again
+INTERACT_MAX|Interactivity Max|Don't wait longer then this to interact
+SURVEIL_WAIT|Surveilance Wait|Time to wait before starting surveilance
+SURVEIL_LOOK|Survelaance Look|Time to wait between reporting on movement
+MOTDET_SENS|Motion Detection Sensitivity|How much movement should trigger motion-- set to higher if motion being detected too often.
+CAMERA_SLEEP_SEC|Camera Wait|Wiat this many seconds to view the user.  Increase if application is running slowly.
+IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
+CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
+MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking
+ENERGY_THRESH|Talking Volume|Increase if the user is getting cut off, decrease if the microphone isn't detecting that no one is talking anymore.
+LISTEN_ENGINE|Listen Engine|The name of the engine that will translate audio to text
+VOLUME|Volume|Should be 1-10
+SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
+AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html">Amazon Polly Availabale Voices</a>
+AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html">Amazon Polly Availabale Voices</a>
+CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech">Open AIs Text to Speech</a>
+BRIGHTNESS|Brightness|The brightness of the LEDs
+BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
+FPS|Frames Per Second|Frames per second for display
+MESSAGE_SHOW_SECS|Message Show|When showing a message, have it appear for this many seconds
+SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
+LIGHT_SPEED|LED Speed|How face the LEDs will animate.
+
