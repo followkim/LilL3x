@@ -6,7 +6,7 @@
 
 	
 //	include 'includes/utils.php';			// utils.php: database connection/disconnect functiosn
-        include '/home/el3ktra/LilL3x/config/html/config_tools.php';
+        include '/home/el3ktra/LilL3x/config/config_tools.php';
 	// is this a POST if so, grab the POST varibales which are used to populate the search parameters.
 
 	$isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
