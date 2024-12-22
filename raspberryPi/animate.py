@@ -11,6 +11,7 @@ import sys
 import os
 import threading
 import random
+import psutil
 from datetime import datetime, timedelta
 from time import sleep
 from board import SCL, SDA
@@ -89,7 +90,7 @@ class Screen:
         font = ImageFont.load_default()
         dt = datetime.now() + timedelta(seconds=-1)
         real_fps = 0
-        LogInfo(f"Animate Thread started")
+        LogInfo(f"Animate Thread started.  Screen {width}x{height}")
         while not self.state=='Quit':
             last_fps = round(1000000/(datetime.now()-dt).microseconds)
             dt = datetime.now()
@@ -114,7 +115,7 @@ class Screen:
                     image = Image.open('./frames/wis.ppm').convert("1")
                 else: # using displayPicts
                     if frame >= len(self.displayPicts): frame = 0
-                    if self.state == 'Idle' and not STATE.cx > 0 and not self._message:  # dont' float the image if there is a message showing 
+                    if self.state == 'Idle' and not STATE.cx > 0 and not STATE.CheckState('Active') and not self._message:  # dont' float the image if there is a message showing 
                         image = self.blackPict.copy()
                         locx = locx + (movX* cf.g('SCREEN_SPEED'))
                         locy = locy + (movY * cf.g('SCREEN_SPEED'))
@@ -138,19 +139,31 @@ class Screen:
                         draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
  
-                # Write four lines of text.
-                time = datetime.now().strftime("%-I:%M%p")       
-                bb = draw.textbbox((0,0), time, font=font)
-                draw.rectangle((width-bb[2], 0, width-bb[2] + bb[2], bb[3]), fill=0, outline=0)
-                draw.text((width-bb[2], 0), time, font=font, fill=255)
-
                 temp = round(CPUTemperature().temperature)
-                if temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
+                time = datetime.now().strftime("%-I:%M%p")       
+
+                bb = draw.textbbox((0,0), time, font=font)
+                clock = (width-bb[2], 0)
+                if not (self._message or cf.g('DEBUG')>=4 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
+                    if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
+                    elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
+                    elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
+                    elif movX>0 and movY>0: clock = (0           , 0)		   # upper left
+                draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
+                draw.text(clock, time, font=font, fill=255)
+
+                if temp >= cf.g('CPU_MAX_TEMP')*0.9:
                     bb = draw.textbbox((0,0), f"{temp}C", font=font)
                     draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
                     draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
+
                 if not self._message:
-                     pass
+                    if cf.g('DEBUG')>=4:
+                        CPU = f"{psutil.cpu_percent()}%"
+                        bb = draw.textbbox((0,0), CPU, font=font)
+                        draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)
+                        draw.text((0, height-bb[3]), CPU, font=font, fill=255)
+
 #                    bb = draw.textbbox((0,0), self.state, font=font) # get size
 #                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
 #                    bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size

@@ -80,18 +80,23 @@ if __name__ == '__main__':
     STATE.ChangeState('ActiveIdle')
 
     # brightness test
-    face.listening()
-    b = 1
-    sleep(3)
-    while b != 0:
-        b = input("Brightness: 1-10: ")
-        cf.s('BRIGHTNESS', b)
-        face.listening() # reset the color
+#    face.listening()
+#    b = 1
+#    sleep(3)
+#    while b != 0:
+#        b = input("Brightness: 1-10: ")
+#        cf.s('BRIGHTNESS', b)
+#        face.listening() # reset the color
 
+# showview test
+#    face.looking()
+#    sleep(600)
+        
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
     face.idle()
-    sleep(10)
+    sleep(30)
+    '''
     face.looking()
     sleep(10)
     face.listening()
@@ -105,6 +110,7 @@ if __name__ == '__main__':
     sleep(10)
     STATE.ChangeState('ActiveIdle')
     sleep(10)
+    '''
     face.Close()
     '''
     while face:
