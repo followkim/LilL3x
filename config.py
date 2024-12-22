@@ -6,6 +6,28 @@ from error_handling import *
 from globals import STATE
 from time import sleep
 
+def to_str(val):
+    if not val: return ""
+    if type(val) == str: return val
+    else: return str(val)
+
+def to_int(val):
+    return int(val)
+
+def to_dt(val):
+    # 2024-08-01 
+    return datetime.strptime(val, "%Y-%m-%d")
+
+type_f = {
+    'int' : to_int,
+    'str' : to_str,
+    'path' : to_str,
+    'key' : to_str,
+    'blob' :to_str,
+    'dt' : to_dt
+}
+
+
 class Config:
     configFileBK = "./config/config.txt.default"
     configFile = "./config/config.txt"
@@ -18,34 +40,13 @@ class Config:
         self.LoadConfig()
         return
 
-    def to_str(self, val):
-        if not val:
-            return ""
-        if type(val) == str:
-            return val
-        else:
-            return str(val)
-    def to_int(self, val):
-        return int(val)
-
-    def to_dt(self, val):
-        # 2024-08-01 
-        return datetime.strptime(val, "%Y-%m-%d")
-
     def LoadConfig(self):
         # variables that would cause a restart
         currAI = self.config.get('AI_ENGINE','')
         currentListen = self.config.get('LISTEN_ENGINE','')
         currentSpeech = self.config.get('SPEECH_ENGINE','')
-        type_f = {
-            'int' : self.to_int,
-            'str' : self.to_str,
-            'path' : self.to_str,
-            'key' : self.to_str,
-            'blob' : self.to_str,
-            'dt' : self.to_dt
-        }
         
+        # if there isn't a config file, create one from the default
         if not os.path.isfile(self.configFile) or  os.path.getsize(self.configFile) == 0:
             os.system("cp " + self.configFileBK + " " + self.configFile)
 
@@ -72,13 +73,35 @@ class Config:
         self.WriteConfig()
         return True
 
+    # if a value isn't found in the config file (not in git) then see if it is in the (git updatable) config file.
+    def LoadDefault(self, skey):
+        LogDebug(f"Checking Defaults for {skey}")
+        ret = False
+        with open(self.configFileBK) as file:
+            for line in file:
+                if re.search(r"^" + re.escape(skey.upper() + '|'), line):
+                    LogDebug(f"Found key {skey} in default file: {line}")
+                    ret = (line.rstrip()).split('|')
+                    if len(ret):
+                        key = ret.pop(0)
+                        val = ret.pop(0)
+                        type = ret.pop(0)
+                        desc = "|".join([str(i) for i in ret])
+                        try:
+                            self.config[key]=type_f[type](val)
+                            self.config_desc[key]=type+"|"+desc
+                            ret = True
+                        except Exception as e:
+                            LogWarn(f'Error inserting from default {key}:{val}: {str(e)}')
+        return ret
+
     def WriteConfig(self):
         file = open(self.configFile, "wt")
         for key in self.config.keys():
             if key == 'LAST_INTERACTION':
-                file.write(key + "|" + datetime.now().strftime("%Y-%m-%d") + '|' + self.to_str(self.config_desc[key]) + "\n")
+                file.write(key + "|" + datetime.now().strftime("%Y-%m-%d") + '|' + to_str(self.config_desc[key]) + "\n")
             else:
-                file.write(key + "|" + self.to_str(self.config[key]) + "|" + self.to_str(self.config_desc.get(key, 'str')) + "\n")
+                file.write(key + "|" + to_str(self.config[key]) + "|" + to_str(self.config_desc.get(key, 'str')) + "\n")
         file.close()
         self.lastLoad = datetime.now()  # theself.configfile is up to date
         return True
@@ -92,18 +115,24 @@ class Config:
     def g(self, key, default=False):
         try:
             return self.config[key]
-        except Exception as e:
-            LogWarn(f"Config.g ERR: {key} not found! ({str(e)})")
-            return default
+        except Exception as e:  #KeyError:
+            LogWarn(f"Config.g: {key} not found, checking defaults...")
+            if not self.LoadDefault(key):
+                LogWarn(f"Config.g: {key} not found in defaults!")
+                return default
+            else: return self.config[key]
+#        except Exception as e:
+#            LogWarn(f"Config.g Exception (key):{str(e)}")
+#            return default
 
     def s(self, key, val):
         try:
-            if re.search(r"^int", self.config_desc[key]):
+            if re.search(r"^int", self.config_desc[key]) and isinstance(val, str):
                 val = w2n.word_to_num(val)
             LogInfo(f"Setting {key} to {val}.")
             self.config[key] = val
             self.WriteConfig()  # save whenever dirty
-            SetErrorLevel(cf.g('DEBUG'))
+            SetErrorLevel(cf.g('DEBUG')) # error_handling doesn't have a Config object
             return val
         except Exception as e:
             LogWarn(f"Config.s ERR: {key} not found! ({str(e)})")
@@ -126,10 +155,14 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
-    cf.config['fdafdasfdsa']='test'
-    print(f'WriteConfig returned {cf.WriteConfig()}')
-    print(str(cf.g('fdafdasfdsa')))
-    print(f'LoadConfig returned {cf.LoadConfig()}')
-    print(str(cf.g('fdafdasfdsa')))
     print(str(cf.config))
-    cf.config_thread()
+
+    print(str(cf.g('STARTUP_MP3')))
+    print(str(cf.config))
+
+    print(f'WriteConfig returned {cf.WriteConfig()}')
+    print(str(cf.config))
+
+    print(f'LoadConfig returned {cf.LoadConfig()}')
+    print(str(cf.config))
+#    cf.config_thread()

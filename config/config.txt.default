@@ -36,6 +36,7 @@ MIC_TO|5|int|description
 MIC_LIMIT|1|int|description
 AMBIENT|1|int|
 ENERGY_THRESH|25|int|
+STARTUP_MP3|./media/startup.mp3|path|
 START_LISTEN_MP3|./media/listen_start.mp3|path|
 END_LISTEN_MP3|./media/listen_end.mp3|path|
 LISTEN_ENGINE|google|str|desc

@@ -77,7 +77,7 @@ if __name__ == '__main__':
         return
     face = Face()
     face.SetViewControl(dummy, dummy)
-    STATE.ChangeState('ActiveIdle')
+    STATE.ChangeState('Active')
 
     # brightness test
 #    face.listening()
