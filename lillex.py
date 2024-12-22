@@ -240,7 +240,12 @@ class lill3x:
         else:
             is_user_there = self.ai.LookForUser()
             if is_user_there:
-                STATE.ChangeState('ActiveIdle')  # siliently move into Active state, might want to Interact right away?
+                self.ai.say(self.ai.Greet())
+                user_input = self.ai.listen()
+                if user_input:
+                    self.ai.say(self.ai.respond(user_input))
+                    STATE.ChangeState('Active')
+                else: STATE.ChangeState('ActiveIdle')
             else:
                 self.Sleep(sleep_secs.get(STATE.GetState(), 0))
 
@@ -248,15 +253,9 @@ class lill3x:
     #       AI can: machine learning, check lights/sound
     def SleepState(self):
 
-        # user returned
-        if not self.eyes.IsDark() and not self.ww.is_speaking and self.ai.LookForUser():
-            self.ears.update()  # get ambient noise
-            self.ai.say(self.ai.Greet())
-            user_input = self.ai.listen()
-            if user_input:
-                self.ai.say(self.ai.respond(user_input))
-                STATE.ChangeState('Active')
-            else: STATE.ChangeState('ActiveIdle')
+        # user turned on the light-- goto acttive idle
+        if not self.eyes.IsDark():
+            STATE.ChangeState('ActiveIdle')
         else: self.Sleep(sleep_secs.get(STATE.GetState(), 0))
 
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
@@ -281,6 +280,12 @@ class lill3x:
         target_time = datetime.now() + timedelta(seconds=secs)
         sleep_for = min(cf.g('SLEEP_DURATION'), secs)
         while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.CheckState('Quit') or  STATE.IsInteractive()):
+
+
+
+
+
+
             sleep(sleep_for)
 
     def ButtonThread(self, audio):
@@ -303,3 +308,5 @@ class lill3x:
 
 l3x = lill3x()
 l3x.Loop()
+
+

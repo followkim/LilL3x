@@ -77,6 +77,7 @@ class speech_listener:
                     run_avg = []
                     x=0
                     last_listen = datetime.now()
+                    LogDebug(f"Energy:\tCurr\tThrsh\tC-T\tAvg\tSecs")
                     while listen_thread.is_alive():
                         x += 1
                         run_avg.append(self.speech.current_energy-self.speech.energy_threshold)
