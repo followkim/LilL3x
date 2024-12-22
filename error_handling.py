@@ -14,6 +14,26 @@ err_level = {
 
 ERROR_LEVEL = 4
 
+log_file_name = "./log/lill3x"+datetime.now().strftime("%Y%m%d%H%M")+".log"
+log_file_ln = "lill3x.log"
+try:
+    logFile = open(log_file_name, "a")
+    logFile.write(f"{datetime.now()}\n")
+    logFile.close()
+    try:
+        os.remove(log_file_ln)
+    except FileNotFoundError:
+        pass
+    try:
+        os.symlink(log_file_name, log_file_ln)
+        print(f"Log File Created: " + log_file_name)
+    except Exception as e:
+        print(f"Unable to create log file link: {str(e)}")
+    logFile = open(log_file_name, "a")
+
+except Exception as e:
+    print(f"Unable to create log file: {str(e)}")
+
 
 def SetErrorLevel(level):
     global ERROR_LEVEL
@@ -63,8 +83,12 @@ def DumpStack():
     traceback.print_stack()
 
 def CloseLog():
-    pass
     logFile.close()
+    try:
+        os.remove(log_file_ln)
+    except FileNotFoundError:
+        pass
+
 #   shutil.move(log_file_name, 'log/'+log_file_name+datetime.now().strftime("%Y%m%d%H%M")+".log")
 
 def CleanLogs():
@@ -77,19 +101,3 @@ def CleanLogs():
                     os.remove(file_path)
 
 CleanLogs()
-log_file_name = "./log/lill3x"+datetime.now().strftime("%Y%m%d%H%M")+".log"
-log_file_ln = "lill3x.log"
-try:
-    logFile = open(log_file_name, "a")
-    logFile.close()
-    try:
-        os.remove(log_file_ln) 
-    except FileNotFoundError:
-        pass
-    try:
-        os.symlink(log_file_name, log_file_ln)
-    except Exception as e:
-        print(f"Unable to create log file link: {str(e)}")
-    logFile = open(log_file_name, "a")
-except Exception as e:
-    print(f"Unable to create log file: {str(e)}")
