@@ -139,7 +139,7 @@
                                         $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
                                         while(!feof($pyfile)) {
                                                 $line = fgets($pyfile);
-                                                if (preg_match_all("/##(.*)-(.*)/", $line, $matches)) {
+                                                if (preg_match_all("/(.*): \"(.*)\"/", $line, $matches)) {
         	                                        $val = $matches[1][0];
         	                                        $desc = $matches[2][0];
 							echo "<option value=\"" . $val . "\" "  .   (($val == $value_dict[$atts[0]][0])?"selected":"") . ">" . $desc ."</option>";
@@ -255,7 +255,7 @@
                                                 $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
                                                 while(!feof($pyfile)) {
                                                         $line = fgets($pyfile);
-                                                        if (preg_match_all("/##(.*)-(.*)/", $line, $matches)) {
+                                                        if (preg_match_all("/(.): \"(.*)\"/", $line, $matches)) {
                 	                                        $val = $matches[1][0];
                 	                                        $desc = $matches[2][0];
 								echo "\n<option value=\"" . $val . "\" "  .   (($val == $atts[1])?"selected":"") . ">" . $desc ."</option>";

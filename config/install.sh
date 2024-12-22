@@ -3,6 +3,9 @@ python -m venv --system-site-packages LilL3x
 nano LilL3x/pyvenv.cfg # check that --system-site-packages is true
 source LilL3x/bin/activate # also add to .bashrc
 cd LilL3x
+mkdir log
+mkdir temp
+
 
 sudo apt install -y python3-picamera2
 sudo apt-get install python3-pil
@@ -57,7 +60,7 @@ pippyut install adafruit-circuitpython-ssd1306
 
 # system changes
 crontab -e
-@reboot sh /home/el3ktra/LilL3x/launch.sh >/home/el3ktra/LilL3x/cronlog
+@reboot sh /home/el3ktra/LilL3x/launch.sh >/home/el3ktra/LilL3x/Logcron/log
 
 cd ~/Lill3x
 wpa_passphrase Lill3x <passprase>
