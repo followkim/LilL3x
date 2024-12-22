@@ -66,11 +66,12 @@ class Config:
                             LogWarn(f'Error inserting {key}:{val}: {str(e)}')
 
         self.lastLoad = datetime.now()
-        if currAI != self.config['AI_ENGINE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
-            # need to change the engines here
-            return False
-        SetErrorLevel(cf.g('DEBUG'))
-        self.WriteConfig()
+#        if currAI != self.config['AI_ENGINE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
+#            # need to change the engines here
+#            return False
+        SetErrorLevel(self.g('DEBUG'))
+#        self.WriteConfig()
+        os.utime(self.configFile)
         return True
 
     # if a value isn't found in the config file (not in git) then see if it is in the (git updatable) config file.
