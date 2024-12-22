@@ -11,6 +11,7 @@ from datetime import datetime
 from  error_handling import *
 import os
 import shutil
+import psutil
 from datetime import datetime, timedelta
 import numpy
 import time
@@ -80,7 +81,7 @@ class Camera:
                 continue
 
             img = self._read_camera_array()
-            if isinstance(img, bool) or self._is_dark(img):  #_is_dark will access image.  Don't other if there isn't an image
+            if psutil.cpu_percent()>cf.g('CPU_MAX') or isinstance(img, bool) or self._is_dark(img):  #_is_dark will access image.  Don't other if there isn't an image
                 sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
 
