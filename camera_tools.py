@@ -69,6 +69,7 @@ class Camera:
         dt=datetime.now()
         mood_thrd = threading.Thread(target=self._get_emotion_thread)
 
+        LogInfo("Camera thread starting.")
         while not STATE.CheckState('Quit') and self.cam:
             if CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
                 RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
@@ -79,8 +80,10 @@ class Camera:
                 continue
 
             img = self._read_camera_array()
-            if isinstance(img, bool):
+            if isinstance(img, bool) or self._is_dark(img):  #_is_dark will access image.  Don't other if there isn't an image
+                sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
+
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             
             if tracker:
@@ -124,7 +127,6 @@ class Camera:
                     STATE.cy=-1
                     tracking_frames = 0
             prev = self._detect_motion(img, prev)
-            self._is_dark(img)
             # perform camera requests
             if tracker and not mood_thrd.is_alive():  # get the mood
                 mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,))
@@ -132,10 +134,13 @@ class Camera:
             if self.show_view: self._whatISee(img)
             if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
 #            if self._is_dark(): sleep(30) # don't check for dark if there is movement
-            if not tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
 
+            #sleep the camera
+            if not tracker: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
+            else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS
 
         if self.cam: self.cam.stop()
+        LogInfo("Camera thread exiting.")
 
     def _read_camera_buffer(self):
         try:
