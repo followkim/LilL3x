@@ -225,7 +225,6 @@ class Camera:
         return False
 
     def _take_picture(self, image, filename=cf.g('TEMP_PATH_DEFAULT'), beQuiet=False):
-        print(f"Called _TAKE_PICTURE({filename}, {beQuiet}")
         try:
             if isinstance(image, bool): self.cam.capture_file(filename)
             else: cv2.imwrite(filename, image)
@@ -243,8 +242,8 @@ class Camera:
     def SendPicture(self):
         path = self.TakePicture()
         if path:
-            cnt = 0
             return self.UploadPicture(path)
+        else return False
 
     def UploadPicture(self, pict_path):
         url = False
@@ -254,6 +253,8 @@ class Camera:
             payload = {'submit': 'Upload Image'}
             r = requests.post(ul_url, data=payload, files=files)
             url = r.text
+            LogInfo(f"Uploaded pict: URL: {url}")
+        else LogWarning(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
 
     def SharePicture(self):
