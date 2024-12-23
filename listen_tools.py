@@ -26,8 +26,6 @@ class speech_listener:
     audio = 0
     def __init__(self):
         self.speech = sr.Recognizer()
-        self.speech.pause_threshold = cf.g('MIC_LIMIT')
-        self.speech.dynamic_energy_threshold = False
 #        self.speech.dynamic_energy_ratio = 2
         self.update()
         self.start_mp3 = pygame.mixer.Sound(cf.g('START_LISTEN_MP3'))
@@ -39,6 +37,10 @@ class speech_listener:
           return   
 
     def update(self, adjust_for_ambient=cf.g('AMBIENT')):
+        self.speech.pause_threshold = cf.g('MIC_LIMIT')
+        if cf.g('ENERGY_DYNAMIC')==1: self.speech.dynamic_energy_threshold = False
+        else: self.speech.dynamic_energy_threshold = True
+
         if MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
                 self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)

@@ -10,7 +10,7 @@ def to_str(val=0):
     if type(val) == str: return val
     else: return str(val)
 
-def to_int(val):
+def to_int(val=0):
     return int(val)
 
 def to_dt(val):
