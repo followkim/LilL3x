@@ -98,13 +98,15 @@ while (GPIO.input(BUTTON)):
     '''
     # Write four lines of text.
 
-    draw.text((x, top + 0), "IP: " + IP, font=font, fill=255)
-    draw.text((x, top + (height/4)), SSID, font=font, fill=255)
+    if IP.count(".")>=3:
+        draw.text((x, top + 0), "IP: " + IP, font=font, fill=255)
+        draw.text((x, top + (height/4)), SSID, font=font, fill=255)
+ 
     if not IP or IP.count(".")<3:
         draw.text((x, top + ((height/4)*2)), "Waiting for IP...", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), " ", font=font, fill=255)
 
-    elif SSID == "Lill3x": 
+    if not SSID or SSID == "LilL3x": 
         draw.text((x, top + ((height/4)*2)), "Logon to local wifi:", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "http://"+IP+"/wifi.php", font=font, fill=255)
     else:
