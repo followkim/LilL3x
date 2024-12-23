@@ -65,12 +65,6 @@ class lill3x:
         LogInfo("Starting LilL3x")        
         # create the hardware objects
         try:
-            self.mouth = speech_generator()
-        except Exception as e:
-            RaiseError("AI():Could not init speech generator. " + str(e))
-            STATE.ChangeState('Quit')
-            return # fatal
-        try:
             self.ears = speech_listener()
         except Exception as e:
             RaiseError("AI():Could not init listener. " + str(e))
@@ -91,6 +85,13 @@ class lill3x:
         try:
             self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
             self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
+
+        try: # load last as this plays a little tune to let the user know that things are ready
+            self.mouth = speech_generator()
+        except Exception as e:
+            RaiseError("AI():Could not init speech generator. " + str(e))
+            STATE.ChangeState('Quit')
+            return # fatal
 
         except Exception as e:
             RaiseError("Unable to create AI: "+ str(e))

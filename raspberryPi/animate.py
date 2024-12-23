@@ -27,7 +27,7 @@ sys.path.insert(0, '..')
 from globals import STATE
 from config import cf
 from error_handling import *
-LogInfo("LED Display Loading...")
+LogDebug("LED Display Loading...")
 
 class Screen:
     display = 0
@@ -36,6 +36,7 @@ class Screen:
     blackPict = 0
     state = 'active'
     _message = False
+
     def __init__(self):
 
         # Create the I2C interface.
@@ -66,6 +67,9 @@ class Screen:
                      LogError("Error loading file {file}: {str(e)}")
          # init initial pict
         self.displayPicts = self.picts[self.state]
+        self.disp.image(self.displayPicts[0])
+        self.disp.show()
+ 
 
     def AnimateThread(self):
 
@@ -152,26 +156,22 @@ class Screen:
                 draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
                 draw.text(clock, time, font=font, fill=255)
 
-                if temp >= cf.g('CPU_MAX_TEMP')*0.9:
+                if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=3) and not self._message:
                     bb = draw.textbbox((0,0), f"{temp}C", font=font)
                     draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
                     draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
 
                 if not self._message:
-                    if cf.g('DEBUG')>=3:
+                    if cf.g('DEBUG')>=3:  # show debug messages
                         CPU = f"{psutil.cpu_percent()}%"
                         bb = draw.textbbox((0,0), CPU, font=font)
                         draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)
                         draw.text((0, height-bb[3]), CPU, font=font, fill=255)
 
-#                    bb = draw.textbbox((0,0), self.state, font=font) # get size
-#                    draw.text((width-bb[2], height-bb[3]), self.state, font=font, fill=255)
-#                    bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
-#                    draw.rectangle(bb, fill=0, outline=0)
-#                    draw.text((width-bb[2], height-bb[3]), f"{last_fps}fps ({real_fps})", font=font, fill=255)
-        #           self.draw.text((x, top + ((height/4)*2)), MemUsage, font=self.font, fill=255)
-#                    bb = draw.textbbox((0,0), f"{STATE.GetState()}", font=font) # get size
-#                    draw.text((0, height-bb[3]), f"{STATE.GetState()}", font=font, fill=255)
+                        bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
+                        draw.rectangle((0, 0, bb[2], bb[3]), fill=0, outline=0)
+                        draw.text((0,0), f"{last_fps}fps ({real_fps})", font=font, fill=255)
+
                 else:
                     bb = draw.textbbox((0,0), self._message, font=font)
 # TODO                    draw.rectangle(bb, fill=0, outline=0)
@@ -217,10 +217,4 @@ class Screen:
     def Close(self):
         self.state = 'Quit'
         # Clear display.
-if __name__ == '__main__':
 
-    global STATE
-    s = Screen()
-    STATE.ChangeState('ActiveIdle')
-    sleep(60)
-    s.off()
