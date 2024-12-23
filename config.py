@@ -6,8 +6,7 @@ from error_handling import *
 from globals import STATE
 from time import sleep
 
-def to_str(val):
-    if not val: return ""
+def to_str(val=0):
     if type(val) == str: return val
     else: return str(val)
 
@@ -156,14 +155,14 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
-    print(str(cf.config))
+#    print(str(cf.config))
 
-    print(str(cf.g('STARTUP_MP3')))
-    print(str(cf.config))
+    print(str(cf.g('ENERGY_THRESH')))
+#    print(str(cf.config))
 
-    print(f'WriteConfig returned {cf.WriteConfig()}')
-    print(str(cf.config))
+#    print(f'WriteConfig returned {cf.WriteConfig()}')
+#    print(str(cf.config))
 
-    print(f'LoadConfig returned {cf.LoadConfig()}')
-    print(str(cf.config))
+#    print(f'LoadConfig returned {cf.LoadConfig()}')
+#    print(str(cf.config))
 #    cf.config_thread()
