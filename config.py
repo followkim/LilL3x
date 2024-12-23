@@ -69,8 +69,8 @@ class Config:
 #            # need to change the engines here
 #            return False
         SetErrorLevel(self.g('DEBUG'))
-#        self.WriteConfig()
-        os.utime(self.configFile)
+        self.WriteConfig() # needed to touch file-- line below isn't working TODO
+#        os.utime(self.configFile)
         return True
 
     # if a value isn't found in the config file (not in git) then see if it is in the (git updatable) config file.

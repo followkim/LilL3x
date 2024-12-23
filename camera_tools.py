@@ -82,7 +82,7 @@ class Camera:
 
             img = self._read_camera_array()
             need_action = self.show_view or self.take_picture
-            if ((psutil.cpu_percent()>cf.g('CPU_MAX') or self._is_dark(img)) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
+            if (self._is_dark(img) or (psutil.cpu_percent()>cf.g('CPU_MAX')) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
                 sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
 
@@ -316,7 +316,8 @@ if __name__ == '__main__':
         Thread  = threading.Thread(target=c.CameraLoopThread)
         Thread.start()
         sleep(10)
-#    print(c.SharePicture())
+        print(c.SharePicture())
+        '''
         x = 0
         while x < 100: 
             print(c.CanISeeYou())
@@ -327,6 +328,7 @@ if __name__ == '__main__':
             sleep(5)
             x=x+1
     #    sleep(120)
+        '''
         STATE.ChangeState('Quit')
         sleep(2)
     except:
