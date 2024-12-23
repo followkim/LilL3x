@@ -16,6 +16,7 @@ ERROR_LEVEL = 4
 
 log_file_name = "./log/lill3x"+datetime.now().strftime("%Y%m%d%H%M")+".log"
 log_file_ln = "lill3x.log"
+log_file = 0
 try:
     logFile = open(log_file_name, "a")
     logFile.write(f"{datetime.now()}\n")
@@ -74,10 +75,10 @@ def LogDebug(txt):
     return
 
 def Log(text, level=""):
-#    print(f"{level} {text}")
-#    logFile = open(log_file_name, "a")
+    if ERROR_LEVEL >= 2: print(f"{level} {text}")
+    logFile = open(log_file_name, "a")
     logFile.write(f"{level}{text}\n")
-#    logFile.close()
+    logFile.close()
 
 def DumpStack():
     traceback.print_stack()
@@ -92,7 +93,7 @@ def CloseLog():
 #   shutil.move(log_file_name, 'log/'+log_file_name+datetime.now().strftime("%Y%m%d%H%M")+".log")
 
 def CleanLogs():
-    time_in_secs = time.time() - (1 * 24 * 60 * 60) #30 days -- need a constant here as we can't access cf
+    time_in_secs = time.time() - (30 * 24 * 60 * 60) #30 days -- need a constant here as we can't access cf
     if os.path.exists('./log'):
         for root_folder, folders, files in os.walk('./log'):
             for file in files:
