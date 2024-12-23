@@ -134,49 +134,53 @@ class Screen:
                 
                 # draw the selected image
                 draw = ImageDraw.Draw(image)
-              
-                # if tracking, draw the pupils (need to call this AFTER getting the image above)
-                if self.state == 'Idle' and STATE.cx > 0:
+
+                # Draw text info on screen
+                # if idle, draw text          
+                if self.state == 'Idle':
+
+                   # if tracking, draw the pupils (need to call this AFTER getting the image above)
+                    if STATE.cx > 0:
                         pupilX = int((15/1280)*STATE.cx)
                         pupilY = int((25/720)*STATE.cy)
 #                        LogDebug(f"pupilX: {pupilX}, pupilY: {pupilY}")
                         draw.ellipse((eyeL+pupilX, pupilY+eyeY, eyeL+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
- 
-                temp = round(CPUTemperature().temperature)
-                time = datetime.now().strftime("%-I:%M%p")       
 
-                bb = draw.textbbox((0,0), time, font=font)
-                clock = (width-bb[2], 0)
-                if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
-                    if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
-                    elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
-                    elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
-                    elif movX>0 and movY>0: clock = (0           , 0)		   # upper left
-                draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
-                draw.text(clock, time, font=font, fill=255)
+                    temp = round(CPUTemperature().temperature)
+                    time = datetime.now().strftime("%-I:%M%p")       
+    
+                    bb = draw.textbbox((0,0), time, font=font)
+                    clock = (width-bb[2], 0)
+                    if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
+                        if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
+                        elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
+                        elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
+                        elif movX>0 and movY>0: clock = (0           , 0)		   # upper left
+                    draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
+                    draw.text(clock, time, font=font, fill=255)
 
-                if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=3) and not self._message:
-                    bb = draw.textbbox((0,0), f"{temp}C", font=font)
-                    draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
-                    draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
+                    if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=3) and not self._message:
+                        bb = draw.textbbox((0,0), f"{temp}C", font=font)
+                        draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
+                        draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
 
-                if not self._message:
-                    if cf.g('DEBUG')>=3:  # show debug messages
-                        CPU = f"{psutil.cpu_percent()}%"
-                        bb = draw.textbbox((0,0), CPU, font=font)
-                        draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)
-                        draw.text((0, height-bb[3]), CPU, font=font, fill=255)
+                    if not self._message:
+                        if cf.g('DEBUG')>=3:  # show debug messages
+                            CPU = f"{psutil.cpu_percent()}%"
+                            bb = draw.textbbox((0,0), CPU, font=font)
+                            draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)
+                            draw.text((0, height-bb[3]), CPU, font=font, fill=255)
+   
+                            bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
+                            draw.rectangle((0, 0, bb[2], bb[3]), fill=0, outline=0)
+                            draw.text((0,0), f"{last_fps}fps ({real_fps})", font=font, fill=255)
+                # end if state == 'Idle'
 
-                        bb = draw.textbbox((0,0), f"{last_fps}fps ({real_fps})", font=font) # get size
-                        draw.rectangle((0, 0, bb[2], bb[3]), fill=0, outline=0)
-                        draw.text((0,0), f"{last_fps}fps ({real_fps})", font=font, fill=255)
-
-                else:
+                if self._message:
                     bb = draw.textbbox((0,0), self._message, font=font)
-# TODO                    draw.rectangle(bb, fill=0, outline=0)
                     draw.text(((width-bb[2])/2, height-bb[3]), self._message, font=font, fill=255)
-
+    
                 # Display image.
 #                self.disp.image(image.transpose(Image.ROTATE_180))
                 self.disp.image(image)
