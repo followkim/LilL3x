@@ -36,17 +36,23 @@ class speech_listener:
 #          self.listen(beQuiet=True, adjust_for_ambient=2)
           return   
 
-    def update(self, adjust_for_ambient=cf.g('AMBIENT')):
-        self.speech.pause_threshold = cf.g('MIC_LIMIT')
-        if cf.g('ENERGY_DYNAMIC')==1: self.speech.dynamic_energy_threshold = False
-        else: self.speech.dynamic_energy_threshold = True
+    def update(self, asyn=False, needMic=True):
+        if asyn:
+            update_thread = threading.Thread(target=self.update_thread)
+            update_thread.start()
 
-        if MIC_STATE.TakeMic(cf.g('MIC_TO')):
+        else: self.update_thread(True)
+
+    def update_thread(self, adjust_for_ambient=cf.g('AMBIENT'), needMic=False):
+        self.speech.pause_threshold = cf.g('MIC_LIMIT')
+        self.speech.dynamic_energy_threshold = cf.g('ENERGY_DYNAMIC')==1
+
+        if not needMic or MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
                 self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
             LogInfo(f"energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
             self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g("ENERGY_THRESH")/100.0))
-            MIC_STATE.ReturnMic()
+            if needMic: MIC_STATE.ReturnMic()
         else: LogInfo(f"Ambeint: Unable to get Mic after {cf.g('MIC_TO')}s.")
 
     def listen_thread(self, source, timeout):
@@ -56,6 +62,8 @@ class speech_listener:
             pass
         except Exception as e:
             LogError(f"listen_thread error {str(e)}")
+
+
         
     def listen(self, beQuiet=False, face=False, time_out=cf.g('MIC_TO'), adjust_for_ambient=cf.g('AMBIENT')):
         imp = ""
@@ -105,6 +113,7 @@ class speech_listener:
                     if face: face.thinking()
                 if self.audio:
                     try:
+                        self.update(asyn=True)
 #                        imp = self.speech.recognize_google(audio)
                         imp = eval(f"self.speech.recognize_{cf.g('LISTEN_ENGINE')}(self.audio)")
                     except sr.exceptions.UnknownValueError:
@@ -117,7 +126,8 @@ class speech_listener:
                 MIC_STATE.last = datetime.now()
                 LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
                 MIC_STATE.ReturnMic()
-                self.speech.energy_threshold = start_et
+                #self.speech.energy_threshold = start_et
+                self.update(asyn=True)
                 if face: face.off()
         return imp
 
@@ -297,6 +307,4 @@ if __name__ == '__main__':
         txt = sg.listen()
         print(txt)
         print(f'\nElapsed Seconds: {(datetime.now()-dt).seconds}')
-        LogInfo(f"energy thresh={round(sg.speech.energy_threshold)}")
-        sg.update()
- 
+        sleep(1)
