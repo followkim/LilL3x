@@ -183,6 +183,7 @@ class lill3x:
        self.eyes.Close()
        self.face.Close()
        cf.WriteConfig()
+       cf.Close()
        CloseLog()
 
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
@@ -282,12 +283,6 @@ class lill3x:
         target_time = datetime.now() + timedelta(seconds=secs)
         sleep_for = min(cf.g('SLEEP_DURATION'), secs)
         while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.CheckState('Quit') or  STATE.IsInteractive()):
-
-
-
-
-
-
             sleep(sleep_for)
 
     def ButtonThread(self, audio):
@@ -310,5 +305,5 @@ class lill3x:
 
 l3x = lill3x()
 l3x.Loop()
-
+print("exit")
 

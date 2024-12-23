@@ -34,7 +34,7 @@ class Config:
     config= {}
     config_desc = {}
     lastLoad = 0 # datetime.now()
-
+    should_quit = False
     def __init__(self):
         self.LoadConfig()
         return
@@ -138,13 +138,16 @@ class Config:
             LogWarn(f"Config.s ERR: {key} not found! ({str(e)})")
             return False
 
-
+    def Close(self):
+        self.should_quit = True
     def config_thread(self):
-        while not STATE.CheckState('Quit'):
+        while not self.should_quit:
             if self.IsConfigDirty():
                 LogInfo("Reloading config")
                 self.LoadConfig()
             sleep(15)
+        LogInfo("Config thread ended.")
+
 
 currentdir = f"/home/os.getenv('USER')/LilL3x/"
 sys.path.insert(0, currentdir)
@@ -152,6 +155,7 @@ sys.path.insert(0, currentdir)
 
 cf = Config()
 LogInfo("Loaded Configuration.")
+
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')

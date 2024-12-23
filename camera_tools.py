@@ -36,7 +36,7 @@ class Camera:
     take_picture = False
     be_quiet = False
     mood=""
-
+    should_quit = False
     def __init__(self):
         try:
 
@@ -71,7 +71,7 @@ class Camera:
         mood_thrd = threading.Thread(target=self._get_emotion_thread)
 
         LogInfo("Camera thread starting.")
-        while not STATE.CheckState('Quit') and self.cam:
+        while not STATE.CheckState('Quit') and not self.should_quit and self.cam:
             if CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
                 RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
                 self.cam.stop()
@@ -81,7 +81,8 @@ class Camera:
                 continue
 
             img = self._read_camera_array()
-            if psutil.cpu_percent()>cf.g('CPU_MAX') or isinstance(img, bool) or self._is_dark(img):  #_is_dark will access image.  Don't other if there isn't an image
+            need_action = self.show_view or self.take_picture
+            if ((psutil.cpu_percent()>cf.g('CPU_MAX') or self._is_dark(img)) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
                 sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
 
@@ -137,7 +138,7 @@ class Camera:
 #            if self._is_dark(): sleep(30) # don't check for dark if there is movement
 
             #sleep the camera
-            if not tracker: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
+            if not tracker and not self.show_view: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
             else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS
 
         if self.cam: self.cam.stop()
@@ -190,12 +191,14 @@ class Camera:
         return cur # allows easy setting of previous frame
 
     def ShowView(self):
+        try: os.remove('./frames/wis.ppm')
+        except: pass
         self.show_view=True
 
     def EndShowView(self):
         self._show_view = False
         sleep(0.25)
-        try: os.remove('.frames/wis.ppm')
+        try: os.remove('./frames/wis.ppm')
         except: pass
         return
 
@@ -294,6 +297,7 @@ class Camera:
         return
     
     def Close(self):
+        self.should_quit = True
         return
 
 def is_dir(path):
