@@ -117,20 +117,17 @@ class AI_ollama(AI_openAI):
         reply = ""
         full_reply = ""
         response = self.client.chat(**args)
-#        for chunk in self.client.stream(input=args['messages'], kwargs=args):
         for chunk in response:
-            self.face.talking()
             m = chunk['message']['content']
-#            m = chunk.content
             full_reply = full_reply + m
             eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
             if eos:
                 reply = reply + m[:(eos.span()[0])+2]
-                self.mouth.say(self.StripActions(reply), asyn=True)
+                self.mouth.say(self.StripActions(reply), face=self.face, asyn=True)
                 LogDebug("Async: " + str(chunk))
                 reply = m[(eos.span()[0])+2:]
             else: reply = reply + m
-        self.mouth.say(self.StripActions(reply), asyn=False)
+        self.mouth.say(self.StripActions(reply), face=self.face, asyn=False)
         self.face.off()
         return self.StripActions(full_reply)
 

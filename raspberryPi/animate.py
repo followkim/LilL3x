@@ -144,7 +144,7 @@ class Screen:
 
                 bb = draw.textbbox((0,0), time, font=font)
                 clock = (width-bb[2], 0)
-                if not (self._message or cf.g('DEBUG')>=4 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
+                if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
                     if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
                     elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
                     elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
@@ -158,7 +158,7 @@ class Screen:
                     draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
 
                 if not self._message:
-                    if cf.g('DEBUG')>=4:
+                    if cf.g('DEBUG')>=3:
                         CPU = f"{psutil.cpu_percent()}%"
                         bb = draw.textbbox((0,0), CPU, font=font)
                         draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)

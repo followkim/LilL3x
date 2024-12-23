@@ -27,7 +27,7 @@ class speech_listener:
     def __init__(self):
         self.speech = sr.Recognizer()
         self.speech.pause_threshold = cf.g('MIC_LIMIT')
-#        self.speech.dynamic_energy_threshold = False
+        self.speech.dynamic_energy_threshold = False
 #        self.speech.dynamic_energy_ratio = 2
         self.update()
         self.start_mp3 = pygame.mixer.Sound(cf.g('START_LISTEN_MP3'))
@@ -42,14 +42,14 @@ class speech_listener:
         if MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
                 self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
-            LogInfo(f"energy thresh={self.speech.energy_threshold} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
+            LogInfo(f"energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
             self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g("ENERGY_THRESH")/100.0))
             MIC_STATE.ReturnMic()
         else: LogInfo(f"Ambeint: Unable to get Mic after {cf.g('MIC_TO')}s.")
 
     def listen_thread(self, source, timeout):
         try:
-            self.audio = self.speech.listen(source, timeout) #,dynamic_energy_threshold=False)
+            self.audio = self.speech.listen(source, timeout)
         except sr.exceptions.UnknownValueError:
             pass
         except Exception as e:
@@ -72,7 +72,7 @@ class speech_listener:
                 try:
 #                    audio = self.speech.listen(source, timeout=5.0) #,dynamic_energy_threshold=False)
                     self.audio = 0
-                    listen_thread = threading.Thread(target=self.listen_thread, args=(source, 5.0))
+                    listen_thread = threading.Thread(target=self.listen_thread, args=(source, time_out))
                     listen_thread.start()
                     run_avg = []
                     x=0
@@ -80,17 +80,21 @@ class speech_listener:
                     LogDebug(f"Energy:\tCurr\tThrsh\tC-T\tAvg\tSecs")
                     while listen_thread.is_alive():
                         x += 1
-                        run_avg.append(self.speech.current_energy-self.speech.energy_threshold)
-                        if (x % 120) == 0: LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{round(self.speech.current_energy-self.speech.energy_threshold)}\t{round(sum(run_avg)/len(run_avg),0)}\t{(datetime.now()-dt).seconds}s")
-                        if len(run_avg) == 120: 
+                        speaking_energy = round(self.speech.current_energy-self.speech.energy_threshold)
+                        run_avg.append(speaking_energy) # should be positive if user is speaking
+                        if (x % 120) == 0: # print debug string every 1 secs
+                            LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{speaking_energy}\t{round(sum(run_avg)/len(run_avg))}\t{(datetime.now()-dt).seconds}s")
+                        if len(run_avg) == 120:
                             run_avg.pop(0) # only keep 1s frames at a time
-                            if (datetime.now()-last_listen).seconds>cf.g('MIC_TO'):
+                            if (datetime.now()-last_listen).seconds>cf.g('MIC_TO'): ## after this many secs, check if user is really talkiung
                                 if (sum(run_avg)/len(run_avg))<0:
+                                    # they aren't talking, so start to jack up the threshold (limit to x4)
                                     self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
                                     run_avg.clear()
                                 else: last_listen = datetime.now()
                         sleep(1/120)
                 except Exception as e:
+                    #force the listen thread to stop
                     while listen_thread.is_alive(): self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
                     MIC_STATE.ReturnMic()
                     LogError("speech_listener.listener() returned error:" + str(e))
@@ -291,5 +295,6 @@ if __name__ == '__main__':
         txt = sg.listen()
         print(txt)
         print(f'\nElapsed Seconds: {(datetime.now()-dt).seconds}')
-        LogInfo(f"energy thresh={sg.speech.energy_threshold}")
+        LogInfo(f"energy thresh={round(sg.speech.energy_threshold)}")
+        sg.update()
  

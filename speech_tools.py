@@ -53,7 +53,7 @@ class speech_generator:
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
             while self.IsBusy(): sleep(0.5)
-        if face: face.off()
+        if face and not asyn: face.off()
         return txt
 
     def PlaySound(self, filename, watchState=False, asyn=False):
