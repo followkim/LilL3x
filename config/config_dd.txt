@@ -27,3 +27,4 @@ FPS|Frames Per Second|Frames per second for display
 MESSAGE_SHOW_SECS|Message Show|When showing a message, have it appear for this many seconds
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
 LIGHT_SPEED|LED Speed|How face the LEDs will animate.
+DEBUG|System Info|Set debug level messages

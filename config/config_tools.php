@@ -133,7 +133,7 @@
                                 }
 
                                elseif ($atts[0] == "DEBUG") {
-                                        echo "<tr><td id='leftHand'>".$value_dict[$atts[0]][0].":</td>";
+                                        echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>";
                                         echo "<td id='rightHand' >";
                                         echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">";
                                         $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
