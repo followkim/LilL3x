@@ -243,7 +243,7 @@ class Camera:
         path = self.TakePicture()
         if path:
             return self.UploadPicture(path)
-        else return False
+        else: return False
 
     def UploadPicture(self, pict_path):
         url = False
@@ -254,7 +254,7 @@ class Camera:
             r = requests.post(ul_url, data=payload, files=files)
             url = r.text
             LogInfo(f"Uploaded pict: URL: {url}")
-        else LogWarning(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
+        else: LogWarn(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
 
     def SharePicture(self):
