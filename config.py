@@ -5,6 +5,7 @@ from word2number import w2n
 from error_handling import *
 from globals import STATE
 from time import sleep
+import git 
 
 def to_str(val=0):
     if type(val) == str: return val
@@ -112,6 +113,16 @@ class Config:
             return True
         return False
 
+    def IsGitDirty(self):
+       repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
+       local_branch = repo.active_branch
+       remote_branch = repo.remotes.origin.refs[local_branch.name]
+       if local_branch.commit != remote_branch.commit:
+           LogInfo("Local branch out of date- calling git pull")
+           orgin = repo.remote(name='orgin')
+           orgin.pull()
+           # restart Lillex
+
     def g(self, key, default=False):
         try:
             return self.config[key]
@@ -128,7 +139,8 @@ class Config:
     def s(self, key, val):
         try:
             if re.search(r"^int", self.config_desc[key]) and isinstance(val, str):
-                val = w2n.word_to_num(val)
+                if val[0]=="-":  val = w2n.word_to_num(val[1:]) * -1 # w2n can't do negative numbers for some reason
+                else: val = w2n.word_to_num(val)                     # convert string from int
             LogInfo(f"Setting {key} to {val}.")
             self.config[key] = val
             self.WriteConfig()  # save whenever dirty
@@ -140,12 +152,17 @@ class Config:
 
     def Close(self):
         self.should_quit = True
+
     def config_thread(self):
         while not self.should_quit:
-            if self.IsConfigDirty():
+            dirty=self.IsConfigDirty()
+            if dirty:
                 LogInfo("Reloading config")
                 self.LoadConfig()
-            sleep(15)
+
+            # check the file every 15s, unless it's been recently edited, then watch every 1s (as user is messing around)
+            if dirty or (datetime.now()-self.lastLoad).total_seconds()<60: sleep(1)
+            else: sleep(10)
         LogInfo("Config thread ended.")
 
 
@@ -159,9 +176,10 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
+    cf.IsGitDirty()
 #    print(str(cf.config))
 
-    print(str(cf.g('ENERGY_THRESH')))
+#    print(str(cf.g('ENERGY_THRESH')))
 #    print(str(cf.config))
 
 #    print(f'WriteConfig returned {cf.WriteConfig()}')
