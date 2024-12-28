@@ -159,7 +159,8 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
-#    print(str(cf.config))
+    # testing dirty config
+    #    print(str(cf.config))
 
     print(str(cf.g('ENERGY_THRESH')))
 #    print(str(cf.config))
