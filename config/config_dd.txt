@@ -22,7 +22,7 @@ AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  Se
 AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html">Amazon Polly Available Voices</a>
 CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech">Open AIs Text to Speech</a>
 BRIGHTNESS|Brightness|The brightness of the LEDs
-BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!!
+BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 FPS|Frames Per Second|Frames per second for display
 MESSAGE_SHOW_SECS|Message Show|When showing a message, have it appear for this many seconds
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
