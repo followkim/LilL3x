@@ -23,8 +23,8 @@ AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/poll
 CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech">Open AIs Text to Speech</a>
 BRIGHTNESS|Brightness|The brightness of the LEDs
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
-FPS|Frames Per Second|Frames per second for display
-MESSAGE_SHOW_SECS|Message Show|When showing a message, have it appear for this many seconds
+FPS|Frames Per Second|Frames per second for display.
+MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
 LIGHT_SPEED|LED Speed|How face the LEDs will animate.
 DEBUG|System Info|Set debug level messages
