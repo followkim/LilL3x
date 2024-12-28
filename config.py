@@ -176,8 +176,13 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
+<<<<<<< HEAD
     cf.IsGitDirty()
 #    print(str(cf.config))
+=======
+    # testing dirty config
+    #    print(str(cf.config))
+>>>>>>> 23b331aa3f6ab5d48824b4b03300c2342d4a842d
 
 #    print(str(cf.g('ENERGY_THRESH')))
 #    print(str(cf.config))

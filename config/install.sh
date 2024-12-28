@@ -29,6 +29,7 @@ pip install word2number
 pip install gpiozero
 pip install rpi.gpio
 pip install boto3
+pip install GitPython
 
 pip install picamera2
 ##pip install libcamera
