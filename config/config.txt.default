@@ -75,6 +75,7 @@ ELEVENLABS_VOICE_ID||str|
 OPEN_AI_API_KEY||str
 CHATGPT_MODEL|gpt-4o|str|
 CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
+LLAMA_BASE_URL|http://api.llama-api.com|str
 LLAMA_KEY||str|
 LLAMA_MODEL|llama3.1-8b|str|
 LLAMA_MODEL_SLOW|llama3.1-8b|str|
