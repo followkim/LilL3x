@@ -44,10 +44,11 @@ pip install anthropic
 
 # seeed voicecard
 cd ~
-uname -r
+uname -rn  # get the kernal version, should be 6.6
 git clone -b v6.6 https://github.com/HinTak/seeed-voicecard/
 cd seeed-voicecard/
 sudo ./install.sh
+sudo raspi-config #TODO automate: pick sound card, turn on i2c 
 # test 
 arecord -D "plughw:3,0" -f S16_LE -r 16000 -d 2 -t wav test.wav;aplay -D "plughw:3,0" test.wav
 
@@ -62,11 +63,10 @@ pippyut install adafruit-circuitpython-ssd1306
 crontab -e
 @reboot sh /home/el3ktra/LilL3x/launch.sh >/home/el3ktra/LilL3x/Logcron/log
 
-cd ~/LilL3x/
 wpa_passphrase Lill3x <passprase>
-sudo cp cd ~/LilL3x/config/rclocal /etc/rc.local # if no rc.local
+sudo cp ~/LilL3x/config/rclocal /etc/rc.local # if no rc.local
 sudo nano /etc/rc.local # put passprhase in local nano file
-chmod +x cd ~/.bashrc
+chmod +x ~/.bashrc
 sudo chmod +x /etc/rc.local
 sudo raspi-config
 #Audio: pick card
@@ -75,7 +75,6 @@ sudo raspi-config
 # install website
 sudo apt-get install apache2
 sudo apt-get install php
-cd ~/LilL3x/
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 
 sudo chmod a+x /var/www/html/*.sh
@@ -96,6 +95,9 @@ sudo chmod a+rx /home/el3ktra
 sudo systemctl restart apache2
 
 # get default wakewords -- #TODO: just grab directory not entire repo!!
+cd ~
 git clone http://github.com/Picovoice/porcupine.git
 cp porcupine/resources/keyword_files/raspberry-pi/* ~/LilL3x/wake
 rm -r porcupine
+
+cd ~/LilL3x/
