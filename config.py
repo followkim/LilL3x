@@ -34,8 +34,10 @@ class Config:
 
     config= {}
     config_desc = {}
-    lastLoad = 0 # datetime.now()
+    lastLoad =  datetime.now()
+    lastGit =  datetime.now()
     should_quit = False
+
     def __init__(self):
         self.LoadConfig()
         return
@@ -69,7 +71,7 @@ class Config:
 #        if currAI != self.config['AI_ENGINE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
 #            # need to change the engines here
 #            return False
-        SetErrorLevel(self.g('DEBUG'))
+        SetErrorLevel(self.g('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
         self.WriteConfig() # needed to touch file-- line below isn't working TODO
 #        os.utime(self.configFile)
         return True
@@ -114,14 +116,19 @@ class Config:
         return False
 
     def IsGitDirty(self):
+
+       self.lastGit = datetime.now()
        repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
        local_branch = repo.active_branch
-       remote_branch = repo.remotes.origin.refs[local_branch.name]
-       if local_branch.commit != remote_branch.commit:
+       remote_branch = local_branch.tracking_branch()
+       repo.remotes.origin.fetch()
+       is_behind = repo.heads.v2.commit != repo.remotes.origin.refs.v2.commit
+       if is_behind:
            LogInfo("Local branch out of date- calling git pull")
-           orgin = repo.remote(name='orgin')
+           orgin = repo.remote(name='origin')
            orgin.pull()
-           # restart Lillex
+           return True
+       else: return False
 
     def g(self, key, default=False):
         try:
@@ -155,6 +162,9 @@ class Config:
 
     def config_thread(self):
         while not self.should_quit:
+            if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60:  # check GIT
+                gitDirty = self.IsGitDirty() # will update then change state to reboot!!
+                if gitDirty: STATE.ChangeState('Reboot')
             dirty=self.IsConfigDirty()
             if dirty:
                 LogInfo("Reloading config")
@@ -166,7 +176,7 @@ class Config:
         LogInfo("Config thread ended.")
 
 
-currentdir = f"/home/os.getenv('USER')/LilL3x/"
+currentdir = f"{os.getenv('HOME')}/LilL3x/"
 sys.path.insert(0, currentdir)
 
 
@@ -176,7 +186,7 @@ LogInfo("Loaded Configuration.")
 if __name__ == '__main__':
     from time import sleep
     print(f'LoadConfig returned {cf.LoadConfig()}')
-    cf.IsGitDirty()
+    print(cf.IsGitDirty())
 #    print(str(cf.config))
     # testing dirty config
     #    print(str(cf.config))
