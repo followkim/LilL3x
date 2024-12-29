@@ -77,15 +77,11 @@ sudo raspi-config
 sudo apt-get install apache2
 sudo apt-get install php
 
-echo "www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
-echo "www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
-
-
 cd /~Lill3x
 sudo ln config/html/* /var/www/html/
 
 sudo chmod a+x /var/www/html/*.sh
-sudo chown root:root /var/www/html/*
+sudo chown root:root /var/www/html/*.sh
 sudo chown www-data:www-data config/config.txt
 
 sudo usermod -a -G www-data $USER
