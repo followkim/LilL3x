@@ -1,39 +1,41 @@
-USERNAME|Kim|str|description
-USERNAMEP|Kim|str|description
-USEREMAIL|followkim@gmail.com|str|desc
+USERNAME|Friend|str|description
+USERNAMEP|Friend|str|description
+USEREMAIL||str|desc
 AINAME|El3ktra|str|Name of the AI
 AINAMEP|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
-AI_ENGINE|ChatGPT|str|description
-LAST_INTERACTION|2024-12-11|dt|
+AI_ENGINE|El3ktra|str|description
+LAST_INTERACTION|2024-8-8|dt|
 CPU_MAX_TEMP|75|int|
+
 ACTIVE_IDLE_SLEEP|30|int|description
 IDLE_SLEEP|10|int|description
 SLEEP_SLEEP|15|int|description
 SLEEP_DURATION|1|int|description
 ACTIVE_IDLE_TO|30|int|in minutes
-IDLE_TO|60|int|description#10sec
+IDLE_TO|60|int|
 INITIATE_ODDS|4|int|description  #times per hour that AI should try to initiate
 INTERACT_MIN|5|int|time to wait before interacting again
 INTERACT_MAX|15|int|if longer then this since last interaction then force interaction
 SURVEIL_WAIT|5|int|
 SURVEIL_LOOK|120|int|
-ICU_THRESH|2|int|description
-MOTDET_SENS|7|int|description
-MOTDET_THRESH|10|int|description
-LOOK_SECS_TO_DEFAULT|10|int|description
-DARK_SECS_TO_DEFAULT|10|int|description
-IS_DARK_THRESH|20|int|description
+ICU_THRESH|2|int
+MOTDET_SENS|7|int
+MOTDET_THRESH|10|int
+LOOK_SECS_TO_DEFAULT|10|int
+DARK_SECS_TO_DEFAULT|10|int
+IS_DARK_THRESH|20|int
 CAMERA_CLICK_MP3|./media/camera.mp3|path|
 CAMERA_PICT_SEC|3|int|Number of seconds to show a new picture on the screen
 CAMERA_SLEEP_SEC|5|int
-SFT_FORMAT|%Y%m%d%H%M%S%f|str|description
+
+SFT_FORMAT|%Y%m%d%H%M%S%f|str
 TEMP_PATH_DEFAULT|temp/|path|
 IMGUR_ID||str|
 IMGUR_SECRET||str|
 FLICKR_API||str|
 FLICKR_SECRET||str|
-MIC_TO|5|int|description
-MIC_LIMIT|1|int|description
+MIC_TO|5|int
+MIC_LIMIT|1|int
 AMBIENT|1|int|
 ENERGY_THRESH|25|int|
 ENERGY_DYNAMIC|0|int
@@ -44,19 +46,33 @@ LISTEN_ENGINE|google|str|desc
 WAKEWORD_PATH|./wake/|path|
 PICOVOICE_KEY||str|
 WAKE_MP3|./media/wake.mp3|path|
-SPEECH_FILE|temp.mp3|str|description
-VOLUME|10|int|description
-CHATGPT_VOICE|nova|str|Voice for CHAT GPT
-GTTS_VOICE|us|str|Voice for gTTS
-SPEECH_ENGINE|amazon|str|desc
-ELEVENLABS_API_KEY||str|
-ELEVENLABS_VOICE_ID||str|
+SPEECH_FILE|temp.mp3|str
+VOLUME|10|int
 BRIGHTNESS|10|int|description
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
 TEMPERATURE|1|int|
-SAVE_TOKENS|1|int|description
-OPEN_AI_API_KEY||str|description
+SAVE_TOKENS|1|int
+FPS|3|int|
+MESSAGE_SHOW_SECS|10|int|
+SCREEN_SPEED|1|int|
+
+
+
+# speech 
+SPEECH_ENGINE|amazon|str|desc
+GTTS_VOICE|us|str|Voice for gTTS
+GOOGLE_CLOUD_SPEECH_CREDENTIALS||str|description
+AWS_ACCESS_KEY||str|
+AWS_ACCESS_KEY_SECRET||str|
+AWS_VOICE_ID|Ruth|str|
+AWS_VOICE_ENGINE|neural|str|
+CHATGPT_VOICE|nova|str|Voice for CHAT GPT
+ELEVENLABS_API_KEY||str|
+ELEVENLABS_VOICE_ID||str|
+
+# OPEN AI Models
+OPEN_AI_API_KEY||str
 CHATGPT_MODEL|gpt-4o|str|
 CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
 LLAMA_KEY||str|
@@ -66,24 +82,8 @@ GEMMA_MODEL|gemma2-27b|str|
 GEMMA_MODEL_SLOW|gemma2-9b|str|
 QWEN_MODEL|Qwen1.5-72B-Chat|str|
 QWEN_MODEL_SLOW|Qwen1.5-7B-Chat|str|
-KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
-KINDRIOD_GMPID||str|
-FIREBASE_WEB_API_KEY||str|
-BARD_API||str|
-GOOGLE_API||str|description
-GOOGLE_CLOUD_SPEECH_CREDENTIALS||str|description
-GEMINI_API_KEY||str|
-GEMINI_MODEL|gemini-1.5-flash|str|
-GEMINI_MODEL_SLOW|gemini-1.5-flash|str|
-CLAUDE_API_KEY||str|
-CLAUDE_MODEL|claude-3-opus-20240229|str|
-CLAUDE_MODEL_SLOW|claude-3-opus-20240229|str|
-AWS_ACCESS_KEY||str|
-AWS_ACCESS_KEY_SECRET||str|
-AWS_VOICE_ID|Ruth|str|
-AWS_VOICE_ENGINE|neural|str|
-KINDRIOD_OOB||str|
-KINDRIOD_REFRESH_TOKEN||str|
+
+# OLLAMA models
 ADHOC_URL|http://192.168.0.128:11434/v1|str|
 ADHOC_MODEL|qwen2|str|
 ADHOC_MODEL_SLOW|qwen2|str|
@@ -95,11 +95,26 @@ EL3KTRA_URL|http://el3ktra.net:11434|str|
 EL3KTRA_API_KEY|llama3.1:8b|str|
 EL3KTRA_MODEL|llama3.1:8b|str|
 EL3KTRA_VISION_MODEL|llama3.2-vision:latest|str|
-FPS|3|int|
-MESSAGE_SHOW_SECS|10|int|
-DEBUG|2|int|
+LOCAL_MODEL|qwen2:0.5b|str|
 CONVO_ID||str|
-SCREEN_SPEED|1|int|
+
+# Other models
+GOOGLE_API||str|description
+GEMINI_API_KEY||str|
+GEMINI_MODEL|gemini-1.5-flash|str|
+GEMINI_MODEL_SLOW|gemini-1.5-flash|str|
+CLAUDE_API_KEY||str|
+CLAUDE_MODEL|claude-3-opus-20240229|str|
+CLAUDE_MODEL_SLOW|claude-3-opus-20240229|str|
+
+KINDRIOD_OOB||str|
+KINDRIOD_REFRESH_TOKEN||str|
+KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
+KINDRIOD_GMPID||str|
+FIREBASE_WEB_API_KEY||str|
+BARD_API||str|
+
+DEBUG|2|int|
 LIGHT_SPEED|10|int|
 CPU_MAX|25|int
 CHECK_GIT|30|int
