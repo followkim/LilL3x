@@ -5,11 +5,11 @@ AINAME|AI Name|Your AI's name
 AINAMEP|Wake Word|The call name of your AI
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 INITIATE_ODDS|Interactivity|Approximate interactions per hour
-INTERACT_MIN|Interactivity Min|The time to wait before interacting again
-INTERACT_MAX|Interactivity Max|Don't wait longer then this to interact
-SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance
-SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement
-MOTDET_SENS|Motion Detection Sensitivity|How much movement should trigger motion-- set to higher if motion being detected too often.
+INTERACT_MIN|Interactivity Min|Minutes to wait before interacting again
+INTERACT_MAX|Interactivity Max|Don't wait longer then this many minutes to interact
+SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes)
+SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in minutes)
+MOTDET_SENS|Motion Detection Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
 CAMERA_SLEEP_SEC|Camera Wait|Wait this many seconds to view the user.  Increase if application is running slowly.
 IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
 CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
