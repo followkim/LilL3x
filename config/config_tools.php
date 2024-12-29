@@ -83,7 +83,7 @@
                                         echo "<td id='rightHand' >\n";
                                         echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">\n";
                                         foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-                                                if (preg_match_all("/^([a-z ]*)_.*\.ppn/", $file, $matches)) {
+                                                if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                                        $wake_word = $matches[1][0];
                                                        $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
                      echo "<option value=\"" . $filepath  . "\" "  .   (($filepath == $value_dict[$atts[0]][0])?"selected":"") . ">" . $wake_word . "</option>";
@@ -200,7 +200,7 @@
                                                echo "<td id='rightHand' >\n";
                                                echo "<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
                                                foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-                                                       if (preg_match_all("/^([a-z ]*)_.*\.ppn/", $file, $matches)) {
+                                                       if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                                               $wake_word = $matches[1][0];
                                                               $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
                                                               echo "<option value=\"" . $filepath . "\" "  .   (($filepath == $atts[1])?"selected":"") . ">" . $wake_word . "</option><br>";
