@@ -91,7 +91,6 @@ class MicStatus:
         return (not self.request_mic and self.mic_free)
         return True
     
-
 if __name__ == '__main__':
 
     s = State()
