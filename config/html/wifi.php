@@ -5,8 +5,7 @@
 	ini_set('display_errors', true); 
 
 	
-	include 'includes/utils.php';			// utils.php: database connection/disconnect functiosn
-		
+	include '/home/el3ktra/LilL3x/config/html/includes/utils.php'; 	
 	// is this a POST if so, grab the POST varibales which are used to populate the search parameters.
 	$isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
  	
@@ -36,12 +35,12 @@
 
 	<body>
 
+               <h2>Set Wifi:</h2>
 
 		<form action="" method="POST">
 			<table>
                         <tr><td>WIFI Network:</td><td><select name="SSID">'
 <?php 
-
                exec("sudo ./listwifi.sh", $networks, $ret);
                $wifis = [];
                foreach ($networks as $line) {
@@ -62,5 +61,7 @@
                 </table>
 		<input type="submit" value="Set"/>
 		</form>
+                <p>
+                <a href="index.php">Back to main page</a>
 	</body>
 </html>

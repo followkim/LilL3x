@@ -11,6 +11,20 @@
 	const CONFIG_FILE =  "/home/el3ktra/LilL3x/config/config.txt";
 	const CONFIG_DD =  "/home/el3ktra/LilL3x/config/config_dd.txt";
 
+        function PrintIndex() {
+	  echo "<head>";
+	  echo " <title>El3ktra</title>";
+	  echo '  <meta name="viewport" content="width=device-width, initial-scale=1">';
+	  echo "</head>";
+	  echo "<body> <p>";
+          echo '<h1>Welcome to El3ktra!</h1>';
+	  echo ' <a href="wifi.php">Set Wifi</a><br>';
+	  echo ' <a href="config.php">configure</a><br>';
+	  echo ' <a href="config_dev.php">configure (Developer Version)</a><br>';
+	  echo '</body></html>';
+
+        }
+
 	function WriteConfig($post, $configFilePath=CONFIG_FILE) {
 		// read current config file
 		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
