@@ -1,5 +1,5 @@
 USERNAME|Name|Your own name
-USERNAMEP|Pronunciation|How you pronounce your name (if different)
+USERNAMEP|Wake Word|The call name of your AI
 USEREMAIL|Email|Your email
 AINAME|AI Name|Your AI's name
 AINAMEP|Pronunciation|How you pronounce your AI's name (if different)
