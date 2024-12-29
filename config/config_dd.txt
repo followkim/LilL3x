@@ -28,4 +28,4 @@ MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it app
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
 LIGHT_SPEED|LED Speed|How face the LEDs will animate.
 DEBUG|System Info|Set debug level messages
-CHECK|GIT|System Update|How many minutes to wait between checking for system updates.
+CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
