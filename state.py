@@ -24,11 +24,14 @@ class State:
 
     def ChangeState(self, new_state):
         if self.current == 'Wake' and new_state != 'Active':
+            LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
+
         elif not self.ShouldQuit():          # can't change out of quit state
             LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
             self.current = new_state
             self.last_dt = datetime.now()
+        else: LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
         return self.current
 
     def StateDuration(self):

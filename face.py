@@ -27,7 +27,7 @@ class Face:
         animate_thread.start()
         
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
-        led_thread.name = f"LedThread: {animate_thread.native_id}"
+        led_thread.name = f"LedThread: {led_thread.native_id}"
         led_thread.start()
  
 

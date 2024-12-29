@@ -34,7 +34,6 @@ COLORS_RGB = {
     'off':(0, 0, 0),
 }
 
-print("Loading LEDs...")
 class LEDS:
     driver = 0
     power = 0
