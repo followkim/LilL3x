@@ -41,6 +41,7 @@
 			</table>
 			<input type="submit" value="Set"/>
 			</form>
+<p><a href="index.php">Back to main page</a>
 			
 		</div>
 	</body>

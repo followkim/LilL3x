@@ -66,6 +66,101 @@
 		return $value_dict;
 	}
 
+	function Print_AI_ENGINE($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+		echo "<td id='rightHand' >";
+		echo "<select name=\"".$name."\" value=".$value.">\n";
+	
+		foreach (scandir('/home/el3ktra/LilL3x/beings') as $file) {
+			if (preg_match("/^AI_[A-Z]/", $file)) {
+				$pyfile = fopen('/home/el3ktra/LilL3x/beings/'.$file, "r");
+				while(!feof($pyfile)) {
+					$line = fgets($pyfile);
+					if (preg_match_all("/class AI_([A-Z])(.*)\(/", $line, $matches)) {
+						$ai_engine = $matches[1][0].$matches[2][0];
+						echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $value)?"selected":"") . ">" . $ai_engine ."</option>";
+					}
+				}
+				fclose($pyfile);
+			} // preg_match filename                                                                      
+		}
+		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+
+	function Print_LISTEN_ENGINE($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+		echo "<td id='rightHand' >";
+		echo "<select name=\"".$name."\" value=".$value.">";
+		$pyfile = fopen('/home/el3ktra/LilL3x/sr.py', "r");
+		$engines = [];
+		while(!feof($pyfile)) {
+			$line = fgets($pyfile);
+			if (preg_match_all("/def recognize_(.*)\(self/", $line, $matches)) {
+				array_push($engines, $matches[1][0]);
+			}
+			elseif (preg_match_all("/Recognizer.recognize_(.*) = /", $line, $matches)) {
+				array_push($engines, $matches[1][0]);
+			}
+		}
+		sort($engines);
+		$engines = array_unique($engines);
+		foreach ($engines as $engine) {
+			echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
+		}
+		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+
+	function Print_SPEECH_ENGINE($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+		echo "<td id='rightHand' >";
+		echo "<select name=\"".$name."\" value=".$value.">";
+		$pyfile = fopen('/home/el3ktra/LilL3x/speech_tools.py', "r");
+		while(!feof($pyfile)) {
+			$line = fgets($pyfile);
+			if (preg_match_all("/class (.*)_tts:/", $line, $matches)) {
+			$engine = $matches[1][0];
+			echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
+			}
+		}
+		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+
+	}
+
+	function Print_DEBUG($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+		echo "<td id='rightHand' >";
+		echo "<select name=\"".$name."\" value=".$value.">";
+		$pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
+		while(!feof($pyfile)) {
+			$line = fgets($pyfile);
+			if (preg_match_all("/(.*): \"(.*)\"/", $line, $matches)) {
+				$val = $matches[1][0];
+				$level = $matches[2][0];
+				echo "<option value=\"" . $val . "\" "  .   (($val == $value)?"selected":"") . ">" . $level ."</option>";
+			}
+		}
+		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+
+	function Print_AINAMEP($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
+		echo "<td id='rightHand' >\n";
+		echo "<select name=\"".$name."\" value=".$value.">\n";
+		foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
+			if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
+				$wake_word = ucwords($matches[1][0]);
+				$filepath = '/home/el3ktra/LilL3x/wake/'.$file;
+				echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
+	} 
+		}
+  		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+
 	function PrintConfig($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
 		$value_dict = LoadConfig($configFilePath);
 		$myfile = fopen($configDDPath, "r") or die("Unable to open file!");
@@ -73,116 +168,25 @@
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-				if ($atts[0] == "AI_ENGINE") {
-					echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>";
-					echo "<td id='rightHand' >";
-					echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">\n";
-					foreach (scandir('/home/el3ktra/LilL3x/beings') as $file) {
-						if (preg_match("/^AI_[A-Z]/", $file)) {
-                                                        $pyfile = fopen('/home/el3ktra/LilL3x/beings/'.$file, "r");
-                                                        while(!feof($pyfile)) {
-                                                            $line = fgets($pyfile);
-                                                            if (preg_match_all("/class AI_([A-Z])(.*)\(/", $line, $matches)) {
-                                                                $ai_engine = $matches[1][0].$matches[2][0];
-								echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $value_dict[$atts[0]][0])?"selected":"") . ">" . $ai_engine ."</option>";
-							    }
-							}
-                                                        fclose($pyfile);
-						} // preg_match filename                                                                      
+                               if (in_array($atts[0], array("AI_ENGINE", "AINAMEP", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+                                        eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$value_dict[$atts[0]][0], \$atts[2]);");
+				} else {
+					if ($value_dict[$atts[0]][1] == "blob") {
+						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
+						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$value_dict[$atts[0]][0].'</textarea></td></tr>';
+					} elseif ($value_dict[$atts[0]][1] == "int") {
+						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
+						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
+					} else {
+						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
+						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
 					}
-                                        echo "</select></td></tr><tr><td></td><td><i>".$atts[2]."</i></td></tr>";
+					echo "<tr><td></td><td><i>".$atts[2]."</i></td></tr>";
 				}
-                               elseif ($atts[0] == "AINAMEP") {
-                                        echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>\n";
-                                        echo "<td id='rightHand' >\n";
-                                        echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">\n";
-                                        foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-                                                if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
-                                                       $wake_word = ucwords($matches[1][0]);
-                                                       $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
-                     echo "<option value=\"" . $filepath  . "\" "  .   (($filepath == $value_dict[$atts[0]][0])?"selected":"") . ">" . $wake_word . "</option>";
-                                                 }
-                                        }
-                                        echo "</select></td></tr><tr><td></td><td><i>".$atts[2]."</i></td></tr>";
-                                }
-
-                               elseif ($atts[0] == "LISTEN_ENGINE") {
-                                        echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>";
-                                        echo "<td id='rightHand' >";
-                                        echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">";
-                                        $pyfile = fopen('/home/el3ktra/LilL3x/sr.py', "r");
-                                        $engines = [];
-                                        while(!feof($pyfile)) {
-                                                $line = fgets($pyfile);
-                                                if (preg_match_all("/def recognize_(.*)\(self/", $line, $matches)) {
-        	                                        array_push($engines, $matches[1][0]);
-                                                }
-                                                elseif (preg_match_all("/Recognizer.recognize_(.*) = /", $line, $matches)) {
-        	                                        array_push($engines, $matches[1][0]);
-                                                }
-                 
-                                        }
-					sort($engines);
-					$engines = array_unique($engines);
-					foreach ($engines as $engine) {
-						echo "<option value=\"" . $engine . "\" "  .   (($engine == $value_dict[$atts[0]][0])?"selected":"") . ">" . $engine ."</option>";
-					}
-                                        echo "</select></td></tr><tr><td></td><td><i>".$atts[2]."</i></td></tr><br>";
-
-                                }
-
-                               elseif ($atts[0] == "SPEECH_ENGINE") {
-                                        echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>";
-                                        echo "<td id='rightHand' >";
-                                        echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">";
-                                        $pyfile = fopen('/home/el3ktra/LilL3x/speech_tools.py', "r");
-                                        while(!feof($pyfile)) {
-                                                $line = fgets($pyfile);
-                                                if (preg_match_all("/class (.*)_tts:/", $line, $matches)) {
-        	                                        $engine = $matches[1][0];
-							echo "<option value=\"" . $engine . "\" "  .   (($engine == $value_dict[$atts[0]][0])?"selected":"") . ">" . $engine ."</option>";
-                                                }
-                                        }
-                                        echo "</select></td></tr><tr><td></td><td><i>".$atts[2]."</i></td></tr>";
-                                }
-
-                               elseif ($atts[0] == "DEBUG") {
-                                        echo "<tr><td id='leftHand'><b>".$atts[1].":</b></td>";
-                                        echo "<td id='rightHand' >";
-                                        echo "<select name=\"".$atts[0]."\" value=".$value_dict[$atts[0]][0].">";
-                                        $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
-                                        while(!feof($pyfile)) {
-                                                $line = fgets($pyfile);
-                                                if (preg_match_all("/(.*): \"(.*)\"/", $line, $matches)) {
-        	                                        $val = $matches[1][0];
-        	                                        $desc = $matches[2][0];
-							echo "<option value=\"" . $val . "\" "  .   (($val == $value_dict[$atts[0]][0])?"selected":"") . ">" . $desc ."</option>";
-                                                }
-                                        }
-                                        echo "</select></td></tr><tr><td></td><td><i>".$atts[2]."</i></td></tr>";
-
-                                }
-
-				else {
-         if ($value_dict[$atts[0]][1] == "blob") {
-                 echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-                 echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$value_dict[$atts[0]][0].'</textarea></td></tr>';
-         } elseif ($value_dict[$atts[0]][1] == "int") {
-                 echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-                 echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
-         } else {
-                 echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-                 echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
-	 }
-         echo "<tr><td></td><td><i>".$atts[2]."</i></td></tr>";
-
-				}
+			}
 		}
-}
 		fclose($myfile);
 	}
-
-
 
 	function PrintConfigDev($configFilePath=CONFIG_FILE) {
 		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
@@ -190,106 +194,20 @@
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-				if ($atts[0] == "AI_ENGINE") {
-					echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
-					echo "<td id='rightHand' >\n";
-					echo "<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
-					foreach (scandir('/home/el3ktra/LilL3x/beings') as $file) {
-						if (preg_match("/^AI_[A-Z]/", $file)) {
-                                                               $pyfile = fopen('/home/el3ktra/LilL3x/beings/'.$file, "r");
-                                                               while(!feof($pyfile)) {
-                                                                   $line = fgets($pyfile);
-                                                                   if (preg_match_all("/class AI_([A-Z])(.*)\(/", $line, $matches)) {
-                                                                       $ai_engine = $matches[1][0].$matches[2][0];
-								echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $atts[1])?"selected":"") . ">" . $ai_engine ."</option>";
-							    }
-							}
-                                                               fclose($pyfile);
-						} // preg_match filename                                                                      
-					}									
-					echo "</select></td></tr>\n";
-				}
-                                      elseif ($atts[0] == "AINAMEP") {
-                                               echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
-                                               echo "<td id='rightHand' >\n";
-                                               echo "<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
-                                               foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-                                                       if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
-                                                              $wake_word = ucwords($matches[1][0]);
-                                                              $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
-                                                              echo "<option value=\"" . $filepath . "\" "  .   (($filepath == $atts[1])?"selected":"") . ">" . $wake_word . "</option><br>";
-                                                        }
-                                               }
-                                               echo "</select></td></tr>\n";
-                                        }
-
-                                       elseif ($atts[0] == "LISTEN_ENGINE") {
-                                                echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
-                                                echo "<td id='rightHand' >\n";
-                                                echo "\n<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
-                                                $pyfile = fopen('/home/el3ktra/LilL3x/sr.py', "r");
-                                                $engines = [];
-                                                while(!feof($pyfile)) {
-                                                        $line = fgets($pyfile);
-                                                        if (preg_match_all("/def recognize_(.*)\(self/", $line, $matches)) {
-                	                                        array_push($engines, $matches[1][0]);
-                                                        }
-                                                        elseif (preg_match_all("/Recognizer.recognize_(.*) = /", $line, $matches)) {
-                	                                        array_push($engines, $matches[1][0]);
-                                                        }
-                         
-                                                }
-						sort($engines);
-						$engines = array_unique($engines);
-						foreach ($engines as $engine) {
-							echo "\n<option value=\"" . $engine . "\" "  .   (($engine == $atts[1])?"selected":"") . ">" . $engine ."</option>";
-						}
-                                                echo "</select></td></tr>\n";
-                                        }
-
-                                       elseif ($atts[0] == "SPEECH_ENGINE") {
-                                                echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
-                                                echo "<td id='rightHand' >\n";
-                                                echo "\n<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
-                                                $pyfile = fopen('/home/el3ktra/LilL3x/speech_tools.py', "r");
-                                                while(!feof($pyfile)) {
-                                                        $line = fgets($pyfile);
-                                                        if (preg_match_all("/class (.*)_tts:/", $line, $matches)) {
-                	                                        $engine = $matches[1][0];
-								echo "\n<option value=\"" . $engine . "\" "  .   (($engine == $atts[1])?"selected":"") . ">" . $engine ."</option>";
-                                                        }
-                                                }
-                                                echo "</select></td></tr>\n";
-                                        }
-
-                                       elseif ($atts[0] == "DEBUG") {
-                                                echo "<tr><td id='leftHand'>".$atts[0].":</td>\n";
-                                                echo "<td id='rightHand' >\n";
-                                                echo "\n<select name=\"".$atts[0]."\" value=".$atts[1].">\n";
-                                                $pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
-                                                while(!feof($pyfile)) {
-                                                        $line = fgets($pyfile);
-                                                        if (preg_match_all("/(.): \"(.*)\"/", $line, $matches)) {
-                	                                        $val = $matches[1][0];
-                	                                        $desc = $matches[2][0];
-								echo "\n<option value=\"" . $val . "\" "  .   (($val == $atts[1])?"selected":"") . ">" . $desc ."</option>";
-                                                        }
-                                                }
-                                                echo "</select></td></tr>\n";
-                                        }
-
-					else {
-                                            if ($atts[2] == "blob") {
-    echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
-    echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$atts[1].'</textarea></td></tr>';
-                                            } elseif ($atts[2] == "int") { 
+				if (in_array($atts[0], array("AI_ENGINE", "AINAMEP", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+					eval("Print_".$atts[0]."(\$atts[0], \$atts[0], \$atts[1]);");
+				} else {
+					if ($atts[2] == "blob") {
+						echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
+						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$atts[1].'</textarea></td></tr>';
+					} elseif ($atts[2] == "int") { 
 						echo trd_labelData($atts[0], $atts[1], $atts[0], 0, "number");
-                                            } else {
+					} else {
 						echo trd_labelData($atts[0], $atts[1], $atts[0]);
-					    }
-				        }
+					}
 				}
 			}
-			fclose($myfile);
+		}
+		fclose($myfile);
 	}
 ?>
