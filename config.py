@@ -1,6 +1,7 @@
 from datetime import datetime 
 import os
 import re
+import sys
 from word2number import w2n
 from error_handling import *
 from globals import STATE
@@ -26,6 +27,7 @@ type_f = {
     'blob' :to_str,
     'dt' : to_dt
 }
+
 
 class Config:
     configFileBK = "./config/config.txt.default"
@@ -115,18 +117,23 @@ class Config:
         return False
 
     def IsGitDirty(self):
-       self.lastGit = datetime.now()
-       repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
-       local_branch = repo.active_branch
-       remote_branch = local_branch.tracking_branch()
-       repo.remotes.origin.fetch()
-       is_behind = repo.heads.v2.commit != repo.remotes.origin.refs.v2.commit
-       if is_behind:
-           LogInfo("Local branch out of date- calling git pull")
-           orgin = repo.remote(name='origin')
-           orgin.pull()
-           return True
-       else: return False
+        self.lastGit = datetime.now()
+        try:
+            repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
+            repo.remotes.origin.fetch()
+            remote_head = repo.remotes.origin.refs[repo.active_branch.name].commit
+            local_head = repo.head.commit
+            diff = local_head.diff(remote_head)
+            if diff:
+                LogInfo("Local branch out of date:")
+                for file in diff:
+                    LogDebug(f"\t{file.change_type}: {file.a_path}")
+                    if file.a_path[-3:] == ".py": STATE.ChangeState('Reboot')
+                orgin = repo.remote(name='origin')
+                orgin.pull()
+                return True
+        except Exception as e: LogError(f"Error pulling from GIT: {str(e)}")
+        return False
 
     def g(self, key, default=False):
         try:
@@ -137,9 +144,6 @@ class Config:
                 LogWarn(f"Config.g: {key} not found in defaults!")
                 return default
             else: return self.config[key]
-#        except Exception as e:
-#            LogWarn(f"Config.g Exception (key):{str(e)}")
-#            return default
 
     def s(self, key, val):
         try:
@@ -156,13 +160,13 @@ class Config:
             return False
 
     def Close(self):
+        if (datetime.now()-self.lastGit).total_seconds() > 60: self.IsGitDirty()
         self.should_quit = True
 
     def config_thread(self):
         while not self.should_quit:
-            if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60:  # check GIT
-                gitDirty = self.IsGitDirty() # will update then change state to reboot!!
-                if gitDirty: STATE.ChangeState('Reboot')
+            if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                self.IsGitDirty() # will update then change state to reboot!!
             dirty=self.IsConfigDirty()
             if dirty:
                 LogInfo("Reloading config")
@@ -182,9 +186,15 @@ cf = Config()
 LogInfo("Loaded Configuration.")
 
 if __name__ == '__main__':
-    from time import sleep
-    print(f'LoadConfig returned {cf.LoadConfig()}')
-    print(cf.IsGitDirty())
+
+    if len(sys.argv) > 1:
+        print(cf.g(sys.argv[1]))
+
+    cf.IsGitDirty()
+
+#    from time import sleep
+#    print(f'LoadConfig returned {cf.LoadConfig()}')
+#    print(cf.IsGitDirty())
 #    print(str(cf.config))
     # testing dirty config
     #    print(str(cf.config))
