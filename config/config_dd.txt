@@ -1,8 +1,8 @@
 USERNAME|Name|Your own name
-USERNAMEP|Wake Word|The call name of your AI
+USERNAMEP|Pronunciation|How you pronounce your AI's name (if different)
 USEREMAIL|Email|Your email
 AINAME|AI Name|Your AI's name
-AINAMEP|Pronunciation|How you pronounce your AI's name (if different)
+AINAMEP|Wake Word|The call name of your AI
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 INITIATE_ODDS|Interactivity|Approximate interactions per hour
 INTERACT_MIN|Interactivity Min|The time to wait before interacting again
