@@ -24,7 +24,7 @@ from config import cf
 
 class wake_word:
     is_speaking = False
-    
+    should_quit = False
     wakeword_listener = None
     audio_device_index = -1  #RasperbyPI  TODO PULL FROM GLOBALS
 #    keyword_paths = []
@@ -73,12 +73,11 @@ class wake_word:
 
         LogInfo('Porcupine version: %s' % self.wakeword_listener.version)
 
-    def listen(self, beQuiet=False):
-        
+    def ww_thread(self):
         recorder = 0
         # create a recorder
         LogInfo("WW Listen Thread started")
-        while not STATE.CheckState('Quit'):
+        while not self.should_quit :
             if not STATE.IsInteractive():     #don't bother listening if in Active or Wake
                 if (MIC_STATE.CanUse()):
                     MIC_STATE.TakeMic()
@@ -92,8 +91,9 @@ class wake_word:
             else:
                 # no wakeword on Wake/Active states
                 continue
-        self.Close()
+        self.wakeword_listener.delete()
         LogInfo("WW Listen Thread ended")
+
     def listen_loop(self):
         LogDebug("ww listen_loop started")
         try:
@@ -101,7 +101,7 @@ class wake_word:
         except Exception as e:
             return RaiseError("Unable to create recorder: " + str(e))
         recorder.start()
-        while (not MIC_STATE.MicRequested() and not (STATE.CheckState('Quit') or STATE.IsInteractive())):
+        while not MIC_STATE.MicRequested() and not (self.should_quit or STATE.IsInteractive()):
             try:
                 pcm = recorder.read()
                 result = self.wakeword_listener.process(pcm)
@@ -118,7 +118,7 @@ class wake_word:
         recorder.stop()  # stop the recorder if requested to do so
         recorder.delete()
         sd.default.reset()
-        LogDebug("wakeword listen_loop ended")
+        LogDebug("ww listen_loop ended")
         return
 
     def GetWakePhrase(self):
@@ -126,8 +126,7 @@ class wake_word:
 
     def Close(self):
         LogInfo("Exiting WakeWord")
-        self.wakeword_listener.delete()
-        exit()
+        self.should_quit = True
         
 
 if __name__ == '__main__':
@@ -139,11 +138,13 @@ if __name__ == '__main__':
    mouth = speech_generator()
 
    ww = wake_word(mouth)
-   t = threading.Thread(target=ww.listen)
+   t = threading.Thread(target=ww.ww_thread)
    t.start()
-   while True:
-      if STATE.CheckState('Wake'):
-          STATE.ChangeState('Active')
-          STATE.ChangeState('Idle')
-      sleep(5)
-      print("STATE= " + STATE.GetState())
+
+   while not STATE.CheckState('Wake'):
+       sleep(5)
+   ww.Close()
+   print("waiting for thread", end="")
+   while t.is_alive():
+      print(".", end="")
+      sleep(1)

@@ -22,10 +22,12 @@ class Face:
     def __init__(self):
         self.screen = Screen()
         self.leds = LEDS()
-        animate_thread = threading.Thread(target=self.screen.AnimateThread)
+        animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
+        animate_thread.name = f"AnimateThread: {animate_thread.native_id}"
         animate_thread.start()
         
-        led_thread = threading.Thread(target=self.leds.LEDThread)
+        led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
+        led_thread.name = f"LedThread: {animate_thread.native_id}"
         led_thread.start()
  
 

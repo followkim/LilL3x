@@ -71,7 +71,7 @@ class Camera:
         mood_thrd = threading.Thread(target=self._get_emotion_thread)
 
         LogInfo("Camera thread starting.")
-        while not STATE.CheckState('Quit') and not self.should_quit and self.cam:
+        while not STATE.ShouldQuit() and not self.should_quit and self.cam:
             if CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
                 RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
                 self.cam.stop()

@@ -39,6 +39,7 @@ class speech_listener:
     def update(self, asyn=False, needMic=True):
         if asyn:
             update_thread = threading.Thread(target=self.update_thread)
+            update_thread.name = f"listener.update_thread {update_thread.native_id}"
             update_thread.start()
 
         else: self.update_thread(True)
@@ -83,6 +84,7 @@ class speech_listener:
 #                    audio = self.speech.listen(source, timeout=5.0) #,dynamic_energy_threshold=False)
                     self.audio = 0
                     listen_thread = threading.Thread(target=self.listen_thread, args=(source, time_out))
+                    listen_thread.name = f"listen_thread {listen_thread.native_id}"
                     listen_thread.start()
                     run_avg = []
                     x=0

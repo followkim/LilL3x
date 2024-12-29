@@ -85,6 +85,10 @@ class AI:
             STATE.ChangeState('Quit')
             return "goodbye"
 
+        if re.search(r"^(reboot|restart|reset)$", txt.lower()): 
+            STATE.ChangeState('Reboot')
+            return "see you soon"
+
         if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)$", txt.lower()):
             ret = re.compile("^(.*)(watch the house|(your|you're) in charge|hold down the fort)$").match(txt).groups()
             STATE.ChangeState('Surveil')

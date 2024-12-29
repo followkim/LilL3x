@@ -148,17 +148,18 @@ class Screen:
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
 
                     temp = round(CPUTemperature().temperature)
-                    time = datetime.now().strftime("%-I:%M%p")       
     
-                    bb = draw.textbbox((0,0), time, font=font)
-                    clock = (width-bb[2], 0)
-                    if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
-                        if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
-                        elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
-                        elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
-                        elif movX>0 and movY>0: clock = (0           , 0)		   # upper left
-                    draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
-                    draw.text(clock, time, font=font, fill=255)
+                    if not STATE.CheckState('Active'):
+                        time = datetime.now().strftime("%-I:%M%p")       
+                        bb = draw.textbbox((0,0), time, font=font)
+                        clock = (width-bb[2], 0) # defaults to top right
+                        if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
+                            if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
+                            elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
+                            elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
+                            elif movX>0 and movY>0: clock = (0           , 0)		   # upper left
+                        draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
+                        draw.text(clock, time, font=font, fill=255)
 
                     if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=3) and not self._message:
                         bb = draw.textbbox((0,0), f"{temp}C", font=font)
@@ -211,6 +212,7 @@ class Screen:
     def message(self, text):
         self._message = text
         exprThread = threading.Thread(target=self.ExpiryThread)
+        exprThread.name = f"ExpiryThread {exprThread.native_id}"
         exprThread.start()
         
     def ExpiryThread(self):

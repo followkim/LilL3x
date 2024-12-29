@@ -25,7 +25,7 @@ class State:
     def ChangeState(self, new_state):
         if self.current == 'Wake' and new_state != 'Active':
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
-        elif self.current not in ('Quit'):  # can't change out of quit state
+        elif not self.ShouldQuit():          # can't change out of quit state
             LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
             self.current = new_state
             self.last_dt = datetime.now()
@@ -40,6 +40,9 @@ class State:
 
     def ShouldWake(self):
         return self.current == "Wake"
+
+    def ShouldQuit(self):
+        return self.current in ('Quit', 'Reboot')
 
     def IsInteractive(self):
         return self.current in ('Hello', 'Wake', 'Active')

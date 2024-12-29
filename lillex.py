@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import re
+import subprocess
 
 os.chdir(f"{os.getenv('HOME')}/LilL3x/")
 sys.path.append(f"{os.getenv('HOME')}/LilL3x/")
@@ -64,31 +66,31 @@ class lill3x:
     def __init__(self):
         LogInfo("Starting LilL3x")        
         # create the hardware objects
-
+  
         try:
             self.mouth = speech_generator()
         except Exception as e:
-            RaiseError("AI():Could not init speech generator. " + str(e))
+            RaiseError("Init():Could not init speech generator. " + str(e))
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
             self.ears = speech_listener()
         except Exception as e:
-            RaiseError("AI():Could not init listener. " + str(e))
+            RaiseError("Init():Could not init listener. " + str(e))
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
             self.eyes = Camera()
         except Exception as e:
-            RaiseError("AI():Could not init camera. " + str(e))
+            RaiseError("Init():Could not init camera. " + str(e))
 
         try:
             self.face = Face() # note this spawns two threads: animate and led threads
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
-            RaiseError("AI():Could not init Display. " + str(e))
+            RaiseError("Init():Could not init Display. " + str(e))
 
         # get AI (depending on config)
         try:
@@ -102,32 +104,37 @@ class lill3x:
             RaiseError("Unable to create AI: init failed")
             STATE.ChangeState('Quit')
             return
-
-        STATE.ChangeState('Hello')
         
-
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(BUTTON, GPIO.IN)
-
-        # finally start the wakeword thread
-#        self.ww = vosk_wake.vosk_wake(self.face)
-#        ww_thread = threading.Thread(target=self.ww.listen)
-        cam_thread = threading.Thread(target=self.eyes.CameraLoopThread)
+ 
+        # THREADS
+        cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
+        cam_thread.name = f"CameraLoopThread: {cam_thread.native_id}"
         cam_thread.start()
 
+#        self.ww = vosk_wake.vosk_wake(self.face)
         self.ww = wake_word.wake_word(self.mouth)
-        ww_thread = threading.Thread(target=self.ww.listen)
+        ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)
+        ww_thread.name = f"WakeWordThread: {ww_thread.native_id}"
         ww_thread.start()
         
-        button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,))
+        button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,), daemon=True)
+        button_thread.name = f"ButtonThread: {button_thread.native_id}"
         button_thread.start()
 
-        config_thread = threading.Thread(target=cf.config_thread)
+        config_thread = threading.Thread(target=cf.config_thread, daemon=True)
+        config_thread.name = f"ConfigThread: {config_thread.native_id}"
         config_thread.start()
+
+        if '--reboot' in sys.argv: STATE.ChangeState('ActiveIdle')
+        else:
+            self.mouth.Hello()
+            STATE.ChangeState('Hello')
 
     def Loop(self):
         LogInfo("Starting Main Loop")
-        while not STATE.CheckState('Quit'):
+        while not STATE.ShouldQuit():
             temp = CPUTemperature().temperature
             if temp >= cf.g('CPU_MAX_TEMP'):
                 if temp >= 80:
@@ -177,15 +184,35 @@ class lill3x:
         return
 
     def Close(self):
+       self.ww.Close()
        self.ai.Close()
        self.mouth.Close()
        self.ears.Close()
        self.eyes.Close()
        self.face.Close()
-       cf.WriteConfig()
        cf.Close()
        CloseLog()
+       self.WaitThreads()
 
+       # reboot if requested
+       if STATE.CheckState('Reboot'):
+           python = sys.executable
+           args = [sys.argv[0], "--reboot"]
+           cmd = [python] + args
+           subprocess.Popen(cmd, start_new_session=True)
+
+    def WaitThreads(self):
+       threads = threading.enumerate()
+       numThreads = len(threads)
+       while numThreads > 0:
+           threads = threading.enumerate()
+           numThreads = len(threads)
+           for t in threads:
+               if re.search("Thread-[0-9]", t.name) or re.search("MainThread", t.name): numThreads = numThreads - 1
+               else: LogInfo(f"T={len(threads)} Waiting on {t.name}.")
+           sleep(2)
+
+       
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
         wp = self.ww.GetWakePhrase()
@@ -282,11 +309,11 @@ class lill3x:
         curr_state = STATE.GetState()
         target_time = datetime.now() + timedelta(seconds=secs)
         sleep_for = min(cf.g('SLEEP_DURATION'), secs)
-        while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.CheckState('Quit') or  STATE.IsInteractive()):
+        while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.ShouldQuit() or  STATE.IsInteractive()):
             sleep(sleep_for)
 
     def ButtonThread(self, audio):
-        while STATE.GetState() not in ('Quit'):
+        while not STATE.ShouldQuit():
             if not (GPIO.input(BUTTON)):
                 STATE.ChangeState('Wake')
                 LogInfo("Button Wake")
