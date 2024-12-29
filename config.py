@@ -27,7 +27,6 @@ type_f = {
     'dt' : to_dt
 }
 
-
 class Config:
     configFileBK = "./config/config.txt.default"
     configFile = "./config/config.txt"
@@ -116,7 +115,6 @@ class Config:
         return False
 
     def IsGitDirty(self):
-
        self.lastGit = datetime.now()
        repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
        local_branch = repo.active_branch
