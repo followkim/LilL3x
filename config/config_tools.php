@@ -169,7 +169,7 @@
 			$atts = explode('|', $line);
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
                                if (in_array($atts[0], array("AI_ENGINE", "AINAMEP", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
-                                        eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$value_dict[$atts[0]][0], \$atts[2]);");
+                                        eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$value_dict[\$atts[0]][0], \$atts[2]);");
 				} else {
 					if ($value_dict[$atts[0]][1] == "blob") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
