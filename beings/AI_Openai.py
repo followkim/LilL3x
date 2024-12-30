@@ -76,12 +76,19 @@ class AI_openAI(AI):
             {"role": "system", "content": f"Your name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
             {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
         ]
-        LogInfo(f"AI {self.name}, ({self.model}) loaded.")
+        LogInfo(f"AI {self.name}, ({self.model()}) loaded.")
         return
+
+    def model(self, vision=False):
+        if vision:
+            try:
+                return cf.g(self.vision_model_key)
+            except:
+                pass # key doens't exsitst
+        return cf.g(self.model_key)
 
     def respond(self, user_input, canParaphrase=False):
         self.face.thinking()
-        this_model = self.model
         class_resp = AI.respond(self, user_input)  # will return either a response
         (user_input, max_tokens, tools) = self.HandleResponse(class_resp, user_input)
         if not user_input:
@@ -90,9 +97,10 @@ class AI_openAI(AI):
 
         reply = ""
         response = ""
+        #TODO: call update!
         try:
             args = {
-                'model': self.model,
+                'model': self.model(),
                 'messages': self.memory,
                 'temperature': cf.g('TEMPERATURE')
             }
@@ -119,7 +127,7 @@ class AI_openAI(AI):
                 reply = eval(call)
                 self.memory.append({"role": "tool", "tool_call_id": tool_call.id, "content": "success"},)
                 (user_input, max_tokens, tools) = self.HandleResponse(False, reply)
-                response = self.client.chat.completions.create(model=this_model, messages=self.memory, max_tokens=max_tokens)
+                response = self.client.chat.completions.create(cf.g(self.model()), messages=self.memory, max_tokens=max_tokens)
                 if response.choices[0].message.content:
                     reply = response.choices[0].message.content
                     self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
@@ -156,7 +164,6 @@ class AI_openAI(AI):
         #reply is a command 
         elif user_input[:1] == '!': #command
              role = "assistant"
-             this_model = self.slow_model
              user_input = user_input[1:]
              self.memory.append({"role": role, "content": user_input},)
              max_tokens=100*self.token_mult  #75 words - keep it short for spontanous uttering
@@ -172,7 +179,7 @@ class AI_openAI(AI):
         elif user_input[:1] == '#': #picture-- TODO!!!
              (x, user_input, file, url) = user_input.split('#')
              self.memory.append({"role": role,
-                  "content": [{"type": "text", "text": user_input + ", what do you see and what do you think"}, 
+                  "content": [{"type": "text", "text": user_input}, 
                               {"type": "image_url", "image_url": {"url": url,}, },],
                   })
 
@@ -249,9 +256,9 @@ class AI_openAI(AI):
 
 class AI_ChatGPT(AI_openAI):
 
-    model= cf.g('CHATGPT_MODEL')
-    slow_model=cf.g('CHATGPT_MODEL_SLOW')
     api_key=cf.g('OPEN_AI_API_KEY')
+    model_key = 'CHATGPT_MODEL'
+    slow_model_key = 'CHATGPT_MODEL_SLOW'
     name = "ChatGPT"
     tools = function_tools # False # turn this on if asked
     token_mult = 1
@@ -261,22 +268,22 @@ class AI_ChatGPT(AI_openAI):
         AI_openAI.__init__(self)
 
 class AI_Llama(AI_openAI):
-    base_url = "https://api.llama-api.com"
+    base_url = cf.g('LLAMA_BASE_URL')
     api_key = cf.g('LLAMA_KEY')
-    model =cf.g('LLAMA_MODEL')
-    slow_model=cf.g('LLAMA_MODEL_SLOW')
+    model_key = 'LLAMA_MODEL'
+    slow_model_key = 'LLAMA_MODEL_SLOW'
     name = "Llama"
     tools = False
     token_mult = 0.5
 
 class AI_Gemma(AI_Llama):
-    model = cf.g('GEMMA_MODEL')
-    slow_model = cf.g('GEMMA_MODEL_SLOW')
+    model_key = 'GEMMA_MODEL'
+    slow_model_key = 'GEMMA_MODEL_SLOW'
     name = "Gemma"
 
 class AI_Qwen(AI_Llama):
-    model = cf.g('QWEN_MODEL')
-    slow_model = cf.g('QWEN_MODEL_SLOW')
+    model_key = 'QWEN_MODEL'
+    slow_model_key = 'QWEN_MODEL_SLOW'
     name = "Qwen"
 
 if __name__ == '__main__':

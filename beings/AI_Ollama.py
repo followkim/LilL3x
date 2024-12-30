@@ -11,6 +11,7 @@ import langchain_ollama as lc
 from AI_class import AI
 from AI_Openai import AI_openAI
 from time import sleep
+
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
@@ -69,22 +70,21 @@ class AI_ollama(AI_openAI):
 
     def __init__(self):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
-#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model, temperature=cf.g('TEMPERATURE'))
+#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
         self.client=ollama.Client(host=self.base_url)
 
         self.memory = [
             {"role": "system", "content": f"Your name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
             {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
         ]
-        LogInfo(f"AI {self.name}, ({self.model}) loaded.")
+        LogInfo(f"AI {self.name}:{self.model()} loaded.")
         return
-
 
     def respond(self, user_input, canParaphrase=False):
         self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
         args = {
-            'model': cf.g(f'{self.name.upper()}_MODEL'),
+            'model': self.model(),
             'messages': self.memory,
             'stream': True
          #   'temperature': cf.g('TEMPERATURE')
@@ -92,7 +92,7 @@ class AI_ollama(AI_openAI):
         (user_input, args) = self.HandleResponse(class_resp, user_input, args)
         if not user_input:
             self.face.off()
-            return class_resp #hacky
+            return class_resp #hacky - if the class doesn'tt return text then assume that they handled it.
 
         reply = ""
         response = ""
@@ -186,7 +186,7 @@ class AI_ollama(AI_openAI):
         elif user_input[:1] == '#': #picture-- TODO!!!
              LogDebug(f"Input is pict: {user_input}")
              (x, user_input, path, url) = user_input.split('#')
-             arg['model']=cf.g('EL3KTRA_VISION_MODEL')
+             arg['model']=self.model(vision=True)
              self.memory.append({"role": role, "content": user_input,  "id": cf.g('CONVO_ID'), 'images':[path]})
 
         #reply is just text
@@ -198,32 +198,28 @@ class AI_ollama(AI_openAI):
         arg['messages'] = self.memory
         return (user_input, arg)
 
-    def Close(self):
-       AI.Close(self)
-       self.SaveMemories()
-       return
-
 class AI_Local(AI_ollama):
+    name = "Local"
     base_url = "http://localhost:11434"
     api_key = "unused"
-    model = 'qwen2:0.5b'
-    slow_model=model
-    name = "Local"
+    model_key = 'LOCAL_MODEL'
+    slow_model_key=model_key
 
 class AI_Corgi(AI_ollama):
+    name = "Corgi"
     base_url = cf.g('CORGI_URL')
     api_key = cf.g('CORGI_API_KEY')
-    model = cf.g('CORGI_MODEL')
-    slow_model=model
-    name = "Corgi"
+    model_key = 'CORGI_MODEL'
+    slow_model_key=model_key
 
 class AI_El3ktra(AI_ollama):
-#    base_url = cf.g('EL3KTRA_URL')
-    base_url = cf.g('EL3KTRA_URL')
-    api_key = 'el3ktra'
-    model = cf.g('EL3KTRA_MODEL')
-    slow_model=model
     name = "El3ktra"
+    base_url = cf.g('EL3KTRA_URL')
+    api_key = cf.g('EL3KTRA_API_KEY')
+    model_key = 'EL3KTRA_MODEL'
+    slow_model_key=model_key
+    vision_model_key='EL3KTRA_VISION_MODEL'
+
 #    tools = function_tools
 
 if __name__ == '__main__':
@@ -240,7 +236,7 @@ if __name__ == '__main__':
              return
         def off(self):
              return
-        def say(self, txt, asyn=False):
+        def say(self, txt, face=False, asyn=False):
              print(txt)
         def IsBusy(self):
              return False
