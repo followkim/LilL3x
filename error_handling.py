@@ -34,8 +34,6 @@ def InitLogFile():
             print(f"Log File Created: " + log_file_name)
         except Exception as e:
             print(f"Unable to create log file link: {str(e)}")
-        logFile = open(log_file_name, "a")
-
     except Exception as e:
         print(f"Unable to create log file: {str(e)}")
 
