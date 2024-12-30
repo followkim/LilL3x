@@ -16,6 +16,8 @@ git pull
 echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
 
+/home/el3ktra/LilL3x/bin/python showPict.py
+
 echo "Starting LilL3x..."
 /home/el3ktra/LilL3x/bin/python lillex.py > lillog.bk.txt
 
