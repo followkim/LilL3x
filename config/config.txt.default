@@ -29,6 +29,7 @@ CAMERA_PICT_SEC|3|int|Number of seconds to show a new picture on the screen
 CAMERA_SLEEP_SEC|5|int
 
 SFT_FORMAT|%Y%m%d%H%M%S%f|str
+WIS_FILE|./frames/wis.ppm|path
 TEMP_PATH_DEFAULT|temp/|path|
 IMGUR_ID||str|
 IMGUR_SECRET||str|
