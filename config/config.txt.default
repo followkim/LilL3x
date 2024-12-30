@@ -122,3 +122,4 @@ CPU_MAX|25|int
 CHECK_GIT|30|int
 RESTART_SEC|5|int|seconds to hold button to cause restart
 REBOOT_SEC|10|int|second to hold to cause reboot
+WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
