@@ -86,7 +86,7 @@ class AI:
             return "goodbye"
 
         if re.search(r"^(reboot|restart|reset)$", txt.lower()): 
-            STATE.ChangeState('Reboot')
+            STATE.ChangeState('Restart')
             return "see you soon"
 
         if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)$", txt.lower()):

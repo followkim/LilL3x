@@ -29,6 +29,7 @@ from config import cf
 from error_handling import *
 LogDebug("LED Display Loading...")
 
+
 class Screen:
     display = 0
     picts = {}
@@ -153,7 +154,7 @@ class Screen:
                         time = datetime.now().strftime("%-I:%M%p")       
                         bb = draw.textbbox((0,0), time, font=font)
                         clock = (width-bb[2], 0) # defaults to top right
-                        if not (self._message or cf.g('DEBUG')>=3 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
+                        if not (self._message or cf.g('DEBUG')>=4 or temp >= cf.g('CPU_MAX_TEMP')*0.9):
                             if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
                             elif movX<0 and movY>0: clock = (width-bb[2] , 0)		   # upper right
                             elif movX>0 and movY<0: clock = (0           , height-bb[3]) # lower left
@@ -161,13 +162,13 @@ class Screen:
                         draw.rectangle((clock[0], clock[1], clock[0]+bb[2], clock[1]+bb[3]), fill=0, outline=0)
                         draw.text(clock, time, font=font, fill=255)
 
-                    if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=3) and not self._message:
+                    if (temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=4) and not self._message:
                         bb = draw.textbbox((0,0), f"{temp}C", font=font)
                         draw.rectangle((width-bb[2], height-bb[3], width, height), fill=0, outline=0)
                         draw.text((width-bb[2], height-bb[3]), f"{temp}C", font=font, fill=255)
 
                     if not self._message:
-                        if cf.g('DEBUG')>=3:  # show debug messages
+                        if cf.g('DEBUG')>=4:  # show debug messages
                             CPU = f"{psutil.cpu_percent()}%"
                             bb = draw.textbbox((0,0), CPU, font=font)
                             draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)

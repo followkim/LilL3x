@@ -128,7 +128,7 @@ class Config:
                 LogInfo("Local branch out of date:")
                 for file in diff:
                     LogDebug(f"\t{file.change_type}: {file.a_path}")
-                    if file.a_path[-3:] == ".py": STATE.ChangeState('Reboot')
+                    if file.a_path[-3:] == ".py": STATE.ChangeState('Restart')
                 orgin = repo.remote(name='origin')
                 orgin.pull()
                 return True
@@ -166,7 +166,7 @@ class Config:
     def config_thread(self):
         while not self.should_quit:
             if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
-                self.IsGitDirty() # will update then change state to reboot!!
+                self.IsGitDirty() # will update then change state to restart!!
             dirty=self.IsConfigDirty()
             if dirty:
                 LogInfo("Reloading config")

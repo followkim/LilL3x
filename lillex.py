@@ -24,14 +24,13 @@ import wake_word
 from error_handling import *
 from config import cf
 from gpiozero import CPUTemperature
-import RPi.GPIO as GPIO
-BUTTON = 17
 
-currentdir = os.getcwd()
 from speech_tools import speech_generator
 from listen_tools import speech_listener
 from camera_tools import Camera
 from face import Face
+
+currentdir = os.getcwd()
 
 LogInfo("Importing AI...")
 sys.path.insert(0, currentdir+'/beings/')
@@ -41,6 +40,10 @@ from AI_Ollama import *
 from AI_Kindriod import AI_Kindriod
 from AI_Gemini import AI_Gemini
 from AI_Claude import AI_Claude
+
+sys.path.insert(0, currentdir+'/raspberryPi/')
+from button import Button
+
 sys.path.insert(0, currentdir)
 
 # how many seconds we should sleep in each state.
@@ -64,6 +67,8 @@ class lill3x:
     ai = False
     ww = 0
     def __init__(self):
+
+        InitLogFile()
         LogInfo("Starting LilL3x")        
         # create the hardware objects
   
@@ -92,6 +97,11 @@ class lill3x:
         except Exception as e:
             RaiseError("Init():Could not init Display. " + str(e))
 
+        try:
+            self.button = Button() 
+        except Exception as e:
+            RaiseError("Init():Could not init Button. " + str(e))
+
         # get AI (depending on config)
         try:
             self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
@@ -105,9 +115,6 @@ class lill3x:
             STATE.ChangeState('Quit')
             return
         
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(BUTTON, GPIO.IN)
- 
         # THREADS
         cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
         cam_thread.name = f"CameraLoopThread: {cam_thread.native_id}"
@@ -119,7 +126,7 @@ class lill3x:
         ww_thread.name = f"WakeWordThread: {ww_thread.native_id}"
         ww_thread.start()
         
-        button_thread = threading.Thread(target=self.ButtonThread, args=(self.mouth,), daemon=True)
+        button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
         button_thread.name = f"ButtonThread: {button_thread.native_id}"
         button_thread.start()
 
@@ -127,7 +134,7 @@ class lill3x:
         config_thread.name = f"ConfigThread: {config_thread.native_id}"
         config_thread.start()
 
-        if '--reboot' in sys.argv: STATE.ChangeState('ActiveIdle')
+        if '--restart' in sys.argv: STATE.ChangeState('ActiveIdle')
         else:
             self.mouth.Hello()
             STATE.ChangeState('Hello')
@@ -149,7 +156,8 @@ class lill3x:
             except Exception as e:
                 RaiseError(f"Loop(): Uncaught Exception: {str(e)}")
                 STATE.ChangeState('Quit')
-        self.Close()
+        # call the Quit function
+        eval("self."+STATE.GetState()+"()")
 
     def ChangeAI(self):
         STATE.ChangeState('Active')
@@ -183,36 +191,6 @@ class lill3x:
         STATE.ChangeState('Active')
         return
 
-    def Close(self):
-       self.ww.Close()
-       self.ai.Close()
-       self.mouth.Close()
-       self.ears.Close()
-       self.eyes.Close()
-       self.face.Close()
-       cf.Close()
-       CloseLog()
-       self.WaitThreads()
-
-       # reboot if requested
-       if STATE.CheckState('Reboot'):
-           python = sys.executable
-           args = [sys.argv[0], "--reboot"]
-           cmd = [python] + args
-           subprocess.Popen(cmd, start_new_session=True)
-
-    def WaitThreads(self):
-       threads = threading.enumerate()
-       numThreads = len(threads)
-       while numThreads > 0:
-           threads = threading.enumerate()
-           numThreads = len(threads)
-           for t in threads:
-               if re.search("Thread-[0-9]", t.name) or re.search("MainThread", t.name): numThreads = numThreads - 1
-               else: LogInfo(f"T={len(threads)} Waiting on {t.name}.")
-           sleep(2)
-
-       
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
         wp = self.ww.GetWakePhrase()
@@ -303,6 +281,42 @@ class lill3x:
             self.Sleep(cf.g('SLEEP_DURATION'))
         return
 
+    def Quit(self):
+       self.ww.Close()
+       self.ai.Close()
+       self.mouth.Close()
+       self.ears.Close()
+       self.eyes.Close()
+       self.face.Close()
+       cf.Close()
+       CloseLog()
+       self.WaitThreads()
+
+    def Restart(self):
+       self.Quit()
+       python = sys.executable
+       args = [sys.argv[0], "--restart"]
+       cmd = [python] + args
+       subprocess.Popen(cmd, start_new_session=True)
+
+
+    def Reboot(self):
+       self.Quit()
+       os.system("sudo ./config/reboot.sh")
+
+    def WaitThreads(self):
+       threads = threading.enumerate()
+       numThreads = len(threads)
+       while numThreads > 0:
+           threads = threading.enumerate()
+           numThreads = len(threads)
+           for t in threads:
+               if re.search("Thread-[0-9]", t.name) or re.search("MainThread", t.name): numThreads = numThreads - 1
+               else: LogInfo(f"T={len(threads)} Waiting on {t.name}.")
+           sleep(2)
+
+       
+
      # A version of sleep that will break out if the state changes by WakeWord.   Avoids long period of uninterruptable sleep.
     def Sleep(self, secs):
         global STATE
@@ -312,25 +326,13 @@ class lill3x:
         while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.ShouldQuit() or  STATE.IsInteractive()):
             sleep(sleep_for)
 
-    def ButtonThread(self, audio):
-        while not STATE.ShouldQuit():
-            if not (GPIO.input(BUTTON)):
-                STATE.ChangeState('Wake')
-                LogInfo("Button Wake")
-                if not audio.IsBusy():
-                    audio.PlaySound(cf.g('WAKE_MP3'))
-                while (GPIO.input(BUTTON)):
-                     sleep(0.25)
-                     continue
-            else:
-               sleep(0.5)
-        LogInfo("ButtonThread exit.")
 
 ## THREADING INFO
 #os.chdir('/home/el3ktra/LilL3x/')
 # Get the current working directory
 
+print(f"LilL3x started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()
 l3x.Loop()
-print("exit")
+print(f"LilL3x exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 
