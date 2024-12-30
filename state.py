@@ -45,7 +45,7 @@ class State:
         return self.current == "Wake"
 
     def ShouldQuit(self):
-        return self.current in ('Quit', 'Reboot')
+        return self.current in ('Quit', 'Reboot', 'Restart')
 
     def IsInteractive(self):
         return self.current in ('Hello', 'Wake', 'Active')

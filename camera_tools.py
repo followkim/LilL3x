@@ -82,7 +82,7 @@ class Camera:
 
             img = self._read_camera_array()
             need_action = self.show_view or self.take_picture
-            if (self._is_dark(img) or (psutil.cpu_percent()>cf.g('CPU_MAX')) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
+            if ((self._is_dark(img) or (psutil.cpu_percent()>cf.g('CPU_MAX'))) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
                 sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
 
@@ -138,7 +138,7 @@ class Camera:
 #            if self._is_dark(): sleep(30) # don't check for dark if there is movement
 
             #sleep the camera
-            if not tracker and not self.show_view: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
+            if not tracker and not need_action: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
             else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS
 
         if self.cam: self.cam.stop()
@@ -196,19 +196,18 @@ class Camera:
         self.show_view=True
 
     def EndShowView(self):
-        self._show_view = False
+        self.show_view = False
         sleep(0.25)
         try: os.remove('./frames/wis.ppm')
         except: pass
         return
 
-    def _whatISee(self, img=False):
+    def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
         if isinstance(img, bool): img = self._read_camera_buffer()
-#        self._take_picture("./frames/wis.jpg", beQuiet=True)
-#        jpg = cv2.imread('./frames/wis.jpg')
+
         gmi = cv2.flip(img, 1)
         ig = cv2.resize(gmi, (128, 64))
-        cv2.imwrite('./frames/wis.ppm', ig)
+        cv2.imwrite(filename, ig)
 
     def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), beQuiet=False):
         if is_dir(fname):
@@ -222,9 +221,9 @@ class Camera:
             sleep(0.25)
             cnt = cnt+1   # just in case the file never materializes
         if cnt<8: return filename
-        return False
+        else: return False
 
-    def _take_picture(self, image, filename=cf.g('TEMP_PATH_DEFAULT'), beQuiet=False):
+    def _take_picture(self, image, filename, beQuiet=False):
         try:
             if isinstance(image, bool): self.cam.capture_file(filename)
             else: cv2.imwrite(filename, image)
@@ -232,7 +231,9 @@ class Camera:
             # show the image for 3 secs and play a shutter sound
             if not beQuiet:
                 self.shutter.play()
-                sleep(cf.g('CAMERA_PICT_SEC'))
+                if self.show_view:
+                    self._whatISee(image)
+                    sleep(cf.g('CAMERA_PICT_SEC')) #show the pict on the screen
             self.take_picture = False
             return filename
         except Exception as e:

@@ -103,14 +103,15 @@ class AI:
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
 
-        if re.search(r"^show (me|us) what you see$", txt.lower()):
-            self.LookForUser(10)
-            return ""
+#        if re.search(r"^show (me|us) what you see$", txt.lower()):
+#            self.LookForUser(10)
+#            return ""
 
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
+                re.search(r"^show (me|us) what you see$", txt.lower()) or 
                 re.search(r"^(hey )?look at (this|that)$", txt.lower())):
             self.face.looking()
-            sleep(5)
+            sleep(cf.g('CAMERA_PICT_SEC')) # show the viewport
             path = self.eyes.TakePicture()
 #            pict_path = self.eyes.TakePicture()
 #            pict = open(pict_path,'rb')  # for email
@@ -118,7 +119,7 @@ class AI:
                 url  = self.eyes.UploadPicture(path)
 #                self.say("What is this a picture of?")
 #                desc = self.listen()
-                desc = "This is a picture of what is in front of you.  Describe and comment."
+                desc = f"This is a picture of me, {cf.g('USERNAME')}.  Describe and comment."
                 return f'#{desc}#{path}#{url}'
             else:
                 return "Sorry, I couldn't take a picture"
@@ -165,6 +166,7 @@ class AI:
                 new_engine = ret[0]
 
             if (self.mouth.SwitchEngine(new_engine)):
+                cf.s('SPEECH_ENGINE', new_engine)
                 return (f"Switched speech engine to {new_engine}")
             else:
                 return (f"Couldn't switch to {new_engine}")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import welcome
 import os
 import sys
 import re
@@ -180,7 +181,7 @@ class lill3x:
         self.ai.Close()
         self.ai = new_ai
         self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
-
+        cf.s('AI_ENGINE', STATE.data)
         STATE.ChangeState('Hello')
         return True
 

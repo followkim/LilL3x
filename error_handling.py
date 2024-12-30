@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 import shutil
 import time 
+import threading
 
 err_level = {
     1: "Conversation",
@@ -14,32 +15,41 @@ err_level = {
 
 ERROR_LEVEL = 4
 
-log_file_name = "./log/lill3x"+datetime.now().strftime("%Y%m%d%H%M")+".log"
+log_file_name = ""
 log_file_ln = "lill3x.log"
 log_file = 0
-try:
-    logFile = open(log_file_name, "a")
-    logFile.write(f"{datetime.now()}\n")
-    logFile.close()
+
+def InitLogFile():
     try:
-        os.remove(log_file_ln)
-    except FileNotFoundError:
-        pass
-    try:
-        os.symlink(log_file_name, log_file_ln)
-        print(f"Log File Created: " + log_file_name)
+        log_file_name = "./log/lill3x"+datetime.now().strftime("%Y%m%d%H%M")+".log"
+        logFile = open(log_file_name, "a")
+        logFile.write(f"{datetime.now()}\n")
+        logFile.close()
+        try:
+            os.remove(log_file_ln)
+        except FileNotFoundError:
+            pass
+        try:
+            os.symlink(log_file_name, log_file_ln)
+            print(f"Log File Created: " + log_file_name)
+        except Exception as e:
+            print(f"Unable to create log file link: {str(e)}")
+        logFile = open(log_file_name, "a")
+
     except Exception as e:
-        print(f"Unable to create log file link: {str(e)}")
-    logFile = open(log_file_name, "a")
+        print(f"Unable to create log file: {str(e)}")
 
-except Exception as e:
-    print(f"Unable to create log file: {str(e)}")
-
+def ShowThreads():
+    threads = threading.enumerate()
+    numThreads = len(threads)
+    LogInfo(f"{numThreads} total threads:")
+    for t in threads: LogInfo(f"\t\t{t.name}")
 
 def SetErrorLevel(level):
     global ERROR_LEVEL
-    Log(f"Log level changed from {err_level[ERROR_LEVEL]} to {err_level[level]}.")
-    ERROR_LEVEL = level
+    if ERROR_LEVEL != level: 
+        Log(f"Log level changed from {err_level[ERROR_LEVEL]} to {err_level[level]}.")
+        ERROR_LEVEL = level
     return
 
 def RaiseError(e):
@@ -75,16 +85,18 @@ def LogDebug(txt):
     return
 
 def Log(text, level=""):
-    if ERROR_LEVEL >= 2: print(f"{level} {text}")
-    logFile = open(log_file_name, "a")
-    logFile.write(f"{level}{text}\n")
-    logFile.close()
-
+    if ERROR_LEVEL >= 2 or log_file_name == "": print(f"{level} {text}")
+    if log_file_name:
+        try:
+            logFile = open(log_file_name, "a")
+            logFile.write(f"{level}{text}\n")
+            logFile.close()
+        except Exception as e:
+            print(f"Error writing to logfile: {str(e)}")
 def DumpStack():
     traceback.print_stack()
 
 def CloseLog():
-    logFile.close()
     try:
         os.remove(log_file_ln)
     except FileNotFoundError:
