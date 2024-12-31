@@ -51,7 +51,7 @@ WAKE_REGEX||regex
 WAKE_WORD_TRIES|0|int
 SPEECH_FILE|temp.mp3|str
 VOLUME|10|int
-BRIGHTNESS|10|int|description
+BRIGHTNESS|50|int|1-100
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
 TEMPERATURE|1|int|
@@ -119,9 +119,9 @@ FIREBASE_WEB_API_KEY||str|
 BARD_API||str|
 
 DEBUG|2|int|
-LIGHT_SPEED|10|int|
+LIGHT_SPEED|75|int|1-100
 CPU_MAX|25|int
 CHECK_GIT|30|int
-RESTART_SEC|5|int|seconds to hold button to cause restart
-REBOOT_SEC|10|int|second to hold to cause reboot
+RESTART_SEC|3|int|seconds to hold button to cause restart
+REBOOT_SEC|5|int|second to hold to cause reboot
 WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
