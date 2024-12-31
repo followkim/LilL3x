@@ -28,6 +28,7 @@ pip install PyAudio
 pip install pvporcupine
 pip install pvrecorder
 pip install word2number
+pip install trieregex
 pip install gpiozero
 pip install rpi.gpio
 pip install boto3
