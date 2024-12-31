@@ -13,18 +13,19 @@ from pathlib import Path
 import logging
 import threading
 import time
-from error_handling import RaiseError
 from time import sleep
 from datetime import datetime, timedelta
 from multiprocessing import Process
 import signal
-import sys
+from gpiozero import CPUTemperature
+
+# START LILL3X modules
+from error_handling import *
+InitLogFile()
 from globals import STATE
 import vosk_wake
 import wake_word
-from error_handling import *
 from config import cf
-from gpiozero import CPUTemperature
 
 from speech_tools import speech_generator
 from listen_tools import speech_listener
@@ -69,7 +70,7 @@ class lill3x:
     ww = 0
     def __init__(self):
 
-        InitLogFile()
+#        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo("Starting LilL3x")        
         # create the hardware objects
   
@@ -185,6 +186,15 @@ class lill3x:
         STATE.ChangeState('Hello')
         return True
 
+    def EvalCode(self):
+        LogDebug(f"EvalCode: {STATE.data}")
+        try:
+            eval(STATE.data)
+        except Exception as e: 
+            LogError(f"EvalCode failed.\n\tcmd:{STATE.data}\n\tErr: {str(e)}")
+        STATE.data = ""
+        STATE.RevertState()
+
     # Hello: Give a greeting to the user:
     def Hello(self):
         self.ears.clear()
@@ -290,8 +300,8 @@ class lill3x:
        self.eyes.Close()
        self.face.Close()
        cf.Close()
-       CloseLog()
        self.WaitThreads()
+       CloseLog()
 
     def Restart(self):
        self.Quit()
