@@ -16,7 +16,7 @@ import queue
 AUDIO_DEVICE = None
 
 q = queue.Queue()
-regex = "(ele(k|c)tr(a|ic)|alexis)"
+
 LogInfo("Importing Vosk Wake...")
 def callback(indata, frames, time, status):
     q.put(bytes(indata))
@@ -43,6 +43,7 @@ class vosk_wake:
 
     def listen(self):
         stream = 0
+        regex = cf.g('WAKE_REGEX').replace('`', '|')
         while (not STATE.CheckState('Quit')):
             if not STATE.IsInteractive() and MIC_STATE.TakeMic(False):
                 while not q.empty(): q.get()  # empty the q
@@ -92,9 +93,9 @@ class vosk_wake:
         success = 0
         tries = 0
         words = []
-        regex = cf.g('WAKE_REGEX')
+        regex = cf.g('WAKE_REGEX').replace('`', '|')
         while success < cf.g('WAKE_WORD_TRIES') and tries < cf.g('WAKE_WORD_TRIES')*2:
-            word = input("Word: ").lower()
+            word = input("Word: ").lower()  #TODO
             if word in ('quit', 'stop', 'goodbye', 'end'): break
             if not word in words: words.append(word)
             tre = TRE(*words)  # word(s) can be added upon instance
@@ -104,7 +105,7 @@ class vosk_wake:
             regexc = re.compile(f'\\b{regex}\\b')
             if regexc.match(word): success = success + 1
             else: tries = tries+1
-        if success >= cf.g('WAKE_WORD_TRIES'): cf.s('WAKE_REGEX', regex)
+        if success >= cf.g('WAKE_WORD_TRIES'): cf.s('WAKE_REGEX', regex).replace('|', '`')
         return (tries<cf.g('WAKE_WORD_TRIES')*2)
 
 if __name__ == '__main__':

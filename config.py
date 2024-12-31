@@ -20,11 +20,13 @@ def to_dt(val):
     return datetime.strptime(val, "%Y-%m-%d")
 
 type_f = {
+    'num' : float,
     'int' : to_int,
     'str' : to_str,
     'path' : to_str,
     'key' : to_str,
     'blob' :to_str,
+    'regex' :to_str,
     'dt' : to_dt
 }
 
@@ -118,22 +120,28 @@ class Config:
 
     def IsGitDirty(self):
         self.lastGit = datetime.now()
+        ret = -1
         try:
             repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
             repo.remotes.origin.fetch()
             remote_head = repo.remotes.origin.refs[repo.active_branch.name].commit
             local_head = repo.head.commit
             diff = local_head.diff(remote_head)
+            ret = len(diff)
             if diff:
-                LogInfo("Local branch out of date:")
+                LogInfo(f"Local branch out of date by {ret} files.")
                 for file in diff:
                     LogDebug(f"\t{file.change_type}: {file.a_path}")
                     if file.a_path[-3:] == ".py": STATE.ChangeState('Restart')
+                    if file.a_path[-4:] == ".ppm":
+                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
+                        STATE.data = "self.face.screen.LoadFrames()"   # will need to change to a list if I can think of other things that need reloading
                 orgin = repo.remote(name='origin')
                 orgin.pull()
-                return True
-        except Exception as e: LogError(f"Error pulling from GIT: {str(e)}")
-        return False
+                LogInfo(f"Updated {ret} files.")
+            else: LogInfo(f"Git up-to-date")
+        except Exception as e: LogError(f"Error pulling from Git: {str(e)}")
+        return ret
 
     def g(self, key, default=False):
         try:
@@ -160,7 +168,7 @@ class Config:
             return False
 
     def Close(self):
-        if (datetime.now()-self.lastGit).total_seconds() > 60: self.IsGitDirty()
+        self.IsGitDirty()
         self.should_quit = True
 
     def config_thread(self):
@@ -181,7 +189,7 @@ class Config:
 currentdir = f"{os.getenv('HOME')}/LilL3x/"
 sys.path.insert(0, currentdir)
 
-
+# we want to Load config here so that just including will load config
 cf = Config()
 LogInfo("Loaded Configuration.")
 
