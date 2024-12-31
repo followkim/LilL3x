@@ -120,28 +120,45 @@ class Config:
 
     def IsGitDirty(self):
         self.lastGit = datetime.now()
-        ret = -1
+        update_files = -1
         try:
             repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
+            diff = self.CheckGit(repo)              #will print log messages
+            update_files = len(diff)
+            if update_files>0:
+                LogInfo(f"Local branch {repo.active_branch.name} out of date by {update_files} file(s).")
+
+                # first see if we can pull the files
+                try: 
+                    orgin = repo.remote(name='origin')
+                    orgin.pull()
+                except Exception as e: LogError(f"Error pulling from Git: {str(e)}")
+                chk = self.CheckGit(repo) # see if we were successful
+                chk_files = len(chk)
+                update_files = update_files - chk_files
+                LogInfo(f"Updated {update_files} files.") ## double check the pull
+                if chk_files: LogWarn(f"Unable to update {chk_files} file(s).") ## TODO: determine which files
+
+                for file in diff:
+                    file_updated = not file in chk
+                    LogDebug(f"\t{file.change_type}: {file.a_path} updated={file_updated}")
+                    if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart') 
+                    if file.a_path[-4:] == ".ppm" and file_updated:
+                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
+                        STATE.data = "self.face.screen.LoadFrames()"   # will need to change to a list if I can think of other things that need reloading
+            else: LogInfo(f"Local branch {repo.active_branch.name} up-do-date.")
+        except Exception as e: LogError(f"Error Updating Git: {str(e)}")
+        return update_files
+
+    def CheckGit(self, repo):
+        try:
             repo.remotes.origin.fetch()
             remote_head = repo.remotes.origin.refs[repo.active_branch.name].commit
             local_head = repo.head.commit
             diff = local_head.diff(remote_head)
-            ret = len(diff)
-            if diff:
-                LogInfo(f"Local branch out of date by {ret} files.")
-                for file in diff:
-                    LogDebug(f"\t{file.change_type}: {file.a_path}")
-                    if file.a_path[-3:] == ".py": STATE.ChangeState('Restart')
-                    if file.a_path[-4:] == ".ppm":
-                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
-                        STATE.data = "self.face.screen.LoadFrames()"   # will need to change to a list if I can think of other things that need reloading
-                orgin = repo.remote(name='origin')
-                orgin.pull()
-                LogInfo(f"Updated {ret} files.")
-            else: LogInfo(f"Git up-to-date")
+            return diff
         except Exception as e: LogError(f"Error pulling from Git: {str(e)}")
-        return ret
+        return False
 
     def g(self, key, default=False):
         try:
@@ -149,20 +166,21 @@ class Config:
         except Exception as e:  #KeyError:
             LogWarn(f"Config.g: {key} not found, checking defaults...")
             if not self.LoadDefault(key):
-                LogWarn(f"Config.g: {key} not found in defaults!")
+                LogError(f"Config.g: {key} not found in defaults!")
                 return default
             else: return self.config[key]
 
     def s(self, key, val):
         try:
-            if re.search(r"^int", self.config_desc[key]) and isinstance(val, str):
+            if re.search(r"^(int|num|float)", self.config_desc[key]) and isinstance(val, str):
                 if val[0]=="-":  val = w2n.word_to_num(val[1:]) * -1 # w2n can't do negative numbers for some reason
                 else: val = w2n.word_to_num(val)                     # convert string from int
-            LogInfo(f"Setting {key} to {val}.")
+            LogInfo(f"Config.s: Setting {key} to {val}.")
             self.config[key] = val
             self.WriteConfig()  # save whenever dirty
-            SetErrorLevel(cf.g('DEBUG')) # error_handling doesn't have a Config object
+            if key=='DEBUG': SetErrorLevel(cf.g('DEBUG')) # error_handling doesn't have a Config object
             return val
+
         except Exception as e:
             LogWarn(f"Config.s ERR: {key} not found! ({str(e)})")
             return False
@@ -198,7 +216,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         print(cf.g(sys.argv[1]))
 
-    cf.IsGitDirty()
+    print(cf.IsGitDirty())
 
 #    from time import sleep
 #    print(f'LoadConfig returned {cf.LoadConfig()}')
@@ -216,3 +234,4 @@ if __name__ == '__main__':
 #    print(f'LoadConfig returned {cf.LoadConfig()}')
 #    print(str(cf.config))
 #    cf.config_thread()
+
