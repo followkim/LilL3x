@@ -12,6 +12,7 @@
 import sys
 import os
 from time import sleep
+import math
 
 from gpiozero import LED
 from apa102 import APA102
@@ -34,16 +35,18 @@ COLORS_RGB = {
     'off':(0, 0, 0),
 }
 
+MAX_BRIGHTNESS = APA102.MAX_BRIGHTNESS
+NUM_LEDS = 12
+
 class LEDS:
     driver = 0
     power = 0
     color = COLORS_RGB['white']
     should_quit = False
     is_idle = True
+
     def __init__(self):
-        self.driver = APA102(num_led=12)
-        self.power = LED(5)
-        self.power.on()
+        self.driver = APA102(num_led=NUM_LEDS)
 
     def SetColor(self, inColor):
         self.is_idle = False
@@ -51,32 +54,47 @@ class LEDS:
             self.color = COLORS_RGB[inColor]
         else:
             self.color = inColor
-        factor = round(0 + (cf.g('BRIGHTNESS')/10),2)
-        self.color = tuple(int(c * factor) for c in self.color)
+#        factor = round(0 + (cf.g('BRIGHTNESS')/10),2)
+#        self.color = tuple(int(c * factor) for c in self.color)
 
     def LEDThread(self):
+        LogInfo("LEDThread started")
         jr = 0
         ir = 0
         thisColor = self.color
-        LogInfo("LEDThread started")
+        thisBright = 0
         while not self.should_quit:
-            if thisColor != self.color: # don't change colors if not asked to change
+            brightness = cf.g('BRIGHTNESS') # set now as might be reset below
+            if self.is_idle:
+                if STATE.CheckState('SleepState'):
+                    if thisColor != COLORS_RGB['off']: self.color = COLORS_RGB['off']
+                    else: sleep(cf.g('SLEEP_SLEEP'))
+                else:
+                    if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
+                        (ir, jr, rainbow_color) = rainbow_cycle(ir, jr)
+                        self.color = rainbow_color
+                    elif STATE.CheckState('Surveil'):
+                        brightness, ir = bounce(ir)
+                        self.color = COLORS_RGB['red']
+
+            if thisColor != self.color or thisBright != brightness: # don't change colors if not asked to change
                 thisColor = self.color
-                for i in range(12):
-                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2])
+                thisBright = brightness
+                for i in range(NUM_LEDS):
+                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], brightness)
                 try:
                     self.driver.show()
                 except Exception as e:
                     self.off()
-            if self.is_idle:
-                if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
-                    (ir, jr, self.color) = rainbow_cycle(ir, jr)
-                    sleep(cf.g('LIGHT_SPEED')/100) # default should be 5
-                elif STATE.CheckState('SleepState') and thisColor != COLORS_RGB['off']: self.color = COLORS_RGB['off']
 
-        # set to black and quit
-        for i in range(12): self.driver.set_pixel(i, 0, 0, 0)
-        self.driver.show()
+
+
+            sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+        # exit: set to black and quit
+#        for i in range(12): self.driver.set_pixel(i, 0, 0, 0)
+#        self.driver.show()
+        self.driver.clear_strip()
+        self.driver.cleanup()
         LogInfo("LEDThread ended")
 
     def blue(self):
@@ -112,8 +130,6 @@ class LEDS:
  
     def Close(self):
         self.should_quit = True
-        sleep(0.5)
-        self.power.off()
 
 
 
@@ -121,10 +137,10 @@ class LEDS:
 def rainbow_cycle(i, j):
     color = wheel((i+j) & 255)
     i = i + 1
-    if i == 256:
+    if i >= 256:
         i = 0
         j = j + 1
-        if j == 256: j = 0
+        if j >= 256: j = 0
     return (i, j, color)
 #        for j in range(256):
 #            for i in range(256):
@@ -144,3 +160,9 @@ def wheel(pos):
     else:
         pos -= 170
         return (0, pos * 3, 255 - pos * 3)
+
+def bounce(pos, min_val=0, max_val=100, step=5):
+    """Bounces a number between two values."""
+    value = int(max_val * abs(math.sin(pos * 0.025)))
+    if pos > 10000: pos = 0
+    return (value, pos+1)
