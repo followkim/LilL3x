@@ -68,7 +68,7 @@ if __name__ == '__main__':
     global STATE
 
     def dummy():
-        return
+        pass
     face = Face()
     face.SetViewControl(dummy, dummy)
     STATE.ChangeState('Active')
