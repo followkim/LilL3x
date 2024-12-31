@@ -22,6 +22,7 @@ import pvporcupine
 from pvrecorder import PvRecorder
 from config import cf
 
+LogInfo("Importing Porcupine Wake...")
 class wake_word:
     is_speaking = False
     should_quit = False

@@ -5,8 +5,10 @@ from apa102 import APA102
 from animate import Screen
 from rasp_leds import LEDS
 from config import cf
+from error_handling import *
 
 sys.path.insert(0, '..')
+LogInfo("Importing Face...")
 
 class Face:
     screen = 0
@@ -71,16 +73,29 @@ if __name__ == '__main__':
         pass
     face = Face()
     face.SetViewControl(dummy, dummy)
-    STATE.ChangeState('Active')
+    STATE.ChangeState('ActiveIdle')
+    
+    '''
+    # state test
+    face.talking()
+    sleep(2)
 
-    # brightness test
-#    face.listening()
-#    b = 1
-#    sleep(3)
-#    while b != 0:
-#        b = input("Brightness: 1-10: ")
+    face.listening()
+    sleep(2)
+
+    face.thinking()
+    sleep(2)
+    '''
+    face.idle()
+    b = 0
+#    while b >= 0:
+#        b = int(input("Brightness: 0-100: "))
 #        cf.s('BRIGHTNESS', b)
-#        face.listening() # reset the color
+
+#    b = 0
+#    while b >= 0:
+#        b = int(input("Speed: 1-10: "))
+#        cf.s('LIGHT_SPEED', b)
 
 # showview test
 #    face.looking()
@@ -89,6 +104,7 @@ if __name__ == '__main__':
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
     face.idle()
+    STATE.ChangeState('Surveil')
     sleep(30)
     '''
     face.looking()
