@@ -89,8 +89,16 @@ class AI:
             STATE.ChangeState('Restart')
             return "see you soon"
 
-        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)$", txt.lower()):
-            ret = re.compile("^(.*)(watch the house|(your|you're) in charge|hold down the fort)$").match(txt).groups()
+        if re.search(r"^update( yourself| your code| git)?$", txt.lower()):
+            retStr = "I had an error trying to update.  Check my logs."
+            f = cf.IsGitDirty()
+            if f>0:
+                retStr = f"I updated {f} files.  "
+                if STATE.ShouldQuit(): retStr = retStr + "It looks like I need a restart.  See you soon!"
+            elif f==0: retStr = "Looks like I am all up to date."
+            return retStr
+
+        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", txt.lower()):
             STATE.ChangeState('Surveil')
             return False # allow child class to general own input
 
@@ -103,22 +111,16 @@ class AI:
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
 
-#        if re.search(r"^show (me|us) what you see$", txt.lower()):
-#            self.LookForUser(10)
-#            return ""
+        if re.search(r"^show (me|us) what you see$", txt.lower()):
+            self.LookForUser(10)
+            return "Here is what I see"
 
+        # TODO: parse out picture description
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
-                re.search(r"^show (me|us) what you see$", txt.lower()) or 
                 re.search(r"^(hey )?look at (this|that)$", txt.lower())):
-            self.face.looking()
-            sleep(cf.g('CAMERA_PICT_SEC')) # show the viewport
-            path = self.eyes.TakePicture()
-#            pict_path = self.eyes.TakePicture()
-#            pict = open(pict_path,'rb')  # for email
+            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'))
             if path:
                 url  = self.eyes.UploadPicture(path)
-#                self.say("What is this a picture of?")
-#                desc = self.listen()
                 desc = f"This is a picture of me, {cf.g('USERNAME')}.  Describe and comment."
                 return f'#{desc}#{path}#{url}'
             else:
@@ -188,6 +190,7 @@ class AI:
             else:
                 return f"{key} is set to {val}."
 
+        #TODO cuases error, needs fix
         if re.search(r"^set (the |your )?(.*) to (.*)$", txt.lower()):
             (x, key, val) = re.compile("^set (the |your )?(.*) to (.*)$").match(txt).groups()
             key = key.upper().replace(' ', '_') 
@@ -248,13 +251,31 @@ class AI:
         return
 
     def LookForUser(self, duration=0):
-        if duration>0: self.face.looking()
-        ret = self.eyes.CanISeeYou()
+        if duration:
+            self.face.looking()
+            if self.WaitWIS(duration): sleep(duration)  # allow the user to admire the view
+            self.face.off()
+        return self.eyes.CanISeeYou()
+
+    def TakePicture(self, duration=0):
+
+        # wait for WIS file, then show the view to get teh user ready
+        if duration: 
+            self.face.looking()
+            if self.WaitWIS(duration): sleep(duration)
+
+        path = self.eyes.TakePicture()  # will shutter sound
+        if path and duration:
+            #show the picture TODO: this just shows the view
+            sleep(duration)
+        if duration: self.face.off()
+        return path
+
+    def WaitWIS(self, duration):
+        # wait for the view to be shown
         end = datetime.now() + timedelta(seconds=duration)
-        while end > datetime.now(): # and not ret:
-            ret = self.eyes.CanISeeYou()
-        self.face.off()
-        return ret
+        while not os.path.exists(cf.g('WIS_FILE')) and end>datetime.now(): sleep(0.1)
+        return os.path.exists(cf.g('WIS_FILE'))
 
     def Think(self):
 #        self.face.thinking()

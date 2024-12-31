@@ -40,7 +40,7 @@ function_tools =  [
   {
     "type":"function",
     "function": {
-        "name": "TakePicture",
+        "name": "TakePictureToolCall",
         "description": "Take a picture with the attached camera.  Call when the user indicates they want you to look at something or see where they are.",
         "parameters": {
             "type": "object",
@@ -190,6 +190,19 @@ class AI_openAI(AI):
 
         return (user_input, max_tokens, ret_tools)
 
+    def TakePictureToolCall(self, context):
+        LogInfo("Calling Taking Picture from ChatGPT")
+        file = self.TakePicture()
+        url = self.eyes.UploadPicture(file)
+        LogInfo(f"URL: {url}")
+        try:
+            return f"#{eval(str(context['picture_context']))}#{file}#{url}"
+        except Exception as e:
+            LogWarn("eval() Didn't work: " + str(e))
+            LogDebug(str(context))
+        self.face.off()
+        return f"#{context}#{file}#{url}"
+
     #ON Startup
     def Hello(self):
         return self.respond(f"!The user's name is {cf.g('USERNAMEP')}, say hello.")
@@ -221,19 +234,6 @@ class AI_openAI(AI):
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
         return "!"+AI.SetEvent(self, event)
 
-    def TakePicture(self, context):
-        LogInfo("Calling Taking Picture from ChatGPT")
-        self.face.looking()
-        file = self.eyes.TakePicture()
-        url = self.eyes.UploadPicture(file)
-        LogInfo(f"URL: {url}")
-        try:
-            return f"#{eval(str(context['picture_context']))}#{file}#{url}"
-        except Exception as e:
-            LogWarn("eval() Didn't work: " + str(e))
-        self.face.off()
-        return f"#{context}#{file}#{url}"
- 
     def Intruder(self):
         AI.Intruder(self)
         return self.respond("!There is an intruder in the house!  Threaten them and order them to leave.")
