@@ -258,38 +258,6 @@ except sr.RequestError as e:
 '''
 
 
-class MicStatus:
-    def __init__(self):
-        self.mic_free = True
-        self.request_mic = False
-
-    def TakeMic(self, timeout=3):
-        self.request_mic = True
-        ud = datetime.now() + timedelta(seconds=timeout)
-        while not self.mic_free:
-            self.request_mic = True    ## ask WW for the mic 
-            if datetime.now() > ud:
-                LogError("Unable to get mic (timeout)")
-                return False
-            continue
-        self.mic_free = False
-        self.request_mic = False
-        return True
-
-    def ReturnMic(self):
-        self.request_mic = False
-        self.mic_free = True
-        return True
-
-    def MicRequested(self):
-        return self.request_mic
-
-    def MicFree(self):
-        return self.mic_free
-    
-    def CanUse(self):
-        return (not self.request_mic and self.mic_free)
-        return True
 if __name__ == '__main__':
     pygame.mixer.init()
     sg = speech_listener()

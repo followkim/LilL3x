@@ -8,9 +8,10 @@ MIC_STATUS = 0
 class State:
     current = ''
     last_dt = ''
+    last_state = ''
     data = ''
-    cx=-1
-    cy=-1
+    cx=0
+    cy=0
 
     def __init__(self):
         self.current = 'Hello'
@@ -29,10 +30,14 @@ class State:
 
         elif not self.ShouldQuit():          # can't change out of quit state
             LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
+            self.last_state = self.current
             self.current = new_state
             self.last_dt = datetime.now()
         else: LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
         return self.current
+
+    def RevertState(self):
+        return self.ChangeState(self.last_state)
 
     def StateDuration(self):
         return (datetime.now()-self.last_dt).seconds
@@ -95,3 +100,5 @@ if __name__ == '__main__':
 
     s = State()
     s.ChangeState('Active')
+    s.ChangeState('ActiveIdle')
+    print(s.RevertState())
