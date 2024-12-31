@@ -47,6 +47,8 @@ LISTEN_ENGINE|google|str|desc
 WAKEWORD_PATH|./wake/|path|
 PICOVOICE_KEY||str|
 WAKE_MP3|./media/wake.mp3|path|
+WAKE_REGEX||regex
+WAKE_WORD_TRIES|0|int
 SPEECH_FILE|temp.mp3|str
 VOLUME|10|int
 BRIGHTNESS|10|int|description
