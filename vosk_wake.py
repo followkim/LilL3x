@@ -1,4 +1,5 @@
 import re
+from trieregex import TrieRegEx as TRE
 import warnings
 import sounddevice as sd
 from datetime import datetime, timedelta
@@ -86,6 +87,25 @@ class vosk_wake:
         wp = self.wake_phrase
         self.wake_phrase = ""
         return wp
+
+    def TrainWakeWord(self):
+        success = 0
+        tries = 0
+        words = []
+        regex = cf.g('WAKE_REGEX')
+        while success < cf.g('WAKE_WORD_TRIES') and tries < cf.g('WAKE_WORD_TRIES')*2:
+            word = input("Word: ").lower()
+            if word in ('quit', 'stop', 'goodbye', 'end'): break
+            if not word in words: words.append(word)
+            tre = TRE(*words)  # word(s) can be added upon instance
+            regex = tre.regex()
+            LogDebug(f"regex: {regex}")
+
+            regexc = re.compile(f'\\b{regex}\\b')
+            if regexc.match(word): success = success + 1
+            else: tries = tries+1
+        if success >= cf.g('WAKE_WORD_TRIES'): cf.s('WAKE_REGEX', regex)
+        return (tries<cf.g('WAKE_WORD_TRIES')*2)
 
 if __name__ == '__main__':
     pygame.mixer.init()
