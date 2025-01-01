@@ -21,7 +21,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Configure El3ktra</title>
+		<title>Configure<?php echo gethostname() ?></title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 	</head>
@@ -33,6 +33,7 @@
 		<form action="" method="POST">
 			<table id=criteria>
 
+	<b><h1>Configure <?php echo gethostname() ?></b></h1>
 <?php
 	PrintConfig();
 ?>
