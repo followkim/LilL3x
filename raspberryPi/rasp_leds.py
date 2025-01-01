@@ -24,15 +24,15 @@ from config import cf
 from error_handling import *
 
 COLORS_RGB = {
-    'blue':(0, 0, 255),
-    'green':(0, 255, 0),
-    'orange':(255, 128, 0),
-    'pink':(255, 51, 153),
-    'purple':(128, 0, 128),
-    'red':(255, 0, 0),
-    'white':(255, 255, 255),
-    'yellow':(255, 255, 51),
-    'off':(0, 0, 0),
+    'blue':[0, 0, 255, 100],
+    'green':[0, 255, 0, 100],
+    'orange':[255, 128, 0, 100],
+    'pink':[255, 51, 153, 100],
+    'purple':[128, 0, 128, 100],
+    'red':[255, 0, 0, 100],
+    'white':[255, 255, 255, 100],
+    'yellow':[255, 255, 51, 100],
+    'off':[0, 0, 0, 0],
 }
 
 MAX_BRIGHTNESS = APA102.MAX_BRIGHTNESS
@@ -42,6 +42,7 @@ class LEDS:
     driver = 0
     power = 0
     color = COLORS_RGB['white']
+    color[3] = cf.g('BRIGHTNESS') # se we aren't asking driver to set constantly
     should_quit = False
     is_idle = True
 
@@ -51,37 +52,40 @@ class LEDS:
     def SetColor(self, inColor):
         self.is_idle = False
         if isinstance(inColor, str):
-            self.color = COLORS_RGB[inColor]
+            self.color = COLORS_RGB[inColor].copy()
         else:
-            self.color = inColor
-#        factor = round(0 + (cf.g('BRIGHTNESS')/10),2)
-#        self.color = tuple(int(c * factor) for c in self.color)
+            self.color = inColor.copy()
 
     def LEDThread(self):
         LogInfo("LEDThread started")
         jr = 0
         ir = 0
-        thisColor = self.color
-        thisBright = 0
+        thisColor = self.color.copy()          # keep track of the current color/brightness
+
+        brightDelta = 1
         while not self.should_quit:
-            brightness = cf.g('BRIGHTNESS') # set now as might be reset below
+            self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
             if self.is_idle:
-                if STATE.CheckState('SleepState'):
-                    if thisColor != COLORS_RGB['off']: self.color = COLORS_RGB['off']
-                    else: sleep(cf.g('SLEEP_SLEEP'))
+                if STATE.CheckState('SleepState'):                                      # dim the lights
+                    brightDelta = -1
+                    print(f"thisColor[3]: {thisColor[3]}")
+                    if thisColor[3] > 0:
+                        (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
+                        self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
+                    elif thisColor[:3] != COLORS_RGB['off'][:3]: self.color = COLORS_RGB['off'].copy()
+                    else:
+                        sleep(cf.g('SLEEP_SLEEP'))
+                elif STATE.CheckState('Surveil'):
+                    self.color = COLORS_RGB['red'].copy()
+                    (self.color[3], brightDelta) = bounce(thisColor[3], cf.g('BRIGHT_SPEED')*2, brightDelta)
                 else:
                     if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
-                        (ir, jr, rainbow_color) = rainbow_cycle(ir, jr)
-                        self.color = rainbow_color
-                    elif STATE.CheckState('Surveil'):
-                        brightness, ir = bounce(ir)
-                        self.color = COLORS_RGB['red']
+                        (ir, jr, self.color) = rainbow_cycle(ir, jr)
 
-            if thisColor != self.color or thisBright != brightness: # don't change colors if not asked to change
-                thisColor = self.color
-                thisBright = brightness
+            if thisColor != self.color:            # don't change colors if not asked to change
+                thisColor = self.color.copy()
                 for i in range(NUM_LEDS):
-                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], brightness)
+                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], self.color[3])
                 try:
                     self.driver.show()
                 except Exception as e:
@@ -131,9 +135,6 @@ class LEDS:
     def Close(self):
         self.should_quit = True
 
-
-
-
 def rainbow_cycle(i, j):
     color = wheel((i+j) & 255)
     i = i + 1
@@ -142,27 +143,25 @@ def rainbow_cycle(i, j):
         j = j + 1
         if j >= 256: j = 0
     return (i, j, color)
-#        for j in range(256):
-#            for i in range(256):
-#                color = wheel((i+j) & 255)
-#                # Use the color variable as needed
-#                return color
-
-#rainbow_cycle(0.01) # Adjust the wait time as needed
 
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
     if pos < 85:
-        return (pos * 3, 255 - pos * 3, 0)
+        return [pos * 3, 255 - pos * 3, 0, 100]
     elif pos < 170:
         pos -= 85
-        return (255 - pos * 3, 0, pos * 3)
+        return [255 - pos * 3, 0, pos * 3, 100]
     else:
         pos -= 170
-        return (0, pos * 3, 255 - pos * 3)
+        return [0, pos * 3, 255 - pos * 3, 100]
 
-def bounce(pos, min_val=0, max_val=100, step=5):
+def bounce(cur, step=1, delta=1, min_val=1, max_val=100):
     """Bounces a number between two values."""
-    value = int(max_val * abs(math.sin(pos * 0.025)))
-    if pos > 10000: pos = 0
-    return (value, pos+1)
+    cur = cur + (step * delta)
+    if cur > max_val:
+        cur = max_val
+        delta = delta*-1
+    elif cur < min_val:
+        cur = min_val
+        delta = delta*-1
+    return (cur, delta)

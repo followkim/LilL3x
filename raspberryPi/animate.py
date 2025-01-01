@@ -48,9 +48,9 @@ class Screen:
         # to the right size for your display!
         self.disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 
-        # Clear display.
-        self.disp.fill(0)
-        self.disp.show()
+#        # Clear display. -- not needed - we are showing a welcome pict
+#        self.disp.fill(0)
+#        self.disp.show()
 
         # laod the images
         self.blackPict = image = Image.new("1", (128, 64))
