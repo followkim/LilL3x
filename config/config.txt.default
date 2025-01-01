@@ -1,9 +1,13 @@
 USERNAME|Friend|str|description
 USERNAMEP|Friend|str|description
 USEREMAIL||str|desc
-AINAME|El3ktra|str|Name of the AI
-AINAMEP|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
 AI_ENGINE|El3ktra|str|description
+AINAME|El3ktra|str|Name of the AI
+AINAMEP|electra|str|description
+
+WAKE_WORD|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
+WAKE_WORD_ENGINE|pico|str
+WAKE_WORD_REGEX||regex
 LAST_INTERACTION|2024-8-8|dt|
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
