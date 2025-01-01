@@ -5,7 +5,7 @@ AINAME|El3ktra|str|Name of the AI
 AINAMEP|electra|str|description
 AI_ENGINE|El3ktra|str|description
 
-WAKE_WORD|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
+WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path|description
 WAKE_WORD_ENGINE|pico|str
 WAKE_WORD_REGEX||regex
 LAST_INTERACTION|2024-8-8|dt|
