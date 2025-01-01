@@ -1,9 +1,9 @@
 USERNAME|Friend|str|description
 USERNAMEP|Friend|str|description
 USEREMAIL||str|desc
-AI_ENGINE|El3ktra|str|description
 AINAME|El3ktra|str|Name of the AI
 AINAMEP|electra|str|description
+AI_ENGINE|El3ktra|str|description
 
 WAKE_WORD|/home/el3ktra/LilL3x/wake/elektra_en_raspberry-pi_v3_0_0.ppn|path|description
 WAKE_WORD_ENGINE|pico|str

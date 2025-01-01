@@ -88,7 +88,7 @@
 		else echo "</select></td></tr>";
 	}
 
-	function Print_LISTEN_ENGINE($label, $name, $value, $desc="") {
+	function Print_INTERPRET_ENGINE($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<select name=\"".$name."\" value=".$value.">";
@@ -146,7 +146,7 @@
 		else echo "</select></td></tr>";
 	}
 
-	function Print_AINAMEP($label, $name, $value, $desc="") {
+	function Print_WAKE_WORD($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<select name=\"".$name."\" value=".$value.">\n";
@@ -155,10 +155,26 @@
 				$wake_word = ucwords($matches[1][0]);
 				$filepath = '/home/el3ktra/LilL3x/wake/'.$file;
 				echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
-	} 
+			}
 		}
   		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
+	}
+	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
+		echo "<td id='rightHand' >\n";
+		echo "<select name=\"".$name."\" value=".$value.">\n";
+		foreach (scandir('/home/el3ktra/LilL3x/\*.wake.py') as $file) {
+			if (preg_match_all("/^([a-z ]*)_wake.py/", $file, $matches)) {
+				$wake_word_eng = ucwords($matches[1][0]);
+				echo "<option value=\"" . $wake_word_eng  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word_eng . "</option>";
+			} 
+		}
+  		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+        function Print_HEADER($label) {
+		echo "<tr><td colspan='2'><h2><center>".$label."</center></h2></td></tr>";
 	}
 
 	function PrintConfig($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
@@ -167,14 +183,18 @@
 		while(!feof($myfile)) {
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
+                        $val = array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][0]:'';
+                        $type= array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][1]:'str';
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-                               if (in_array($atts[0], array("AI_ENGINE", "AINAMEP", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
-                                        eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$value_dict[\$atts[0]][0], \$atts[2]);");
+                               if (in_array($atts[0], array("AI_ENGINE", "WAKE_WORD", "WAKE_WORD_ENGINE", "INTERPRET_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+					eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$val, \$atts[2]);");
+				} elseif ($atts[0]=="HEADER") {
+					Print_HEADER($atts[1]);
 				} else {
-					if ($value_dict[$atts[0]][1] == "blob") {
+					if ($type == "blob") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
 						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$value_dict[$atts[0]][0].'</textarea></td></tr>';
-					} elseif ($value_dict[$atts[0]][1] == "int") {
+					} elseif ($type == "int") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
 						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
 					} else {
@@ -194,7 +214,7 @@
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-				if (in_array($atts[0], array("AI_ENGINE", "AINAMEP", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+				if (in_array($atts[0], array("AI_ENGINE", "WAKE_WORD", "WAKE_WORD_ENGINE", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
 					eval("Print_".$atts[0]."(\$atts[0], \$atts[0], \$atts[1]);");
 				} else {
 					if ($atts[2] == "blob") {
