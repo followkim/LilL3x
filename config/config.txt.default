@@ -49,7 +49,8 @@ FLICKR_API||str|
 FLICKR_SECRET||str|
 
 # listening
-LISTEN_ENGINE|google|str|no other tested options
+LISTEN_ENGINE||str|
+INTERPRET_ENGINE|google|str|no other tested options
 MIC_TO|5|int
 MIC_LIMIT|1|int
 AMBIENT|1|int|
