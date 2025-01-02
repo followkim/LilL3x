@@ -53,7 +53,7 @@ class Config:
 #        currListen = self.config.get('LISTEN_ENGINE','')
         currSpeech = self.config.get('SPEECH_ENGINE','')
 #        currWWe = self.config.get('WAKE_WORD_ENGINE','')
-        currWW = self.config.get('AINAMEP','')
+        currWW = self.config.get('WAKE_WORD','')
 
         # if there isn't a config file, create one from the default
         if not os.path.isfile(self.configFile) or  os.path.getsize(self.configFile) == 0:
@@ -153,7 +153,8 @@ class Config:
 
                 for file in diff:
                     file_updated = not file in chk
-                    LogDebug(f"\t{file.change_type}: {file.a_path} updated={file_updated}")
+                    if file_updated: LogInfo(f"\t{file.change_type}: {file.a_path} updated={file_updated}")
+                    else: LogError(f"File not updated{file.change_type}: {file.a_path} updated={file_updated}")
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart') 
                     if file.a_path[-4:] == ".ppm" and file_updated:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
