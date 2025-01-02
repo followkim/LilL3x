@@ -59,6 +59,7 @@ def ShowThreads():
     numThreads = len(threads)
     LogInfo(f"{numThreads} total threads:")
     for t in threads: Log(f"\t\t{t.name}")
+    return numThreads
 
 def SetErrorLevel(level):
     global ERROR_LEVEL
