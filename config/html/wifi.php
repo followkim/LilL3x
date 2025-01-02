@@ -5,7 +5,7 @@
 	ini_set('display_errors', true); 
 
 	
-	include '/home/el3ktra/LilL3x/config/html/includes/utils.php'; 	
+//	include '/home/el3ktra/LilL3x/config/html/includes/utils.php'; 	
 	// is this a POST if so, grab the POST varibales which are used to populate the search parameters.
 	$isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
  	
