@@ -287,11 +287,17 @@ class lill3x:
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
     def Surveil(self):
         if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving():
-            self.ai.say(self.ai.Intruder())
-            user_input = self.ai.listen()
+            try:
+                self.ai.say(self.ai.Intruder())
+            except Exception as e: LogError(f"Surveil: exceoption on say()) {str(e)}")
+            try:
+                user_input = self.ai.listen()
+            except Exception as e: LogError(f"Surveil: exception on listen()) {str(e)}")
             if user_input:
-                self.ai.say(self.ai.respond(user_input))
-                STATE.ChangeState('Active')
+                try:
+                    STATE.ChangeState('Active')
+                    self.ai.say(self.ai.respond(user_input))
+                except Exception as e: LogError(f"Surveil: exception on respond() {str(e)}")
             else:
                 self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_WAIT minuntes
         else:
@@ -352,4 +358,3 @@ print(f"LilL3x started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()
 l3x.Loop()
 print(f"LilL3x exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
-

@@ -83,7 +83,7 @@ class AI:
 
         if re.search(r"^(quit|exit|goodbye)$", txt.lower()): 
             STATE.ChangeState('Quit')
-            return "goodbye"
+            return False
 
         if re.search(r"^(reboot|restart|reset)$", txt.lower()): 
             STATE.ChangeState('Restart')
@@ -98,9 +98,13 @@ class AI:
             elif f==0: retStr = "Looks like I am all up to date."
             return retStr
 
+
         if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", txt.lower()):
             STATE.ChangeState('Surveil')
-            return False # allow child class to general own input
+            return f"!{cf.g('USERNAME')} is leaving, and just asked you to watch the house." # allow child class to general own input
+
+        if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", txt.lower()):
+            return f"I have {ShowThreads()} running, check the logs for a list."
 
         if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", txt.lower()):
             return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
@@ -114,6 +118,10 @@ class AI:
         if re.search(r"^show (me|us) what you see$", txt.lower()):
             self.LookForUser(10)
             return "Here is what I see"
+
+#        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", txt.lower()):
+#            g = re.compile("^turn( off| down)? the (light|led)(s?)( down| off)?").match(txt.lower())
+#            return "Here is what I see"
 
         # TODO: parse out picture description
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
@@ -142,8 +150,8 @@ class AI:
                 STATE.data = "El3ktra"
             else:
                 STATE.data = newState
-            return "Goodbye"  # have the AI say goodbye
-           
+            return f"Sure, I'll switch to {newState}"  # have the AI say goodbye
+
 #        if re.search(r"^(set|switch|change) (your |the )?(model)$", txt):
 #            self.say("Please type in the new model to use:")
 #            self.model = input()
@@ -172,7 +180,6 @@ class AI:
                 return (f"Switched speech engine to {new_engine}")
             else:
                 return (f"Couldn't switch to {new_engine}")
-
 
 
         if re.search(r"^((re)?load|import) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
@@ -246,21 +253,21 @@ class AI:
 
     def Intruder(self):
         url = self.eyes.SendPicture()
-        LogConvo(f"INTRUDER!!! {url}")
+        LogConvo(f"{cf.g('AINAME')}: INTRUDER!!! {url}")
         #email URL
         return
 
     def LookForUser(self, duration=0):
         if duration:
             self.face.looking()
-            if self.WaitWIS(duration): sleep(duration)  # allow the user to admire the view
+            if self.WaitWIS(duration): sleep(duration)  # WaitWIS blocks until wis fuke and sleep allows the user to admire the view
             self.face.off()
         return self.eyes.CanISeeYou()
 
     def TakePicture(self, duration=0):
 
         # wait for WIS file, then show the view to get teh user ready
-        if duration: 
+        if duration>0:
             self.face.looking()
             if self.WaitWIS(duration): sleep(duration)
 
