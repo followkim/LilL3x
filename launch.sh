@@ -17,6 +17,6 @@ echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
 
 echo "Starting LilL3x..."
-/home/el3ktra/LilL3x/bin/python lillex.py > lillog.bk.txt
+/home/el3ktra/LilL3x/bin/python lillex.py > log/lillex_launch.txt
 
 echo "Done."
