@@ -149,7 +149,7 @@ MORNING_STR|The user just returned just returned after {}, greet them.|str
 GREET_STR|The user just woke up for the day, say good morning.|str
 MOOD_STR|The user looked {}, ask about that.|str
 CONVO_STR|Ask the user how thier {} is going.|str
-SURVEIL_STR|There is an intruder in the house!  Threaten them and order them to leave.|str
+SURVEIL_STR|I am leaving, so be sure to watch the house!|str
 INTRUDER_STR|There is an intruder in the house!  Threaten them and order them to leave.|str
 HISTORY|Summarize your history with {}.  Focus on key events and topics.  Return the answer in a single short paragraph of 500 words or less to be used later as your memory log|str
 CAMERA_STR|This is a picture of me, {}.  Describe and comment.|str
