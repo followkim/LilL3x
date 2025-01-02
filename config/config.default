@@ -141,3 +141,15 @@ CHECK_GIT|30|int
 RESTART_SEC|3|int|seconds to hold button to cause restart
 REBOOT_SEC|5|int|second to hold to cause reboot
 WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
+
+# AI Strings
+HELLO_STR|The user's name is {}, say hello.|str
+WAKE_STR|Say hello.|str
+MORNING_STR|The user just returned just returned after {}, greet them.|str
+GREET_STR|The user just woke up for the day, say good morning.|str
+MOOD_STR|The user looked {}, ask about that.|str
+CONVO_STR|Ask the user how thier {} is going.|str
+SURVEIL_STR|There is an intruder in the house!  Threaten them and order them to leave.|str
+INTRUDER_STR|There is an intruder in the house!  Threaten them and order them to leave.|str
+HISTORY|Summarize your history with {}.  Focus on key events and topics.  Return the answer in a single short paragraph of 500 words or less to be used later as your memory log|str
+CAMERA_STR|This is a picture of me, {}.  Describe and comment.|str
