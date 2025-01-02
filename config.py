@@ -27,6 +27,7 @@ type_f = {
     'path' : to_str,
     'key' : to_str,
     'blob' :to_str,
+    'bool' : int,
     'regex' :to_str,
     'dt' : to_dt
 }
@@ -181,7 +182,9 @@ class Config:
             if not self.LoadDefault(key):
                 LogError(f"Config.g: {key} not found in defaults!")
                 return default
-            else: return self.config[key]
+            else:
+                self.WriteConfig()
+                return self.config[key]
 
     def c(self, key, alt):
         tryK = self.g(key)
@@ -192,7 +195,7 @@ class Config:
 
     def s(self, key, val):
         try:
-            if re.search(r"^(int|num|float)", self.config_desc[key]) and isinstance(val, str):
+            if re.search(r"^(int|num|float|bool)", self.config_desc[key]) and isinstance(val, str):
                 if val[0]=="-":  val = w2n.word_to_num(val[1:]) * -1 # w2n can't do negative numbers for some reason
                 else: val = w2n.word_to_num(val)                     # convert string from int
             LogInfo(f"Config.s: Setting {key} to {val}.")

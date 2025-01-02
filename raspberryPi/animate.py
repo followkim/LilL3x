@@ -157,9 +157,9 @@ class Screen:
 
                     #draw text objects
                     temp = round(CPUTemperature().temperature)
-                    show_temp = temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('DEBUG')>=4
-                    if not (STATE.CheckState('Active') or self._message) or cf.g('DEBUG')>=4:
-                        time = datetime.now().strftime("%-I:%M%p")       
+                    show_temp = temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('SCREEN_DEBUG')
+                    if not (STATE.CheckState('Active') or self._message) or cf.g('SCREEN_DEBUG'):
+                        time = datetime.now().strftime("%-I:%M%p")
                         bb = draw.textbbox((0,0), time, font=font)
                         if not show_temp:
                             if   movX<0 and movY<0: clock = (width-bb[2] , height-bb[3]) #lower right
@@ -177,7 +177,7 @@ class Screen:
                         draw.text((0,0), f"{temp}C", font=font, fill=255)
 
                     # debug messages: CPU and fps
-                    if not self._message and cf.g('DEBUG')>=4:  # show debug messages
+                    if not self._message and cf.g('SCREEN_DEBUG'):  # show debug messages
                         CPU = f"{psutil.cpu_percent()}%"
                         bb = draw.textbbox((0,0), CPU, font=font)
                         draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)

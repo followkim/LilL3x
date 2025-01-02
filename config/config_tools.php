@@ -33,7 +33,11 @@
 			$line = fgets($myfile);
 			$att = explode('|', $line);
 	                if (count($att) > 2 ) {
-                                $val =  array_key_exists($att[0], $post) ? $post[$att[0]] : $att[1];
+                                if ($att[2] == 'bool') {
+					$val =  array_key_exists($att[0], $post) ? "1" : "0";
+				} else {
+	                                $val =  array_key_exists($att[0], $post) ? $post[$att[0]] : $att[1];
+				}
      				$config_new = $config_new . $att[0] . '|' . preg_replace("~[\r]~", "", trim($val));
 				for($i=2; $i < count($att); $i++) {
 					$config_new = $config_new . '|' . $att[$i] ;
@@ -50,7 +54,6 @@
 
 
         function LoadConfig($configFilePath=CONFIG_FILE) {
-	        // laod the data dictionary
 	        $value_dict = [];
 		$configf = fopen($configFilePath, "r") or die("Unable to open file!");
 		while(!feof($configf)) {
@@ -204,6 +207,8 @@
 			$atts = explode('|', $line);
                         $val = array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][0]:'';
                         $type= array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][1]:'str';
+
+
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
                                if (in_array($atts[0], $func_list)) {
 					eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$val, \$atts[2]);");
@@ -212,13 +217,16 @@
 				} else {
 					if ($type == "blob") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$value_dict[$atts[0]][0].'</textarea></td></tr>';
+						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$val.'</textarea></td></tr>';
 					} elseif ($type == "int") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
+						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$val.'" ></td></tr>';
+					} elseif ($type == "bool") {
+						echo "<tr><td id=\"leftHand\"><b>" . $atts[1] . "</b></td>";
+						echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$atts[0].'" '.($val=="1"?'checked':'').'></td></tr>';
 					} else {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$value_dict[$atts[0]][0].'" ></td></tr>';
+						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$val.'" ></td></tr>';
 					}
 					echo "<tr><td></td><td><i>".$atts[2]."</i></td></tr>";
 				}
@@ -240,8 +248,11 @@
 					if ($atts[2] == "blob") {
 						echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
 						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$atts[1].'</textarea></td></tr>';
-					} elseif ($atts[2] == "int") { 
+					} elseif ($atts[2] == "int") {
 						echo trd_labelData($atts[0], $atts[1], $atts[0], 0, "number");
+					} elseif ($atts[2] == "bool") {
+						echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
+						echo '<td id="rightHand"><input type="checkbox" value="'.$atts[1].'" name="'.$atts[0].'" '.($atts[1]=="1"?'checked':'').'></td></tr>';
 					} else {
 						echo trd_labelData($atts[0], $atts[1], $atts[0]);
 					}
