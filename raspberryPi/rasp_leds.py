@@ -50,52 +50,59 @@ class LEDS:
         self.driver = APA102(num_led=NUM_LEDS)
 
     def SetColor(self, inColor):
-        self.is_idle = False
-        if isinstance(inColor, str):
-            self.color = COLORS_RGB[inColor].copy()
-        else:
-            self.color = inColor.copy()
+        try:
+            self.is_idle = False
+            if isinstance(inColor, str):
+                self.color = COLORS_RGB[inColor].copy()
+            else:
+                self.color = inColor.copy()
+        except Exception as e: 
+            LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {str(e)}")
 
     def LEDThread(self):
         LogInfo("LEDThread started")
         jr = 0
         ir = 0
         thisColor = self.color.copy()          # keep track of the current color/brightness
-
         brightDelta = 1
+        has_error = False
         while not self.should_quit:
-            self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
-            if self.is_idle:
-                if STATE.CheckState('SleepState'):                                      # dim the lights
-                    brightDelta = -1
-                    if thisColor[3] > 0:
-                        (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
-                        self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
-                    elif thisColor[:3] != COLORS_RGB['off'][:3]: self.color = COLORS_RGB['off'].copy()
+            try:
+                self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
+                if self.is_idle:
+                    if STATE.CheckState('SleepState'):                                      # dim the lights
+                        brightDelta = -1
+                        if thisColor[3] > 0:
+                            (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
+                            self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
+                        elif thisColor[:3] != COLORS_RGB['off'][:3]: self.color = COLORS_RGB['off'].copy()
+                        else:
+                            sleep(cf.g('SLEEP_SLEEP'))
+                    elif STATE.CheckState('Surveil'):
+                        self.color = COLORS_RGB['red'].copy()
+                        (self.color[3], brightDelta) = bounce(thisColor[3], cf.g('BRIGHT_SPEED')*2, brightDelta)
                     else:
-                        sleep(cf.g('SLEEP_SLEEP'))
-                elif STATE.CheckState('Surveil'):
-                    self.color = COLORS_RGB['red'].copy()
-                    (self.color[3], brightDelta) = bounce(thisColor[3], cf.g('BRIGHT_SPEED')*2, brightDelta)
-                else:
-                    if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
-                        (ir, jr, self.color) = rainbow_cycle(ir, jr)
+                        if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
+                            (ir, jr, self.color) = rainbow_cycle(ir, jr)
 
-            if thisColor != self.color:            # don't change colors if not asked to change
-                thisColor = self.color.copy()
-                for i in range(NUM_LEDS):
-                    self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], self.color[3])
-                try:
-                    self.driver.show()
-                except Exception as e:
-                    self.off()
+                if thisColor != self.color:            # don't change colors if not asked to change
+                    thisColor = self.color.copy()
+                    for i in range(NUM_LEDS):
+                        self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], self.color[3])
+                    try:
+                        self.driver.show()
+                        has_error = False
+                    except Exception as e:
+                        LogError(f"LEDS:LedThread:SetColor Exception on driver.show() {str(self.color)}: {str(e)}")
+                        if has_error: should_quit = True
+                        else: has_error = True
+                        self.off()
+                sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+            except Exception as e:
+                LogError(f"LEDS:LedThread exception: {str(e)}")
+                if has_error: should_quit = True
+                else: has_error = True
 
-
-
-            sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
-        # exit: set to black and quit
-#        for i in range(12): self.driver.set_pixel(i, 0, 0, 0)
-#        self.driver.show()
         self.driver.clear_strip()
         self.driver.cleanup()
         LogInfo("LEDThread ended")
