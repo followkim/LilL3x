@@ -1,13 +1,13 @@
 import traceback
 import sys
 import os
+import re
 from datetime import datetime
-import shutil
-import time 
+import time
 import threading
 
 err_level = {
-    0: "None",
+    0: "Errors Only",
     1: "Conversation",
     2: "Warnings",
     3: "Info Messages",
@@ -57,9 +57,11 @@ def LnFile():
 def ShowThreads():
     threads = threading.enumerate()
     numThreads = len(threads)
-    LogInfo(f"{numThreads} total threads:")
-    for t in threads: Log(f"\t\t{t.name}")
-    return numThreads
+    for t in threads:
+        LogInfo(f"\t\t{t.name}")
+        if not re.search("^LilL3x", t.name): numThreads = numThreads - 1
+    LogInfo(f"{len(threads)} total threads, {numThreads} LilL3x threads.")
+    return numThreads+1   # add main Thread
 
 def SetErrorLevel(level):
     global ERROR_LEVEL

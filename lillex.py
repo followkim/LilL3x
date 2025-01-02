@@ -334,8 +334,8 @@ class lill3x:
            threads = threading.enumerate()
            numThreads = len(threads)
            for t in threads:
-               if re.search("Thread-[0-9]", t.name) or re.search("MainThread", t.name): numThreads = numThreads - 1
-               else: LogInfo(f"T={len(threads)} Waiting on {t.name}.")
+               if re.search("^LilL3x", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
+               else: numThreads = numThreads - 1
            sleep(2)
 
        
