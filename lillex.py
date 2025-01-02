@@ -143,6 +143,7 @@ class lill3x:
 
     def Loop(self):
         LogInfo("Starting Main Loop")
+        last_err = False  # we can ignore a single error... but if there are two in a row then quit.
         while not STATE.ShouldQuit():
             temp = CPUTemperature().temperature
             if temp >= cf.g('CPU_MAX_TEMP'):
@@ -155,9 +156,11 @@ class lill3x:
                     sleep(2)
             try:
                 eval("self."+STATE.GetState()+"()")
+                last_err = False
             except Exception as e:
                 LogError(f"Loop(): {STATE.GetState()}: Uncaught Exception: {str(e)}")
-                STATE.ChangeState('Quit')
+                if last_err: STATE.ChangeState('Quit')
+                else: last_err = True
         # call the Quit function
         eval("self."+STATE.GetState()+"()")
 
