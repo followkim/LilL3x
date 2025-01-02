@@ -103,8 +103,10 @@ class pico_wake:
                 # TODO: put this in a "wake" function to share with the button
                 if result >= 0:
                     LogInfo(f"Wake word heard {self.keywords_path[result]}")
-                    STATE.ChangeState('Wake')
-                    self.wake_mp3.play()
+                    if not pygame.mixer.get_busy():
+                        STATE.ChangeState('Wake')
+                        self.wake_mp3.play()
+                    else: LogInfo(f"Wake word ignored, audio playing")
             except Exception as e:
                 LogError("pico_wake loop encountered exception: " + str(e))
                 
