@@ -103,6 +103,7 @@
 				array_push($engines, $matches[1][0]);
 			}
 		}
+		fclose($pyfile);
 		sort($engines);
 		$engines = array_unique($engines);
 		foreach ($engines as $engine) {
@@ -124,6 +125,7 @@
 			echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
 			}
 		}
+		fclose($pyfile);
 		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
 
@@ -142,6 +144,7 @@
 				echo "<option value=\"" . $val . "\" "  .   (($val == $value)?"selected":"") . ">" . $level ."</option>";
 			}
 		}
+		fclose($pyfile);
 		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
 	}
@@ -151,7 +154,7 @@
 		echo "<td id='rightHand' >\n";
 		echo "<select name=\"".$name."\" value=".$value.">\n";
 		foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-			if (preg_match_all("/^([a-z ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
+			if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
 				$wake_word = ucwords($matches[1][0]);
 				$filepath = '/home/el3ktra/LilL3x/wake/'.$file;
 				echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
@@ -164,20 +167,36 @@
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<select name=\"".$name."\" value=".$value.">\n";
-		foreach (scandir('/home/el3ktra/LilL3x/\*.wake.py') as $file) {
-			if (preg_match_all("/^([a-z ]*)_wake.py/", $file, $matches)) {
-				$wake_word_eng = ucwords($matches[1][0]);
-				echo "<option value=\"" . $wake_word_eng  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word_eng . "</option>";
+		foreach (scandir('/home/el3ktra/LilL3x/') as $file) {
+                        echo $file;
+			if (preg_match_all("/^([a-z]*)_wake.py/", $file, $matches)) {
+				$wake_word_eng = $matches[1][0];
+				echo "<option value=\"" . $wake_word_eng  . "\" " . (($wake_word_eng == $value)?"selected":"") . ">" . ucwords($wake_word_eng) . "</option>";
 			} 
 		}
   		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
 	}
-        function Print_HEADER($label) {
-		echo "<tr><td colspan='2'><h2><center>".$label."</center></h2></td></tr>";
+
+        function PrintHEADER($label, $ht="2") {
+		echo "<tr><td colspan='2'><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
 	}
 
+        function GetFuncList() {
+		$func_list = [];
+		$php_file = fopen('/home/el3ktra/LilL3x/config/config_tools.php', "r");
+		while(!feof($php_file)) {
+		        $line = fgets($php_file);
+		        if (preg_match_all("/function Print_(.*)\(/", $line, $matches)) {
+				array_push($func_list, $matches[1][0]);
+			}
+		}
+		fclose($php_file);
+		return $func_list;
+        }
+
 	function PrintConfig($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
+                $func_list = GetFuncList();
 		$value_dict = LoadConfig($configFilePath);
 		$myfile = fopen($configDDPath, "r") or die("Unable to open file!");
 		while(!feof($myfile)) {
@@ -186,10 +205,10 @@
                         $val = array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][0]:'';
                         $type= array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][1]:'str';
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-                               if (in_array($atts[0], array("AI_ENGINE", "WAKE_WORD", "WAKE_WORD_ENGINE", "INTERPRET_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+                               if (in_array($atts[0], $func_list)) {
 					eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$val, \$atts[2]);");
 				} elseif ($atts[0]=="HEADER") {
-					Print_HEADER($atts[1]);
+					PrintHEADER($atts[1], (array_key_exists(2, $atts)?$atts[2]:"2"));
 				} else {
 					if ($type == "blob") {
 						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
@@ -209,12 +228,13 @@
 	}
 
 	function PrintConfigDev($configFilePath=CONFIG_FILE) {
+                $func_list = GetFuncList();
 		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
 		while(!feof($myfile)) {
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
 			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-				if (in_array($atts[0], array("AI_ENGINE", "WAKE_WORD", "WAKE_WORD_ENGINE", "LISTEN_ENGINE", "SPEECH_ENGINE", "DEBUG"))) {
+                               if (in_array($atts[0], $func_list)) {
 					eval("Print_".$atts[0]."(\$atts[0], \$atts[0], \$atts[1]);");
 				} else {
 					if ($atts[2] == "blob") {

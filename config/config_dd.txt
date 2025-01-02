@@ -2,14 +2,14 @@ USERNAME|Name|Your own name
 USERNAMEP|Pronunciation|How you pronounce your name (if different)
 USEREMAIL|Email|Your email
 
-HEADER|AI Information|
+HEADER|AI Information|2
 AINAME|AI Name|Your AI's name
-AINAMEP|AI Name Pronunciation|How you pronounce your AI's name (if different)
+AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
 WAKE_WORD|Wake Word|The call name of your AI
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 
-HEADER|Behaviors|
+HEADER|Behaviors|2
 VOLUME|Volume|Should be 1-10
 BRIGHTNESS|Brightness|The brightness of the LEDs
 INITIATE_ODDS|Interactivity|Approximate interactions per hour
@@ -18,26 +18,26 @@ INTERACT_MAX|Interactivity Max|Don't wait longer then this many minutes to inter
 SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes)
 SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in minutes)
 
-HEADER|Camera|
-MOTDET_SENS|Motion Detection Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
+HEADER|Camera|2
+MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
 CAMERA_SLEEP_SEC|Camera Wait|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
 IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
 CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
 
-HEADER|Listening|
+HEADER|Listening|2
 MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking
 ENERGY_THRESH|Talking Volume|Increase if the user is getting cut off, decrease if the microphone isn't detecting that no one is talking anymore.
-INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!
+#INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!
 
-HEADER|Speech Tools|
+HEADER|Speech Tools|2
 SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
 AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>
 AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>
 CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech" target="_blank">Open AIs Text to Speech</a>
-ELEVENLABS_API_KEY|ElevenLabs API Key|See <a href="https://elevenlabs.io/app/sign-up" target="blank">ElevenLabs.io Sign Up</a> to get an API key.
+ELEVENLABS_API_KEY|ElevenLabs API|See <a href="https://elevenlabs.io/app/sign-up" target="blank">ElevenLabs.io Sign Up</a> to get an API key.
 ELEVENLABS_VOICE_ID|ElevenLabs Voice|If speech engine is ElevenLabs, indicate the voice to use.  See <a href="https://elevenlabs.io/app/voice-lab" target="_blank">ElevenLabs Voice Lab</a>
 
-HEADER|Other Tools
+HEADER|Other Tools|2
 FPS|Frames Per Second|Frames per second for display.
 MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen

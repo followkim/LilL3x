@@ -41,7 +41,7 @@ class vosk_wake:
         self.face = face
         return
 
-    def listen(self):
+    def ww_thread(self):
         stream = 0
         regex = cf.g('WAKE_REGEX').replace('`', '|')
         while (not STATE.CheckState('Quit')):

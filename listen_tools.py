@@ -117,12 +117,12 @@ class speech_listener:
                     try:
                         self.update(asyn=True)
 #                        imp = self.speech.recognize_google(audio)
-                        imp = eval(f"self.speech.recognize_{cf.g('LISTEN_ENGINE')}(self.audio)")
+                        imp = eval(f"self.speech.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
                     except sr.exceptions.UnknownValueError:
                         pass
                     except Exception as e:
                         MIC_STATE.ReturnMic()
-                        RaiseError(f"speech_listener.recognize_{cf.g('LISTEN_ENGINE')}() returned error: {str(e)}")
+                        RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {str(e)}")
                     self.audio=False
                 #imp = self.engines['google')(audio)  ## NEEED FIX
                 MIC_STATE.last = datetime.now()

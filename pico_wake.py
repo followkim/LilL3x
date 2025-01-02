@@ -13,6 +13,7 @@ import argparse
 import os
 import struct
 import wave
+import pygame
 import sounddevice as sd
 from datetime import datetime
 from globals import STATE,  MIC_STATE
@@ -23,56 +24,49 @@ from pvrecorder import PvRecorder
 from config import cf
 
 LogInfo("Importing Porcupine Wake...")
-class wake_word:
+class pico_wake:
     is_speaking = False
     should_quit = False
-    wakeword_listener = None
+    ww_listener = None
     audio_device_index = -1  #RasperbyPI  TODO PULL FROM GLOBALS
 #    keyword_paths = []
-    keywords = []
-    audio = 0
-    def __init__(self, audio):
-        self.audio = audio
-        keyword_path = [cf.g('AINAMEP')]
+    keywords_path = 0
+    def __init__(self, face=False):
+        self.keywords_path = [cf.g('WAKE_WORD')]
+        self.wake_mp3 = pygame.mixer.Sound(cf.g('WAKE_MP3'))
+        self.SetWakeWord()
+        LogInfo('Porcupine version: %s' % self.ww_listener.version)
+
+    def BuildPaths(self, path=cf.g('WAKE_WORD')):
+        paths = []
+
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path, ):
+                for file in files:
+                    del dirs[:]
+                    if os.path.isdir(file): continue
+                    path = (os.path.join(root, file))
+                    paths.append(path)
+        else:
+            paths.append(path)
+        return paths
+
+    def SetWakeWord(self, new_wake=cf.g('WAKE_WORD')):
+        MIC_STATE.TakeMic()  #Pause the listening thread to replace the listener object
+        self.keywords_path = self.BuildPaths(new_wake)
         try:
-            self.wakeword_listener = pvporcupine.create(
-                access_key=cf.g('PICOVOICE_KEY'),
-                keyword_paths=keyword_path #DOTO pass k eywords list: wakeword, amazon, google siri?
-        #        keywords = ('bumblebee')
-        #                library_path=args.library_path,
-        #                model_path=args.model_path,
-        #                sensitivities=args.sensitivities
-                )
-        except pvporcupine.PorcupineInvalidArgumentError as e:
-            LogError("One or more arguments provided to Porcupine is invalid: ", args)
-            LogError(e)
-            raise e
-        except pvporcupine.PorcupineActivationError as e:
-            LogError("AccessKey activation error")
-            raise e
-        except pvporcupine.PorcupineActivationLimitError as e:
-            LogError("AccessKey '%s' has reached it's temporary device limit" % args.cf.g('PICOVOICE_KEY'))
-            raise e
-        except pvporcupine.PorcupineActivationRefusedError as e:
-            LogError("AccessKey '%s' refused" % args.cf.g('PICOVOICE_KEY'))
-            raise e
-        except pvporcupine.PorcupineActivationThrottledError as e:
-            LogError("AccessKey '%s' has been throttled" % args.cf.g('PICOVOICE_KEY'))
-            
-            raise e
-        except pvporcupine.PorcupineError as e:
-            LogError("Failed to initialize Porcupine")
-            raise e
+           if self.ww_listener: self.ww_listener.delete()
+           self.ww_listener = pvporcupine.create(access_key=cf.g('PICOVOICE_KEY'), keyword_paths=self.keywords_path)
+        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid: ", args)
+        except pvporcupine.PorcupineActivationError as e: LogError("AccessKey activation error")
+        except pvporcupine.PorcupineActivationLimitError as e: LogError("AccessKey '%s' has reached it's temporary device limit" % args.cf.g('PICOVOICE_KEY'))
+        except pvporcupine.PorcupineActivationRefusedError as e: LogError("AccessKey '%s' refused" % args.cf.g('PICOVOICE_KEY'))
+        except pvporcupine.PorcupineActivationThrottledError as e: LogError("AccessKey '%s' has been throttled" % args.cf.g('PICOVOICE_KEY'))
+        except pvporcupine.PorcupineError as e: LogError("Failed to initialize Porcupine")
+        except Exception as e: LogError(f"Failed to initialize Porcupine {str(e)}")
 
-        wakewords = list()
-        for x in cf.g('WAKEWORD_PATH'):
-            wakeword_phrase_part = os.path.basename(x).replace('.ppn', '').split('_')
-            if len(wakeword_phrase_part) > 6:
-                self.keywords.append(' '.join(wakeword_phrase_part[0:-6]))
-            else:
-                self.keywords.append(wakeword_phrase_part[0])
-
-        LogInfo('Porcupine version: %s' % self.wakeword_listener.version)
+        MIC_STATE.ReturnMic()
+        LogInfo(f"Wake Word Set to: {str(self.keywords_path)}.")
 
     def ww_thread(self):
         recorder = 0
@@ -92,60 +86,65 @@ class wake_word:
             else:
                 # no wakeword on Wake/Active states
                 continue
-        self.wakeword_listener.delete()
+        self.ww_listener.delete()
         LogInfo("WW Listen Thread ended")
 
     def listen_loop(self):
         LogDebug("ww listen_loop started")
         try:
-            recorder = PvRecorder(frame_length=self.wakeword_listener.frame_length, device_index=self.audio_device_index)
+            recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
             return RaiseError("Unable to create recorder: " + str(e))
         recorder.start()
         while not MIC_STATE.MicRequested() and not (self.should_quit or STATE.IsInteractive()):
             try:
                 pcm = recorder.read()
-                result = self.wakeword_listener.process(pcm)
+                result = self.ww_listener.process(pcm)
                 # TODO: put this in a "wake" function to share with the button
                 if result >= 0:
+                    LogInfo(f"Wake word heard {self.keywords_path[result]}")
                     STATE.ChangeState('Wake')
-                    if not self.audio.IsBusy():
-                        self.audio.PlaySound(cf.g('WAKE_MP3'))
-                        LogInfo(f"Wake word heard: {result}") # : %s" % self.keywords[result])
+                    self.wake_mp3.play()
             except Exception as e:
-                LogError("WakeWord loop encountered exception: " + str(e))
+                LogError("pico_wake loop encountered exception: " + str(e))
                 
         #mic is requested
         recorder.stop()  # stop the recorder if requested to do so
         recorder.delete()
         sd.default.reset()
-        LogDebug("ww listen_loop ended")
+        LogDebug("pico_wake listen_loop ended")
         return
 
     def GetWakePhrase(self):
         return False
 
     def Close(self):
-        LogInfo("Exiting WakeWord")
+        LogInfo("Exiting pico_wake")
         self.should_quit = True
         
 
 if __name__ == '__main__':
-   from speech_tools import speech_generator
    import threading
    from time import sleep
    global STATE
    STATE.ChangeState('Idle')
-   mouth = speech_generator()
-
-   ww = wake_word(mouth)
+   pygame.mixer.init()
+   ww = pico_wake()
    t = threading.Thread(target=ww.ww_thread)
    t.start()
 
-   while not STATE.CheckState('Wake'):
-       sleep(5)
+   new = ""
+   while new != 'quit':
+       if STATE.CheckState('Wake'):
+           STATE.ChangeState('Active')
+           STATE.ChangeState('Idle')
+       new = input("new WW path:" )
+       if new=="quit": break
+       elif new: 
+           ww.SetWakeWord(new)
+           print(ww.keywords_path)
    ww.Close()
-   print("waiting for thread", end="")
+   print("main: waiting for thread", end="")
    while t.is_alive():
       print(".", end="")
       sleep(1)

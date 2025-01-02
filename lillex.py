@@ -24,7 +24,7 @@ from error_handling import *
 InitLogFile()
 from globals import STATE
 import vosk_wake
-import wake_word
+import pico_wake
 from config import cf
 
 from speech_tools import speech_generator
@@ -119,21 +119,21 @@ class lill3x:
         
         # THREADS
         cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
-        cam_thread.name = f"CameraLoopThread: {cam_thread.native_id}"
+        cam_thread.name = f"LilL3x CameraLoopThread"
         cam_thread.start()
 
 #        self.ww = vosk_wake.vosk_wake(self.face)
-        self.ww = wake_word.wake_word(self.mouth)
+        self.ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
         ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)
-        ww_thread.name = f"WakeWordThread: {ww_thread.native_id}"
+        ww_thread.name = f"LilL3x WakeWordThread"
         ww_thread.start()
         
         button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
-        button_thread.name = f"ButtonThread: {button_thread.native_id}"
+        button_thread.name = f"LilL3x ButtonThread"
         button_thread.start()
 
         config_thread = threading.Thread(target=cf.config_thread, daemon=True)
-        config_thread.name = f"ConfigThread: {config_thread.native_id}"
+        config_thread.name = f"LilL3x ConfigThread"
         config_thread.start()
 
         if '--restart' in sys.argv: STATE.ChangeState('ActiveIdle')
@@ -156,42 +156,45 @@ class lill3x:
             try:
                 eval("self."+STATE.GetState()+"()")
             except Exception as e:
-                RaiseError(f"Loop(): Uncaught Exception: {str(e)}")
+                LogError(f"Loop(): {STATE.GetState()}: Uncaught Exception: {str(e)}")
                 STATE.ChangeState('Quit')
         # call the Quit function
         eval("self."+STATE.GetState()+"()")
 
     def ChangeAI(self):
-        STATE.ChangeState('Active')
         LogInfo(f"Changing AI to {STATE.data}.")
-        new_ai = 0
+        self.SwitchAI(STATE.data)
+        STATE.ChangeState('Hello')
+        return True
 
+    def SwitchAI(self, newAI):
         try:
-            new_ai = eval("AI_" + STATE.data + "()")
+            new_ai = eval(f"AI_{newAI}()")
 
         except Exception as e:
-#            RaiseError("Unable to create AI: "+ str(e))  Don't raise an error-- too often just a missed word
-            self.ai.say(f"I wasn't able to switch to {STATE.data}.  {str(e)}")
-            return None
+            LogError("Unable to create AI: {str(e)}") 
+            self.ai.say(f"I wasn't able to switch to {newAI}.  {str(e)}")
+            return False
+
         if not new_ai.has_auth:
-            RaiseError("Unable to create AI: auth failed")
-            self.ai.say(f"I wasn't able to switch to {STATE.data}.  Authorization error.")
-            return None
-        
+            LogError("Unable to create AI {newAI}: auth failed")
+            self.ai.say(f"I wasn't able to switch to {newAI}.  Authorization error.")
+            return False
+
         # were able to create the AI!
         self.ai.Close()
         self.ai = new_ai
         self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
-        cf.s('AI_ENGINE', STATE.data)
-        STATE.ChangeState('Hello')
+        cf.s('AI_ENGINE', newAI)
         return True
 
     def EvalCode(self):
         LogDebug(f"EvalCode: {STATE.data}")
-        try:
-            eval(STATE.data)
-        except Exception as e: 
-            LogError(f"EvalCode failed.\n\tcmd:{STATE.data}\n\tErr: {str(e)}")
+        for cmd in STATE.data:
+            try:
+                eval(cmd)
+            except Exception as e:
+                LogError(f"EvalCode failed.\n\tcmd:{cmd}\n\tErr: {str(e)}")
         STATE.data = ""
         STATE.RevertState()
 
@@ -280,14 +283,14 @@ class lill3x:
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
     def Surveil(self):
-        if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving(secs=cf.g('SURVEIL_LOOK')):
+        if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving():
             self.ai.say(self.ai.Intruder())
             user_input = self.ai.listen()
             if user_input:
                 self.ai.say(self.ai.respond(user_input))
-                STATE.ChangeState('Active')      # this will turn off the system if the TV is on or something
+                STATE.ChangeState('Active')
             else:
-                self.Sleep(cf.g('SURVEIL_WAIT')*60)  # don't send another notice for SURVEIL_WAIT minuntes
+                self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_WAIT minuntes
         else:
             self.Sleep(cf.g('SLEEP_DURATION'))
         return

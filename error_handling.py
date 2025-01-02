@@ -126,7 +126,14 @@ def Color(text, color_code):
     return f"\033[{colors[color_code]}m{text}\033[0m"
 
 def DumpStack():
-    Log(traceback.print_stack(), Color("STACK:", 'red'))
+    if log_file_name:
+        try:
+            logFile = open(log_file_name, "a")
+            traceback.print_stack(file=logFile)
+            logFile.close()
+        except Exception as e:
+            print(f"Error writing to logfile: {str(e)}")
+    else: traceback.print_stack()
 
 def CloseLog():
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
@@ -152,4 +159,5 @@ if __name__ == '__main__':
     while s != 'quit':
         s=input("input: ")
         LogInfo(s)
+    RaiseError(s)
     CloseLog()

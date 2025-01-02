@@ -21,7 +21,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Configure<?php echo gethostname() ?></title>
+		<title>Configure <?php echo gethostname() ?></title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 	</head>
@@ -29,11 +29,11 @@
 	<body>
 
 
+   	<center><b><h1>Configure <?php echo gethostname() ?></b></h1></center>
 		<div class="container">
 		<form action="" method="POST">
 			<table id=criteria>
 
-	<b><h1>Configure <?php echo gethostname() ?></b></h1>
 <?php
 	PrintConfig();
 ?>

@@ -8,6 +8,7 @@ MIC_STATUS = 0
 class State:
     current = ''
     last_dt = ''
+    last_state = ''
     data = ''
     cx=-1
     cy=-1
@@ -23,16 +24,24 @@ class State:
         return self.current == checkState
 
     def ChangeState(self, new_state):
+        if self.current == 'EvalCode' and new_state != self.last_state:
+            LogInfo(f"State: tried to change from {self.current} to {new_state}, saving for later.")
+            self.last_state = new_state
+
         if self.current == 'Wake' and new_state != 'Active':
             LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
 
         elif not self.ShouldQuit():          # can't change out of quit state
             LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
+            self.last_state = self.current
             self.current = new_state
             self.last_dt = datetime.now()
         else: LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
         return self.current
+
+    def RevertState(self):
+        return self.ChangeState(self.last_state)
 
     def StateDuration(self):
         return (datetime.now()-self.last_dt).seconds

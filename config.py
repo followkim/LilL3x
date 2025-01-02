@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import datetime 
 import os
 import re
@@ -32,7 +33,7 @@ type_f = {
 
 
 class Config:
-    configFileBK = "./config/config.txt.default"
+    configFileBK = "./config/config.default"
     configFile = "./config/config.txt"
 
     config= {}
@@ -46,11 +47,14 @@ class Config:
         return
 
     def LoadConfig(self):
-        # variables that would cause a restart
+
+        # variables that would cause a hardware change
         currAI = self.config.get('AI_ENGINE','')
-        currentListen = self.config.get('LISTEN_ENGINE','')
-        currentSpeech = self.config.get('SPEECH_ENGINE','')
-        
+#        currListen = self.config.get('LISTEN_ENGINE','')
+        currSpeech = self.config.get('SPEECH_ENGINE','')
+#        currWWe = self.config.get('WAKE_WORD_ENGINE','')
+        currWW = self.config.get('AINAMEP','')
+
         # if there isn't a config file, create one from the default
         if not os.path.isfile(self.configFile) or  os.path.getsize(self.configFile) == 0:
             os.system("cp " + self.configFileBK + " " + self.configFile)
@@ -70,13 +74,21 @@ class Config:
                         except Exception as e:
                             LogWarn(f'Error inserting {key}:{val}: {str(e)}')
 
+        os.system(f"touch {self.configFile}")
         self.lastLoad = datetime.now()
-#        if currAI != self.config['AI_ENGINE'] or currentListen != self.config['LISTEN_ENGINE'] or currentSpeech != self.config['SPEECH_ENGINE']:
-#            # need to change the engines here
-#            return False
         SetErrorLevel(self.g('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
-        self.WriteConfig() # needed to touch file-- line below isn't working TODO
-#        os.utime(self.configFile)
+
+        # check for hardware uupdates
+        cmds = []
+        if len(currAI)>0 and currAI != self.g('AI_ENGINE'):			cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
+        if len(currSpeech)>0 and currSpeech != self.g('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{cf.g('SPEECH_ENGINE')}')")
+        if len(currWW)>0 and currWW != self.g('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{cf.g('WAKE_WORD')}')")
+#        if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.ears.SwitchEngine({cf.g('LISTEN_ENGINE')})")
+#        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW({cf.g('WAKE_WORD_ENGINE')})") TODO
+
+        if len(cmds)>0:
+            STATE.ChangeState('EvalCode')
+            STATE.data = cmds
         return True
 
     # if a value isn't found in the config file (not in git) then see if it is in the (git updatable) config file.
@@ -145,7 +157,7 @@ class Config:
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart') 
                     if file.a_path[-4:] == ".ppm" and file_updated:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
-                        STATE.data = "self.face.screen.LoadFrames()"   # will need to change to a list if I can think of other things that need reloading
+                        STATE.data = ["self.face.screen.LoadFrames()"]
             else: LogInfo(f"Local branch {repo.active_branch.name} up-do-date.")
         except Exception as e: LogError(f"Error Updating Git: {str(e)}")
         return update_files
@@ -169,6 +181,13 @@ class Config:
                 LogError(f"Config.g: {key} not found in defaults!")
                 return default
             else: return self.config[key]
+
+    def c(self, key, alt):
+        tryK = self.g(key)
+        if not tryK:
+            return self.g(alt)
+        else:
+            return tryK
 
     def s(self, key, val):
         try:
@@ -212,15 +231,24 @@ cf = Config()
 LogInfo("Loaded Configuration.")
 
 if __name__ == '__main__':
+    
+    if len(sys.argv)>1: 
+        SetErrorLevel(1)
+        if len(sys.argv)==2:
+            print(cf.g(sys.argv[1]))
+        elif sys.argv[1].lower()[0] == "g":
+            print(cf.g(sys.argv[2]))
+        elif sys.argv[1].lower()[0] == "s" and len(sys.argv)==4:
+            cf.s(sys.argv[2], sys.argv[3])
+            print(cf.g(sys.argv[2]))
+        elif sys.argv[1].lower()[0] == "c" and len(sys.argv)==4:
+            print(cf.c(sys.argv[2], sys.argv[3]))
 
-    if len(sys.argv) > 1:
-        print(cf.g(sys.argv[1]))
-
-    print(cf.IsGitDirty())
+#    print(f"IsGitDirty:{bool(cf.IsGitDirty())}")
 
 #    from time import sleep
 #    print(f'LoadConfig returned {cf.LoadConfig()}')
-#    print(cf.IsGitDirty())
+#    print(f"IsConfigDirty={bool(cf.IsGitDirty())}")
 #    print(str(cf.config))
     # testing dirty config
     #    print(str(cf.config))

@@ -399,10 +399,12 @@ class AI:
                     exclude = False
                 else:
                     exclude = True
-                continue    
+                continue
             elif not exclude:
                 newStr += s
         newStr = str(newStr.encode('ascii', 'ignore').decode("utf-8"))
+        newStr = newStr.replace(cf.g('AINAME'  ), cf.c('AINAMEP',   'AINAME'  ))
+        newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
         return newStr
 
 if __name__ == '__main__':
@@ -424,7 +426,7 @@ if __name__ == '__main__':
     while user_inp != "quit":
         print("User: ", end="")
         user_inp = input()
-        out = ai.respond(user_inp)
+        out = ai.respond(ai.StripActions(user_inp))
         print(f'AI: {out}')
 '''
     ai.say("Hello!  ")

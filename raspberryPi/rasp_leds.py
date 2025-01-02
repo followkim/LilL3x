@@ -68,7 +68,6 @@ class LEDS:
             if self.is_idle:
                 if STATE.CheckState('SleepState'):                                      # dim the lights
                     brightDelta = -1
-                    print(f"thisColor[3]: {thisColor[3]}")
                     if thisColor[3] > 0:
                         (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
                         self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
@@ -155,13 +154,13 @@ def wheel(pos):
         pos -= 170
         return [0, pos * 3, 255 - pos * 3, 100]
 
-def bounce(cur, step=1, delta=1, min_val=1, max_val=100):
+def bounce(cur, step=1, delta=1, min_val=1, max_val=50):
     """Bounces a number between two values."""
     cur = cur + (step * delta)
     if cur > max_val:
         cur = max_val
-        delta = delta*-1
+        if delta > 1: delta = -1
     elif cur < min_val:
         cur = min_val
-        delta = delta*-1
+        if delta < 1: delta = 1
     return (cur, delta)

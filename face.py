@@ -87,7 +87,7 @@ if __name__ == '__main__':
     sleep(2)
     '''
     face.idle()
-    b = 0
+#    b = 0
 #    while b >= 0:
 #        b = int(input("Brightness: 0-100: "))
 #        cf.s('BRIGHTNESS', b)
@@ -104,8 +104,11 @@ if __name__ == '__main__':
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
     face.idle()
+    STATE.ChangeState('SleepState')
+    sleep(30)
     STATE.ChangeState('Surveil')
     sleep(30)
+
     '''
     face.looking()
     sleep(10)
