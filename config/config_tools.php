@@ -13,11 +13,11 @@
 
         function PrintIndex() {
 	  echo "<head>";
-	  echo " <title>El3ktra</title>";
+	  echo " <title>".gethostname()."</title>";
 	  echo '  <meta name="viewport" content="width=device-width, initial-scale=1">';
 	  echo "</head>";
 	  echo "<body> <p>";
-          echo '<h1>Welcome to El3ktra!</h1>';
+          echo '<h1>Welcome to '.gethostname().'</h1>';
 	  echo ' <a href="wifi.php">Set Wifi</a><br>';
 	  echo ' <a href="config.php">configure</a><br>';
 	  echo ' <a href="config_dev.php">configure (Developer Version)</a><br>';
