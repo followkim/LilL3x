@@ -101,7 +101,7 @@ class AI:
 
         if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", txt.lower()):
             STATE.ChangeState('Surveil')
-            return f"!{cf.g('USERNAME')} is leaving, and just asked you to watch the house." # allow child class to general own input
+            return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
 
         if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", txt.lower()):
             return f"I have {ShowThreads()} running, check the logs for a list."
@@ -129,7 +129,7 @@ class AI:
             path = self.TakePicture(cf.g('CAMERA_PICT_SEC'))
             if path:
                 url  = self.eyes.UploadPicture(path)
-                desc = f"This is a picture of me, {cf.g('USERNAME')}.  Describe and comment."
+                desc = f"{self.GetString('CAMERA_STR').format(cf.g('USERNAME'))}"
                 return f'#{desc}#{path}#{url}'
             else:
                 return "Sorry, I couldn't take a picture"
@@ -378,6 +378,7 @@ class AI:
         
         if days<1:
             if hours>1 :
+
                 ret += str(hours) + " hours, "
             if hours==1:
                 ret += str(hours) + " hour, "

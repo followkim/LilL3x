@@ -190,6 +190,10 @@ class AI_openAI(AI):
 
         return (user_input, max_tokens, ret_tools)
 
+    def GetString(self, key):
+        return cf.g(key)
+
+
     def TakePictureToolCall(self, context):
         LogInfo("Calling Taking Picture from ChatGPT")
         file = self.TakePicture()
@@ -205,29 +209,27 @@ class AI_openAI(AI):
 
     #ON Startup
     def Hello(self):
-        return self.respond(f"!The user's name is {cf.g('USERNAMEP')}, say hello.")
+        return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     # On Wake State return greeting
     def WakeMessage(self):
-        resp = "!The user just called to you."
+        resp = "!{cf.g('WAKE_STR')}"
         return self.respond(resp)
 
     # From Sleep State return greeting
     def Greet(self):
           if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_user_interaction).total_seconds() / 3600) > 6:
-              resp = "!The user just woke up for the day, say good morning."
+              resp = f"!{cf.g('MORNING_STR')}"
 
-          else: resp = "!The user just returned just returned after "+AI.PrettyDuration(self, datetime.now() - self.last_user_interaction) +", greet them."
+          else: resp = f"!{cf.g('GREET_STR').format(AI.PrettyDuration(self, datetime.now() - self.last_user_interaction))}"
           return self.respond(resp)
     
     def Think(self):      
         return AI.Think(self)
         
     def InitiateConvo(self, topic=""):
-        LogInfo("initialte convo")
-        if topic: ret = f"!The user looked {topic}, ask about that."
-        else: ret = f"!Ask the user how thier {AI.TimeOfDay(self)} is going."
-#        return ret
+        if topic: ret = f"!{cf.g('MOOD_STR').format(topic)}"
+        else: ret = f"!{cf.g('CONVO_STR').format(AI.TimeOfDay(self))}"
         return self.respond(ret)
 
 
@@ -236,11 +238,11 @@ class AI_openAI(AI):
 
     def Intruder(self):
         AI.Intruder(self)
-        return self.respond("!There is an intruder in the house!  Threaten them and order them to leave.")
+        return self.respond(f"!{cf.g('INTRUDER_STR')}")
         #email URL
 
     def SaveMemories(self):
-        memStr = self.respond(f"^Summarize your history with {cf.g('USERNAME')}.  Fcus on key events and topics.  Return the answer in a single short paragraph of 500 words or less to be used later as your memory log")
+        memStr = self.respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
         memStr = ''.join(memStr.splitlines())
         self.memory = [
             {"role": "system", "content": cf.g('BACKSTORY')}, 

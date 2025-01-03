@@ -85,7 +85,6 @@ class Config:
     #        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW({cf.g('WAKE_WORD_ENGINE')})") TODO
     
             if len(cmds)>0:
-                print(cmds)
                 STATE.ChangeState('EvalCode')
                 STATE.data = cmds
         return True
@@ -93,7 +92,6 @@ class Config:
 
     def LoadConfigDict(self, file):
         cnfg = {}
-        LogInfo(f"Loading Config file {file}")
         with open(file) as file:
             for line in file:
                 (key, val, type) = self.ReadConfigLine(line)
@@ -115,7 +113,6 @@ class Config:
             else:
                 LogError(f"ReadConfigLine got bad string: {line}")
         return (False, False, False)
-    # if a value isn't found in the config file (not in git) then see if it is in the (git updatable) config file.
 
     def LoadDefault(self, skey):
         LogDebug(f"Checking Defaults for {skey}")
@@ -137,7 +134,7 @@ class Config:
  
         with open(self.configFileDefault) as file:
             for line in file:
-                (key, val, type) = self.ReadConfigLine(line) 
+                (key, val, type) = self.ReadConfigLine(line)
                 if key:
                     if key == 'LAST_INTERACTION':
                         configFile.write(f"{key}|{datetime.now().strftime('%Y-%m-%d')}|{self.config[key]['type']}\n")
@@ -203,7 +200,7 @@ class Config:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
                         STATE.data = ["self.face.screen.LoadFrames()"]
                     if re.search(r"config.default$", file.a_path) and file_updated: self.CheckDefaults()
-                    if re.search(r"config.static$",  file.a_path) and file_updated: self.LoadConfig()
+                    if re.search(r"config.vars$",  file.a_path) and file_updated: self.LoadConfig()
 
             else: LogInfo(f"Local branch {repo.active_branch.name} up-do-date at {datetime.now().strftime('%H:%M')}")
         except Exception as e: LogError(f"Error Updating Git: {str(e)}")
@@ -220,16 +217,15 @@ class Config:
         return False
 
     def g(self, key, default=False):
-        if key in self.config:
-            return self.config[key]['val']
-        else:  #KeyError:
+        if key not in self.config or (self.config[key]['type']=='path' and self.config[key]['val']==''):  #can't have an empty path!
             LogWarn(f"Config.g: {key} not found, checking defaults...")
-            if not self.LoadDefault(key):
+            if self.LoadDefault(key):
+                self.WriteConfig()
+            else:
                 LogError(f"Config.g: {key} not found in defaults!")
                 return default
-            else:
-                self.WriteConfig()
-                return self.config[key]['val']
+        else:
+            return self.config[key]['val']
 
     def c(self, key, alt):
         tryK = self.g(key)
@@ -276,7 +272,7 @@ sys.path.insert(0, currentdir)
 cf = Config()
 
 if __name__ == '__main__':
-    
+    SetErrorLevel(4)
     if len(sys.argv)>1: 
         if len(sys.argv)==2:
             print(cf.g(sys.argv[1]))

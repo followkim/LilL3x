@@ -10,9 +10,6 @@ AI_ENGINE|El3ktra|str|description
 LAST_INTERACTION|2024-8-8|dt|
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
-WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path|description
-WAKE_WORD_ENGINE|pico|str
-WAKE_WORD_REGEX||regex
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|int
 
@@ -45,13 +42,14 @@ ENERGY_THRESH|25|int|
 ENERGY_DYNAMIC|0|int
 
 #wake word
-WAKE_REGEX||regex
+WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path
+WAKE_WORD_ENGINE|pico|str
+WAKE_WORD_REGEX||regex
 WAKE_WORD_TRIES|0|int
 PICOVOICE_KEY||str|
 
 # speech 
 SPEECH_ENGINE|amazon|str|
-SPEECH_FILE|temp.mp3|str
 VOLUME|10|int
 GTTS_VOICE|us|str|Voice for gTTS
 GOOGLE_CLOUD_SPEECH_CREDENTIALS||str|description
@@ -71,6 +69,10 @@ LIGHT_SPEED|75|int|1-100
 BRIGHTNESS|50|int|1-100
 BRIGHT_SPEED|2|int|1-100
 SCREEN_DEBUG|1|bool|
+
+#system
+DEBUG|2|int|
+WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
 
 # OPEN AI Models
 OPEN_AI_API_KEY||str
@@ -114,7 +116,3 @@ KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
 KINDRIOD_GMPID||str|
 FIREBASE_WEB_API_KEY||str|
 BARD_API||str|
-
-#system
-DEBUG|2|int|
-WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
