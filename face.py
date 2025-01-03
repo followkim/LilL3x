@@ -17,11 +17,11 @@ class Face:
         self.screen = Screen()
         self.leds = LEDS()
         animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-        animate_thread.name = f"LilLex AnimateThread: {animate_thread.native_id}"
+        animate_thread.name = f"LilL3x AnimateThread: {animate_thread.native_id}"
         animate_thread.start()
         
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
-        led_thread.name = f"LilLex LedThread: {led_thread.native_id}"
+        led_thread.name = f"LilL3x LedThread: {led_thread.native_id}"
         led_thread.start()
  
 
