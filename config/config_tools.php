@@ -47,7 +47,7 @@
 		fclose($myfile);
 
         // write to the new config file
-		$myfile = fopen(CONFIG_FILE, "w") or die("Unable to open file!");
+		$myfile = fopen($configFilePath, "w") or die("Unable to open file!");
 		fwrite($myfile, $config_new);
 		fclose($myfile);
 	}
@@ -83,6 +83,11 @@
 						$ai_engine = $matches[1][0].$matches[2][0];
 						echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $value)?"selected":"") . ">" . $ai_engine ."</option>";
 					}
+//                                                $line = "class AI_Artification(AI_parent)";
+//                                                if (preg_match_all("/class AI_([A-Z])(.*)\(AI_(.*)\)/", $line, $matches)) {
+//                                                print_r($matches);
+//                                                $ai_engine = $matches[1][0].$matches[2][0];
+//                                                $ai_engine_parent = $matches[3][0];
 				}
 				fclose($pyfile);
 			} // preg_match filename                                                                      
@@ -185,6 +190,29 @@
 		echo "<tr><td colspan='2'><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
 	}
 
+        function Print_blob($label, $key, $val, $desc="") {
+		echo "<tr><td id=\"leftHand\"><b>" . $label . "</b></td>";
+		echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$key.'" />'.$val.'</textarea></td></tr>';
+		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+	}
+
+        function Print_int($label, $key, $val, $desc="") {
+                echo trd_labelData($label, $val, $key, 0, "number");
+		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+	}
+
+        function Print_bool($label, $key, $val, $desc="") {
+		echo "<tr><td id=\"leftHand\"><b>" . $label . "</b></td>";
+		echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$key.'" '.($val=="1"?'checked':'').'></td></tr>';
+		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+
+	}
+        function Print_other($label, $key, $val, $desc="") {
+                echo trd_labelData($label, $val, $key);
+		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+	}
+
+
         function GetFuncList() {
 		$func_list = [];
 		$php_file = fopen('/home/el3ktra/LilL3x/config/config_tools.php', "r");
@@ -205,30 +233,24 @@
 		while(!feof($myfile)) {
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
-                        $val = array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][0]:'';
-                        $type= array_key_exists($atts[0], $value_dict)?$value_dict[$atts[0]][1]:'str';
+			if (sizeof($atts)>=3) {
+	                        $key= $atts[0];
+				$label = $atts[1];
+				$desc = $atts[2];
+	                        $val = array_key_exists($key, $value_dict)?$value_dict[$key][0]:'';
+	                        $type= array_key_exists($key, $value_dict)?trim($value_dict[$key][1]):'str';
 
 
-			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-                               if (in_array($atts[0], $func_list)) {
-					eval("Print_".$atts[0]."(\$atts[1], \$atts[0], \$val, \$atts[2]);");
-				} elseif ($atts[0]=="HEADER") {
-					PrintHEADER($atts[1], (array_key_exists(2, $atts)?$atts[2]:"2"));
-				} else {
-					if ($type == "blob") {
-						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$val.'</textarea></td></tr>';
-					} elseif ($type == "int") {
-						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$val.'" ></td></tr>';
-					} elseif ($type == "bool") {
-						echo "<tr><td id=\"leftHand\"><b>" . $atts[1] . "</b></td>";
-						echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$atts[0].'" '.($val=="1"?'checked':'').'></td></tr>';
+				if (preg_match("/^[a-zA-Z]/", $key)) {
+	                               if (in_array($key, $func_list)) {
+						eval("Print_".$key."(\$label, \$key, \$val, \$desc);");
+					} elseif ($key=="HEADER") {
+						PrintHEADER($label, (array_key_exists(2, $atts)?$desc:"2"));
+	                                } elseif (in_array($type, $func_list)) {
+	                                        eval("Print_".$type."(\$label, \$key, \$val, \$desc);");
 					} else {
-						echo "<tr><td id=\"leftHand\"><b>" .$atts[1]. ":</b></td>";
-						echo '<td id="rightHand"><input size="15" type="0" name="'.$atts[0].'" value="'.$val.'" ></td></tr>';
+						Print_other($label, $key, $val, $desc);
 					}
-					echo "<tr><td></td><td><i>".$atts[2]."</i></td></tr>";
 				}
 			}
 		}
@@ -241,21 +263,16 @@
 		while(!feof($myfile)) {
 			$line = fgets($myfile);
 			$atts = explode('|', $line);
-			if (preg_match("/^[a-zA-Z]/", $atts[0])) {
-                               if (in_array($atts[0], $func_list)) {
-					eval("Print_".$atts[0]."(\$atts[0], \$atts[0], \$atts[1]);");
+			if (sizeof($atts)>=3) {
+				$key = $atts[0];
+				$val = $atts[1];
+				$type = trim($atts[2]);
+				if (in_array($key, $func_list)) {
+					eval("Print_".$key."(\$key, \$key, \$val);");
+				} elseif (in_array($type, $func_list)) {
+					eval("Print_".$type."(\$key, \$key, \$val);");
 				} else {
-					if ($atts[2] == "blob") {
-						echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
-						echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$atts[0].'" />'.$atts[1].'</textarea></td></tr>';
-					} elseif ($atts[2] == "int") {
-						echo trd_labelData($atts[0], $atts[1], $atts[0], 0, "number");
-					} elseif ($atts[2] == "bool") {
-						echo "<tr><td id=\"leftHand\"><b>" . $atts[0] . "</b></td>";
-						echo '<td id="rightHand"><input type="checkbox" value="'.$atts[1].'" name="'.$atts[0].'" '.($atts[1]=="1"?'checked':'').'></td></tr>';
-					} else {
-						echo trd_labelData($atts[0], $atts[1], $atts[0]);
-					}
+					echo trd_labelData($key, $val, $key);
 				}
 			}
 		}

@@ -1,26 +1,20 @@
+#User information
 USERNAME|Friend|str|description
 USERNAMEP|Friend|str|description
 USEREMAIL||str|desc
+
+#AI information
 AINAME|El3ktra|str|Name of the AI
 AINAMEP|electra|str|description
 AI_ENGINE|El3ktra|str|description
-
-WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path|description
-WAKE_WORD_ENGINE|pico|str
-WAKE_WORD_REGEX||regex
 LAST_INTERACTION|2024-8-8|dt|
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
+WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path|description
+WAKE_WORD_ENGINE|pico|str
+WAKE_WORD_REGEX||regex
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|int
-
-#sleep values
-ACTIVE_IDLE_SLEEP|30|int|description
-IDLE_SLEEP|10|int|description
-SLEEP_SLEEP|15|int|description
-SLEEP_DURATION|1|int|description
-ACTIVE_IDLE_TO|30|int|in minutes
-IDLE_TO|60|int|
 
 #behavior
 INITIATE_ODDS|4|int|description  #times per hour that AI should try to initiate
@@ -33,15 +27,9 @@ SURVEIL_LOOK|120|int|seconds
 ICU_THRESH|2|int
 MOTDET_SENS|7|int
 MOTDET_THRESH|10|int
-LOOK_SECS_TO_DEFAULT|10|int
-DARK_SECS_TO_DEFAULT|10|int
 IS_DARK_THRESH|20|int
-CAMERA_CLICK_MP3|./media/camera.mp3|path|
 CAMERA_PICT_SEC|3|int|Number of seconds to show a new picture on the screen
 CAMERA_SLEEP_SEC|5|int
-SFT_FORMAT|%Y%m%d%H%M%S%f|str
-TEMP_PATH_DEFAULT|temp/|path|
-WIS_FILE|./frames/wis.ppm|path
 IMGUR_ID||str|
 IMGUR_SECRET||str|
 FLICKR_API||str|
@@ -55,14 +43,10 @@ MIC_LIMIT|1|int
 AMBIENT|1|int|
 ENERGY_THRESH|25|int|
 ENERGY_DYNAMIC|0|int
-START_LISTEN_MP3|./media/listen_start.mp3|path|
-END_LISTEN_MP3|./media/listen_end.mp3|path|
 
 #wake word
-WAKE_MP3|./media/wake.mp3|path|
 WAKE_REGEX||regex
 WAKE_WORD_TRIES|0|int
-WAKEWORD_PATH|./wake/|path|
 PICOVOICE_KEY||str|
 
 # speech 
@@ -78,7 +62,6 @@ AWS_VOICE_ENGINE|neural|str|
 CHATGPT_VOICE|nova|str|Voice for CHAT GPT
 ELEVENLABS_API_KEY||str|
 ELEVENLABS_VOICE_ID||str|
-STARTUP_MP3|./media/startup.mp3|path|
 
 #screen
 FPS|3|int|
@@ -134,21 +117,4 @@ BARD_API||str|
 
 #system
 DEBUG|2|int|
-CPU_MAX|25|int
-CPU_MAX_TEMP|75|int|
-CHECK_GIT|30|int
-RESTART_SEC|3|int|seconds to hold button to cause restart
-REBOOT_SEC|5|int|second to hold to cause reboot
 WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
-
-# AI Strings
-HELLO_STR|The user's name is {}, say hello.|str
-WAKE_STR|Say hello.|str
-GREET_STR|The user just returned just returned after {}, greet them.|str
-MORNING_STR|The user just woke up for the day, say good morning.|str
-MOOD_STR|The user looked {}, ask about that.|str
-CONVO_STR|Ask the user how thier {} is going.|str
-SURVEIL_STR|I am leaving, so be sure to watch the house!|str
-INTRUDER_STR|There is an intruder in the house!  Threaten them and order them to leave.|str
-HISTORY|Summarize your history with {}.  Focus on key events and topics.  Return the answer in a single short paragraph of 500 words or less to be used later as your memory log|str
-CAMERA_STR|This is a picture of me, {}.  Describe and comment.|str
