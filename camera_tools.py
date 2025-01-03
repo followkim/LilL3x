@@ -207,7 +207,7 @@ class Camera:
 
         gmi = cv2.flip(img, 1)
         ig = cv2.resize(gmi, (128, 64))
-        cv2.imwrite(filename, ig)
+        cv2.imwrite(filename, ig)  # TODO write to temp file and copy over
 
     def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), beQuiet=False):
         if is_dir(fname):
@@ -231,9 +231,9 @@ class Camera:
             # show the image for 3 secs and play a shutter sound
             if not beQuiet:
                 self.shutter.play()
-                if self.show_view:
+                if self.show_view:           # freeze the camera to show pict
                     self._whatISee(image)
-                    sleep(cf.g('CAMERA_PICT_SEC')) #show the pict on the screen
+                    sleep(cf.g('CAMERA_PICT_SEC'))
             self.take_picture = False
             return filename
         except Exception as e:
@@ -271,7 +271,7 @@ class Camera:
         return ret
 
     def _get_emotion_thread(self, image=False, filename=cf.g('TEMP_PATH_DEFAULT')+'mood.jpg'):
-        LogDebug("_get_emotion_thread called")
+        LogInfo(f"_get_emotion_thread called at {datetime.now().strftime('%H:%M')}")
         self.mood = ""
         if isinstance(image, bool): imagePath = self.TakePicture(filename, beQuiet=True)
         else: cv2.imwrite(filename, image)
@@ -285,8 +285,8 @@ class Camera:
         try: os.remove(filename)
         except: pass
 
-        sleep(5*60)  # don't call more then ev ery 5 minutes
-        self.mood = ""    # assume that whatever they were feeling is past
+        sleep(cf.g('INTERACT_MIN')*60)  # don't call more then every INTERACT_MIN minutes
+        self.mood = ""    # assume that whatever they were feeling is past after INTERACT_MIN minutes
 
     def WhoAmI(self):
         user_img = self.TakePicture(seeUser=True, beQuiet=True)
