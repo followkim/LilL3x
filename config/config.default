@@ -14,7 +14,6 @@ HISTORY||blob
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|int
 
-
 #sleep values
 ACTIVE_IDLE_SLEEP|30|int|description
 IDLE_SLEEP|10|int|description
