@@ -78,15 +78,16 @@ sudo apt-get install apache2
 sudo apt-get install php
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 
+sudo usermod -a -G www-data $USER
+sudo usermod -a -G www-data www-data
+
 sudo chmod a+x /var/www/html/*.sh
 sudo chown root:root /var/www/html/*.sh
 sudo chown www-data:www-data ~/LilL3x/config/config.txt
+sudo chown www-data:www-data ~/LilL3x/config/config.vars
 
 echo "%www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
 echo "%www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
-
-sudo usermod -a -G www-data $USER
-sudo usermod -a -G www-data www-data
 
 sudo rm /etc/apache2/sites-enabled/000-default.conf 
 sudo cp -l ~/LilL3x/config/apache_default.conf /etc/apache2/sites-enabled/000-default.conf 
