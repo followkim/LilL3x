@@ -145,8 +145,8 @@ WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
 # AI Strings
 HELLO_STR|The user's name is {}, say hello.|str
 WAKE_STR|Say hello.|str
-MORNING_STR|The user just returned just returned after {}, greet them.|str
-GREET_STR|The user just woke up for the day, say good morning.|str
+GREET_STR|The user just returned just returned after {}, greet them.|str
+MORNING_STR|The user just woke up for the day, say good morning.|str
 MOOD_STR|The user looked {}, ask about that.|str
 CONVO_STR|Ask the user how thier {} is going.|str
 SURVEIL_STR|I am leaving, so be sure to watch the house!|str
