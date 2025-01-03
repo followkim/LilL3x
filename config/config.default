@@ -73,6 +73,7 @@ SCREEN_DEBUG|1|bool|
 #system
 DEBUG|2|int|
 WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
+CHECK_GIT|30|int
 
 # OPEN AI Models
 OPEN_AI_API_KEY||str
