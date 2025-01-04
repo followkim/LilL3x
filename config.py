@@ -55,22 +55,20 @@ class Config:
         currListen = ''
         currWW = ''
         currWWe = ''
-        if 'AI_ENGINE' in self.config:
-            # variables that would cause a hardware change
-            currAI = self.g('AI_ENGINE','')
-    #        currListen = self.config.get('LISTEN_ENGINE','')
-            currSpeech = self.g('SPEECH_ENGINE','')
-   #        currWWe = self.config.get('WAKE_WORD_ENGINE','')
-            currWW = self.g('WAKE_WORD','')
+
+        # variables that would cause a hardware change
+        currAI = self.sg('AI_ENGINE',False)
+#        currListen = self.config.get('LISTEN_ENGINE','')
+        currSpeech = self.sg('SPEECH_ENGINE',False)
+#        currWWe = self.config.get('WAKE_WORD_ENGINE','')
+        currWW = self.sg('WAKE_WORD',False)
 
         # if there isn't a config file, create one from the default
         if not os.path.isfile(self.configFile) or  os.path.getsize(self.configFile) == 0:
             os.system("cp " + self.configFileDefault + " " + self.configFile)
 
-        static = self.LoadConfigDict(self.configFileStatic)
         self.config = self.LoadConfigDict(self.configFile)
-        self.config.update(static)
-        os.system(f"touch {self.configFile}")
+        self.config.update(self.LoadConfigDict(self.configFileStatic))
         self.lastLoad = datetime.now()
         LogInfo(f"Config File loaded at {self.lastLoad.strftime('%H:%M')}")
         SetErrorLevel(self.g('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
@@ -78,9 +76,9 @@ class Config:
         # check for hardware updates.  Blanks indicate that this is first time loading dictionary
         if currAI:
             cmds = []
-            if len(currAI)>0 and currAI != self.g('AI_ENGINE'):			cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
-            if len(currSpeech)>0 and currSpeech != self.g('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{cf.g('SPEECH_ENGINE')}')")
-            if len(currWW)>0 and currWW != self.g('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{cf.g('WAKE_WORD')}')")
+            if currAI and currAI != self.sg('AI_ENGINE'):			cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
+            if currSpeech and currSpeech != self.sg('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{cf.g('SPEECH_ENGINE')}')")
+            if currWW and currWW != self.sg('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{cf.g('WAKE_WORD')}')")
     #        if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.ears.SwitchEngine({cf.g('LISTEN_ENGINE')})")
     #        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW({cf.g('WAKE_WORD_ENGINE')})") TODO
     
@@ -90,9 +88,9 @@ class Config:
         return True
 
 
-    def LoadConfigDict(self, file):
+    def LoadConfigDict(self, fileName):
         cnfg = {}
-        with open(file) as file:
+        with open(fileName) as file:
             for line in file:
                 (key, val, type) = self.ReadConfigLine(line)
                 if key:
@@ -100,6 +98,7 @@ class Config:
                         cnfg[key] = {'val': type_f[type](val), 'type':type }
                     except Exception as e:
                         LogWarn(f'Error inserting {key}:{val}({type}) ({str(e)})')
+        os.system(f"touch {fileName}")
         return cnfg
 
     def ReadConfigLine(self, line):
@@ -165,7 +164,7 @@ class Config:
 
 
     def IsConfigDirty(self):
-        f_dt = datetime.fromtimestamp(os.path.getmtime(self.configFile))
+        f_dt = datetime.fromtimestamp(min(os.path.getmtime(self.configFile), os.path.getmtime(self.configFileStatic)))
         if f_dt > self.lastLoad:
             return True
         return False
@@ -188,13 +187,13 @@ class Config:
                 chk = self.CheckGit(repo) # see if we were successful
                 chk_files = len(chk)
                 update_files = update_files - chk_files
-                LogInfo(f"Updated {update_files} files at at {datetime.now().strftime('%H:%M')}") ## double check the pull
+                LogInfo(f"Updated {update_files} file(s) at at {datetime.now().strftime('%H:%M')}") ## double check the pull
                 if chk_files: LogWarn(f"Unable to update {chk_files} file(s).") ## TODO: determine which files
 
                 for file in diff:
                     file_updated = not file in chk
-                    if file_updated: LogInfo(f"\t{file.change_type}: {file.a_path} updated={file_updated}")
-                    else: LogError(f"File not updated{file.change_type}: {file.a_path} updated={file_updated}")
+                    if file_updated: LogInfo(f"\t{file.change_type}: {file.a_path}")
+                    else: LogError(f"File not updated: {file.a_path} [{file.change_type}]")
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart') 
                     if file.a_path[-4:] == ".ppm" and file_updated:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
@@ -215,11 +214,16 @@ class Config:
             return diff
         except Exception as e: LogError(f"Error pulling from Git: {str(e)}")
         return False
+    
+    def sg(self, key, default):
+        if key not in self.config: return default
+        else: return self.config[key]['val']
 
     def g(self, key, default=False):
+        if self.IsConfigDirty(): self.LoadConfig()
         if key not in self.config or (self.config[key]['type']=='path' and self.config[key]['val']==''):  #can't have an empty path!
             LogWarn(f"Config.g: {key} not found, checking defaults...")
-            if self.LoadDefault(key):
+            if self.LoadDefault(key) and write:
                 self.WriteConfig()
             else:
                 LogError(f"Config.g: {key} not found in defaults!")
@@ -275,15 +279,14 @@ if __name__ == '__main__':
     SetErrorLevel(4)
     if len(sys.argv)>1: 
         if len(sys.argv)==2:
-            print(cf.g(sys.argv[1]))
-        elif sys.argv[1].lower()[0] == "g":
-            print(cf.g(sys.argv[2]))
-        elif sys.argv[1].lower()[0] == "s" and len(sys.argv)==4:
-            cf.s(sys.argv[2], sys.argv[3])
-            print(cf.g(sys.argv[2]))
-        elif sys.argv[1].lower()[0] == "c" and len(sys.argv)==4:
-            print(cf.c(sys.argv[2], sys.argv[3]))
-
+            print(cf.g(sys.argv[1].upper()))
+        elif len(sys.argv)==3:
+            if sys.argv[1].lower()[0] == "g": print(cf.g(sys.argv[2].upper()))
+            else: print(cf.s(sys.argv[1].upper(), sys.argv[2]))
+        elif len(sys.argv)==4:
+            if sys.argv[1].lower()[0] == "s": cf.s(sys.argv[2].upper(), sys.argv[3])
+            elif sys.argv[1].lower()[0] == "c": print(cf.c(sys.argv[2].upper(), sys.argv[3].upper()))
+            
 #    print(f"IsGitDirty:{bool(cf.IsGitDirty())}")
 
 #    from time import sleep
