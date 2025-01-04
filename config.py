@@ -273,7 +273,7 @@ class Config:
         LogInfo("Config thread ended.")
 
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or should_quit
+        return ((datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.should_quit
 
 # we want to Load config here so that just including will load config
 cf = Config()
