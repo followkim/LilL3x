@@ -115,7 +115,7 @@ class Screen:
 
                     else: #determine wich "Idle" animation we should use
                         if STATE.CheckState('Surveil'): self.displayPicts = self.picts['surveil']
-                        elif STATE.cx > 0: self.displayPicts = self.picts['tracking']
+                        elif STATE.cx: self.displayPicts = self.picts['tracking']
                         else: self.displayPicts = self.picts['active']
 
                 # See if we should be showing camera images #TODO Speed up frame rate and match to incoming images
@@ -126,7 +126,7 @@ class Screen:
                     if frame >= len(self.displayPicts): frame = 0
 
                     # float the screen 
-                    if self.state == 'Idle' and not STATE.cx > 0 and not STATE.CheckState('Active') and not self._message:  # dont' float the image if there is a message showing 
+                    if self.state == 'Idle' and not STATE.cx and not STATE.CheckState('Active') and not self._message:  # dont' float the image if there is a message showing 
                         image = self.blackPict.copy()
                         locx = locx + (movX* cf.g('SCREEN_SPEED'))
                         locy = locy + (movY * cf.g('SCREEN_SPEED'))
@@ -148,7 +148,8 @@ class Screen:
                 if self.state == 'Idle':
 
                    # if tracking, draw the pupils (need to call this AFTER getting the image above)
-                    if STATE.cx > 0:
+                   # make SURE that the pupils are always drawn when the tracking image is used.
+                    if self.displayPicts == self.picts['tracking']:
                         pupilX = int((15/1280)*STATE.cx)
                         pupilY = int((25/720)*STATE.cy)
                         LogDebug(f"pupilX: {pupilX}, pupilY: {pupilY}")

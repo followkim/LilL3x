@@ -1,15 +1,14 @@
 <?php 	
-
-
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
 	ini_set('display_errors', true); 
-
         include './utils.php';                   // utils.php: database connection/disconnect functiosn
- 	
 
-	const CONFIG_FILE =  "/home/el3ktra/LilL3x/config/config.txt";
-	const CONFIG_DD =  "/home/el3ktra/LilL3x/config/config_dd.txt";
+	const CONFIG_PATH =  "/home/el3ktra/LilL3x/config/";
+	const CONFIG_DD =  CONFIG_PATH . "config_dd.txt";
+	const CONFIG_ROOT =  "config.txt";
+	const CONFIG_FILE =  CONFIG_PATH . "config.txt";
+
 
         function PrintIndex() {
 	  echo "<head>";
@@ -20,12 +19,85 @@
           echo '<h1>Welcome to '.gethostname().'</h1>';
 	  echo ' <a href="wifi.php">Set Wifi</a><br>';
 	  echo ' <a href="config.php">configure</a><br>';
-	  echo ' <a href="config_dev.php">configure (Developer Version)</a><br>';
+	  echo ' <a href="config.php?file=txt">configure (Developer Version)</a><br>';
+	  echo ' <a href="config.php?file=vars">configure variables (Developer Version)</a><br>';
 	  echo '</body></html>';
 
         }
 
-	function WriteConfig($post, $configFilePath=CONFIG_FILE) {
+
+	function PrintConfig() {
+		$configFile = str_replace("txt", isset($_GET['file'])?$_GET['file']:"txt", CONFIG_FILE);
+		$configFile = file_exists($configFile)?$configFile:CONFIG_FILE;
+
+		if (isset($_POST)) {
+	            WriteConfig($_POST, $configFile);
+		}
+
+		echo "<table>";
+		if ($configFile != CONFIG_FILE) {
+			PrintConfigDev($configFile);
+		} else {
+			PrintConfigPretty();
+		}
+		echo "</table>";
+	}
+
+	function PrintConfigPretty($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
+                $func_list = GetFuncList();
+		$value_dict = LoadConfig($configFilePath);
+		$myfile = fopen($configDDPath, "r") or die("Unable to open file!");
+		while(!feof($myfile)) {
+			$line = fgets($myfile);
+			$atts = explode('|', $line);
+			if (sizeof($atts)>=3) {
+	                        $key= $atts[0];
+				$label = $atts[1];
+				$desc = $atts[2];
+	                        $val = array_key_exists($key, $value_dict)?$value_dict[$key][0]:'';
+	                        $type= array_key_exists($key, $value_dict)?trim($value_dict[$key][1]):'str';
+
+
+				if (preg_match("/^[a-zA-Z]/", $key)) {
+	                               if (in_array($key, $func_list)) {
+						eval("Print_".$key."(\$label, \$key, \$val, \$desc);");
+					} elseif ($key=="HEADER") {
+						PrintHEADER($label, (array_key_exists(2, $atts)?$desc:"2"));
+	                                } elseif (in_array($type, $func_list)) {
+	                                        eval("Print_".$type."(\$label, \$key, \$val, \$desc);");
+					} else {
+						Print_other($label, $key, $val, $desc);
+					}
+				}
+			}
+		}
+		fclose($myfile);
+	}
+
+	function PrintConfigDev($configFilePath) {
+                $func_list = GetFuncList();
+		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
+		while(!feof($myfile)) {
+			$line = fgets($myfile);
+			$atts = explode('|', $line);
+			if (sizeof($atts)>=3) {
+				$key = $atts[0];
+				$val = $atts[1];
+				$type = trim($atts[2]);
+				if (in_array($key, $func_list)) {
+					eval("Print_".$key."(\$key, \$key, \$val);");
+				} elseif (in_array($type, $func_list)) {
+					eval("Print_".$type."(\$key, \$key, \$val);");
+				} else {
+					echo trd_labelData($key, $val, $key);
+				}
+			}
+		}
+		fclose($myfile);
+	}
+
+
+	function WriteConfig($post, $configFilePath) {
 		// read current config file
 		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
 		$config_new = "";
@@ -53,7 +125,7 @@
 	}
 
 
-        function LoadConfig($configFilePath=CONFIG_FILE) {
+        function LoadConfig($configFilePath) {
 	        $value_dict = [];
 		$configf = fopen($configFilePath, "r") or die("Unable to open file!");
 		while(!feof($configf)) {
@@ -68,6 +140,7 @@
 		fclose($configf);
 		return $value_dict;
 	}
+
 
 	function Print_AI_ENGINE($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
@@ -226,56 +299,4 @@
 		return $func_list;
         }
 
-	function PrintConfig($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
-                $func_list = GetFuncList();
-		$value_dict = LoadConfig($configFilePath);
-		$myfile = fopen($configDDPath, "r") or die("Unable to open file!");
-		while(!feof($myfile)) {
-			$line = fgets($myfile);
-			$atts = explode('|', $line);
-			if (sizeof($atts)>=3) {
-	                        $key= $atts[0];
-				$label = $atts[1];
-				$desc = $atts[2];
-	                        $val = array_key_exists($key, $value_dict)?$value_dict[$key][0]:'';
-	                        $type= array_key_exists($key, $value_dict)?trim($value_dict[$key][1]):'str';
-
-
-				if (preg_match("/^[a-zA-Z]/", $key)) {
-	                               if (in_array($key, $func_list)) {
-						eval("Print_".$key."(\$label, \$key, \$val, \$desc);");
-					} elseif ($key=="HEADER") {
-						PrintHEADER($label, (array_key_exists(2, $atts)?$desc:"2"));
-	                                } elseif (in_array($type, $func_list)) {
-	                                        eval("Print_".$type."(\$label, \$key, \$val, \$desc);");
-					} else {
-						Print_other($label, $key, $val, $desc);
-					}
-				}
-			}
-		}
-		fclose($myfile);
-	}
-
-	function PrintConfigDev($configFilePath=CONFIG_FILE) {
-                $func_list = GetFuncList();
-		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
-		while(!feof($myfile)) {
-			$line = fgets($myfile);
-			$atts = explode('|', $line);
-			if (sizeof($atts)>=3) {
-				$key = $atts[0];
-				$val = $atts[1];
-				$type = trim($atts[2]);
-				if (in_array($key, $func_list)) {
-					eval("Print_".$key."(\$key, \$key, \$val);");
-				} elseif (in_array($type, $func_list)) {
-					eval("Print_".$type."(\$key, \$key, \$val);");
-				} else {
-					echo trd_labelData($key, $val, $key);
-				}
-			}
-		}
-		fclose($myfile);
-	}
 ?>

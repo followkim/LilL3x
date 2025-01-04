@@ -311,7 +311,7 @@ class AI:
         # Try initiate convo based on past interactions
         if dice == 1:
             self.face.thinking()
-            LogInfo(f"Performing Interaction after {secs/60} minutes.")
+            LogInfo(f"Performing Interaction after {round(secs/60)} minutes.")
             
             #if self. the user is talking, evesdrop, otherwise try to start a convo
             if not self.ears.CanIHearYou():

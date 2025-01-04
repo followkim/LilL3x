@@ -1,14 +1,3 @@
-#
-# Copyright 2020 Picovoice Inc.
-#
-# You may not use this file except in compliance with the license. A copy of the license is located in the "LICENSE"
-# file accompanying this source.
-#
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-# specific language governing permissions and limitations under the License.
-#
-
 import sys
 import os
 from time import sleep
@@ -50,14 +39,16 @@ class LEDS:
         self.driver = APA102(num_led=NUM_LEDS)
 
     def SetColor(self, inColor):
+        color = 0
         try:
             self.is_idle = False
             if isinstance(inColor, str):
-                self.color = COLORS_RGB[inColor].copy()
+                color = COLORS_RGB[inColor].copy()
             else:
-                self.color = inColor.copy()
+                color = inColor.copy()
         except Exception as e: 
             LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {str(e)}")
+        return color
 
     def LEDThread(self):
         LogInfo("LEDThread started")
@@ -93,7 +84,7 @@ class LEDS:
                         self.driver.show()
                         has_error = False
                     except Exception as e:
-                        LogError(f"LEDS:LedThread:SetColor Exception on driver.show() {str(self.color)}: {str(e)}")
+                        LogError(f"LEDS:LedThread: Exception on driver.show() {str(self.color)}: {str(e)}")
                         if has_error: should_quit = True
                         else: has_error = True
                         self.off()
@@ -108,23 +99,23 @@ class LEDS:
         LogInfo("LEDThread ended")
 
     def blue(self):
-        self.SetColor(COLORS_RGB['blue'])
+        self.color = self.SetColor(COLORS_RGB['blue'])
     def green(self):
-        self.SetColor(COLORS_RGB['green'])
+        self.color = self.SetColor(COLORS_RGB['green'])
     def orange(self):
-        self.SetColor(COLORS_RGB['orange'])
+        self.color = self.SetColor(COLORS_RGB['orange'])
     def pink(self):
-        self.SetColor(COLORS_RGB['pink'])
+        self.color = self.SetColor(COLORS_RGB['pink'])
     def purple(self):
-        self.SetColor(COLORS_RGB['purple'])
+        self.color = self.SetColor(COLORS_RGB['purple'])
     def red(self):
-        self.SetColor(COLORS_RGB['red'])
+        self.color = self.SetColor(COLORS_RGB['red'])
     def white(self):
-        self.SetColor(COLORS_RGB['white'])
+        self.color = self.SetColor(COLORS_RGB['white'])
     def yellow(self):
-        self.SetColor(COLORS_RGB['yellow'])
+        self.color = self.SetColor(COLORS_RGB['yellow'])
     def off(self):
-        self.SetColor(COLORS_RGB['off'])
+        self.color = self.SetColor(COLORS_RGB['off'])
         self.is_idle = True
 
     def talking(self):

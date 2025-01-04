@@ -1,21 +1,10 @@
-<?php 	
-	 	 
+<?php
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
 	ini_set('display_errors', true); 
-
-	
-//	include 'includes/utils.php';			// utils.php: database connection/disconnect functiosn
         include '/home/el3ktra/LilL3x/config/config_tools.php';
-	// is this a POST if so, grab the POST varibales which are used to populate the search parameters.
-
-	$isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
-	if ($isPost) {
-            WriteConfig($_POST);
-	}
 
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -23,26 +12,16 @@
 		<meta charset="UTF-8">
 		<title>Configure <?php echo gethostname() ?></title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 	</head>
 
 	<body>
-
-
-   	<center><b><h1>Configure <?php echo gethostname() ?></b></h1></center>
+	   	<center><b><h1>Configure <?php echo gethostname() ?></b></h1></center>
 		<div class="container">
-		<form action="" method="POST">
-			<table id=criteria>
-
-<?php
-	PrintConfig();
-?>
-
-				
-			</table>
-			<input type="submit" value="Set"/>
+			<form action="" method="POST">
+				<?php PrintConfig(); ?>
+				<input type="submit" value="Set"/>
 			</form>
-<p><a href="index.php">Back to main page</a>			
+			<p><a href="index.php">Back to main page</a>
 		</div>
 	</body>
 </html>

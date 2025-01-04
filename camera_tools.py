@@ -68,7 +68,7 @@ class Camera:
         tracker = False
         prev = None
         dt=datetime.now()
-        mood_thrd = threading.Thread(target=self._get_emotion_thread)
+        mood_thrd = threading.Thread(target=self._get_emotion_thread)  # need to init here to call "is_alive" later
 
         LogInfo("Camera thread starting.")
         while not STATE.ShouldQuit() and not self.should_quit and self.cam:
@@ -81,8 +81,8 @@ class Camera:
                 continue
 
             img = self._read_camera_array()
-            need_action = self.show_view or self.take_picture
-            if ((self._is_dark(img) or (psutil.cpu_percent()>cf.g('CPU_MAX'))) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
+#            if ((self._is_dark(img) or (psutil.cpu_percent()>cf.g('CPU_MAX'))) and not need_action) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
+            if self._is_dark(img) or isinstance(img, bool):  #_is_dark will access image.  Don't other if there isn't an image
                 sleep(cf.g('CAMERA_SLEEP_SEC')*2)
                 continue
 
@@ -125,20 +125,24 @@ class Camera:
                             ret = tracker.init(img, (x, y, w, h))
                 else:
                     tracker = False
-                    STATE.cx=-1
-                    STATE.cy=-1
+                    STATE.cx=0
+                    STATE.cy=0
                     tracking_frames = 0
+
             prev = self._detect_motion(img, prev)
+
             # perform camera requests
             if tracker and not mood_thrd.is_alive():  # get the mood
-                mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,))
+                mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,), daemon=True)
+                mood_thrd.name = f"LilL3x GetEmotionThread"
                 mood_thrd.start()
             if self.show_view: self._whatISee(img)
             if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
 #            if self._is_dark(): sleep(30) # don't check for dark if there is movement
 
             #sleep the camera
-            if not tracker and not need_action: sleep(cf.g('CAMERA_SLEEP_SEC')) # 
+            need_action = self.show_view or self.take_picture or not tracker==False
+            if not need_action: sleep(cf.g('CAMERA_SLEEP_SEC')) 
             else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS
 
         if self.cam: self.cam.stop()
@@ -271,7 +275,7 @@ class Camera:
         return ret
 
     def _get_emotion_thread(self, image=False, filename=cf.g('TEMP_PATH_DEFAULT')+'mood.jpg'):
-        LogInfo(f"_get_emotion_thread called at {datetime.now().strftime('%H:%M')}")
+        LogDebug(f"Camera: _get_emotion_thread called at {datetime.now().strftime('%H:%M')}")
         self.mood = ""
         if isinstance(image, bool): imagePath = self.TakePicture(filename, beQuiet=True)
         else: cv2.imwrite(filename, image)

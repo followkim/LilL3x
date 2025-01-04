@@ -1,11 +1,13 @@
 import sys
 import threading
+from datetime import datetime
+from config import cf
+from error_handling import *
+
 sys.path.insert(0, './raspberryPi/')
 from apa102 import APA102
 from animate import Screen
 from rasp_leds import LEDS
-from config import cf
-from error_handling import *
 
 sys.path.insert(0, '..')
 LogInfo("Importing Face...")
@@ -17,11 +19,11 @@ class Face:
         self.screen = Screen()
         self.leds = LEDS()
         animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-        animate_thread.name = f"LilL3x AnimateThread: {animate_thread.native_id}"
+        animate_thread.name = f"LilL3x AnimateThread"
         animate_thread.start()
         
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
-        led_thread.name = f"LilL3x LedThread: {led_thread.native_id}"
+        led_thread.name = f"LilL3x LEDThread"
         led_thread.start()
  
 
@@ -71,7 +73,7 @@ if __name__ == '__main__':
 
     def dummy():
         pass
-    face = Face()
+    face = Face() #main
     face.SetViewControl(dummy, dummy)
     STATE.ChangeState('ActiveIdle')
     
