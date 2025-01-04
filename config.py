@@ -215,7 +215,8 @@ class Config:
         except Exception as e: LogError(f"Error pulling from Git: {str(e)}")
         return False
     
-    def sg(self, key, default):
+    def sg(self, key, default=False):
+        '''simple get'''
         if key not in self.config: return default
         else: return self.config[key]['val']
 
