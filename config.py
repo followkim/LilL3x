@@ -5,10 +5,10 @@ import re
 import sys
 from word2number import w2n
 from error_handling import *
-from globals import STATE
+from globals import STATE, SleepOn
 from time import sleep
-from datetime import datetime
-import git 
+from datetime import datetime, timedelta
+import git
 
 def to_str(val=0):
     if type(val) == str: return val
@@ -57,11 +57,11 @@ class Config:
         currWWe = ''
 
         # variables that would cause a hardware change
-        currAI = self.sg('AI_ENGINE',False)
+        currAI = self.sg('AI_ENGINE')
 #        currListen = self.config.get('LISTEN_ENGINE','')
-        currSpeech = self.sg('SPEECH_ENGINE',False)
+        currSpeech = self.sg('SPEECH_ENGINE')
 #        currWWe = self.config.get('WAKE_WORD_ENGINE','')
-        currWW = self.sg('WAKE_WORD',False)
+        currWW = self.sg('WAKE_WORD')
 
         # if there isn't a config file, create one from the default
         if not os.path.isfile(self.configFile) or  os.path.getsize(self.configFile) == 0:
@@ -69,8 +69,9 @@ class Config:
 
         self.config = self.LoadConfigDict(self.configFile)
         self.config.update(self.LoadConfigDict(self.configFileStatic))
-        self.lastLoad = datetime.now()
+        self.lastLoad = datetime.now() + timedelta(seconds=1)
         LogInfo(f"Config File loaded at {self.lastLoad.strftime('%H:%M')}")
+
         SetErrorLevel(self.g('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
 
         # check for hardware updates.  Blanks indicate that this is first time loading dictionary
@@ -87,6 +88,11 @@ class Config:
                 STATE.data = cmds
         return True
 
+    def IsConfigDirty(self):
+        f_dt = datetime.fromtimestamp(max(os.path.getmtime(self.configFile), os.path.getmtime(self.configFileStatic)))
+        if f_dt > self.lastLoad:
+            return True
+        return False
 
     def LoadConfigDict(self, fileName):
         cnfg = {}
@@ -162,12 +168,6 @@ class Config:
         if diff: self.WriteConfig()
         return diff
 
-
-    def IsConfigDirty(self):
-        f_dt = datetime.fromtimestamp(min(os.path.getmtime(self.configFile), os.path.getmtime(self.configFileStatic)))
-        if f_dt > self.lastLoad:
-            return True
-        return False
 
     def IsGitDirty(self):
         self.lastGit = datetime.now()
@@ -260,18 +260,20 @@ class Config:
 
     def config_thread(self):
         while not self.should_quit:
-            if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
-                self.IsGitDirty() # will update then change state to restart!!
-            if self.IsConfigDirty(): self.LoadConfig()
+            try:
+                if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                   self.IsGitDirty() # will update then change state to restart!!
+                if self.IsConfigDirty(): self.LoadConfig()
 
-            # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
-            if (datetime.now()-self.lastLoad).total_seconds()<60: sleep(1)
-            else: sleep(10)
+                # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
+                if (datetime.now()-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
+                else:  SleepOn(-1, self.config_wake, 10)
+            except  Exception as e:
+                LogError(f"ConfigThread uncaught exception {str(e)}")
         LogInfo("Config thread ended.")
 
-
-currentdir = f"{os.getenv('HOME')}/LilL3x/"
-sys.path.insert(0, currentdir)
+    def config_wake(self):
+        return ((datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty()
 
 # we want to Load config here so that just including will load config
 cf = Config()
