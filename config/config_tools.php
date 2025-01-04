@@ -105,10 +105,10 @@
 			$line = fgets($myfile);
 			$att = explode('|', $line);
 	                if (count($att) > 2 ) {
-                                if ($att[2] == 'bool') {
-					$val =  array_key_exists($att[0], $post) ? "1" : "0";
+                                if (trim($att[2]) == 'bool') {
+					$val =  isset($post[$att[0]]) ? "1" : "0";
 				} else {
-	                                $val =  array_key_exists($att[0], $post) ? $post[$att[0]] : $att[1];
+	                                $val =  isset($post[$att[0]]) ? $post[$att[0]] : $att[1];
 				}
      				$config_new = $config_new . $att[0] . '|' . preg_replace("~[\r]~", "", trim($val));
 				for($i=2; $i < count($att); $i++) {
