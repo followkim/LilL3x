@@ -11,14 +11,12 @@ import sys
 import os
 import threading
 import random
-import psutil
 from datetime import datetime, timedelta
 from time import sleep
 from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
-from gpiozero import CPUTemperature
 
 # import local modules
 from apa102 import APA102
@@ -157,8 +155,7 @@ class Screen:
                         draw.ellipse((eyeR+pupilX, pupilY+eyeY, eyeR+pupilX+pupilSize, eyeY+pupilY+pupilSize), outline="black", fill="black")
 
                     #draw text objects
-                    temp = round(CPUTemperature().temperature)
-                    show_temp = temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('SCREEN_DEBUG')
+                    show_temp = STATE.temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('SCREEN_DEBUG')
                     if not (STATE.CheckState('Active') or self._message) or cf.g('SCREEN_DEBUG'):
                         time = datetime.now().strftime("%-I:%M%p")
                         bb = draw.textbbox((0,0), time, font=font)
@@ -173,13 +170,14 @@ class Screen:
                    
                     # temperature: top left
                     if show_temp:
-                        bb = draw.textbbox((0,0), f"{temp}C", font=font)
+                        bb = draw.textbbox((0,0), f"{STATE.temp}C", font=font)
                         draw.rectangle((0, 0, bb[2], bb[3]), fill=0, outline=0)
-                        draw.text((0,0), f"{temp}C", font=font, fill=255)
+                        draw.text((0,0), f"{STATE.temp}C", font=font, fill=255)
 
                     # debug messages: CPU and fps
                     if not self._message and cf.g('SCREEN_DEBUG'):  # show debug messages
-                        CPU = f"{psutil.cpu_percent()}%"
+                        if STATE.cpu: CPU = f"{STATE.cpu}%"
+                        else: CPU = ""
                         bb = draw.textbbox((0,0), CPU, font=font)
                         draw.rectangle((0, height-bb[3], bb[2], height), fill=0, outline=0)
                         draw.text((0, height-bb[3]), CPU, font=font, fill=255)

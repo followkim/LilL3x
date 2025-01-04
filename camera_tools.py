@@ -3,7 +3,6 @@ from picamera2.outputs import FileOutput
 import cv2
 import requests
 import base64
-from gpiozero import CPUTemperature
 import pygame
 
 from time import sleep
@@ -11,7 +10,6 @@ from datetime import datetime
 from  error_handling import *
 import os
 import shutil
-import psutil
 from datetime import datetime, timedelta
 import numpy
 import time
@@ -72,80 +70,82 @@ class Camera:
 
         LogInfo("Camera thread starting.")
         while not STATE.ShouldQuit() and not self.should_quit and self.cam:
-            if CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP'):
-                RaiseError(f"Camera not used: CPU too hot ({CPUTemperature().temperature})")
-                self.cam.stop()
-                while CPUTemperature().temperature >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
-                    sleep(60)
-                self.cam.start()
-                continue
-
-            # do not use the camera if in Active or Wake... unless asked to.  should_wake() is true if user asks for camera.
-            if self.should_wake() or not STATE.IsInteractive():
-                img = self._read_camera_array()
-                if self._is_dark(img) or isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
-                    sleep(cf.g('CAMERA_SLEEP_SEC')*2)  # nothing to SleepOn
+             try:
+                if STATE.temp >= cf.g('CPU_MAX_TEMP'):
+                    LogError(f"Camera not used: CPU too hot ({STATE.temp})")
+                    self.cam.stop()
+                    while STATE.temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
+                        sleep(60)
+                    self.cam.start()
                     continue
 
-                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                
-                if tracker:
-                    success,bbox=tracker.update(img)
-                    if success: 
-                        (x, y, w, h) = bbox
-                        tries = 0
-                        success = False
-                        while tries < 5 and not success:
-                            eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
-                            if len(eyes) > 0:
-                                self.last_seen = datetime.now()
-                                STATE.cx = 1280 - ((w//2) + x)
-                                STATE.cy = (h//2) + y
-                                LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
-                                cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
-                                success = True
-                            else: tries = tries+1
+                # do not use the camera if in Active or Wake... unless asked to.  should_wake() is true if user asks for camera.
+                if self.should_wake() or not STATE.IsInteractive():
+                    img = self._read_camera_array()
+                    if self._is_dark(img) or isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
+                        sleep(cf.g('CAMERA_SLEEP_SEC')*2)  # nothing to SleepOn
+                        continue
 
-                    if not success: # lost face
-                        LogDebug("Camera: Lost face")
-                        tracker = False
-                        STATE.cx=-1
-                        STATE.cy=-1
-                        
-                if tracker == False:  # don't use an else as tracker might ahve turned false above
-                    faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
-                    if len(faces)>0:
-                        for (x, y, w, h) in faces:
-                            eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
-                            if len(eyes) > 0:
-                                self.last_seen = datetime.now()
-                                #tracker=cv2.legacy.TrackerMedianFlow_create()
-                                #tracker=cv2.legacy.TrackerKCF_create()
-                                #tracker=cv2.legacy.TrackerMOSSE_create()
-                                tracker=cv2.legacy.TrackerCSRT_create()
-                                ret = tracker.init(img, (x, y, w, h))
-                    else:
-                        tracker = False
-                        STATE.cx=0
-                        STATE.cy=0
-                        tracking_frames = 0
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-                prev = self._detect_motion(img, prev)
+                     # Handle Tracker
+                    if tracker:
+                        success,bbox=tracker.update(img)
+                        if success:
+                            (x, y, w, h) = bbox
+                            tries = 0
+                            success = False
+                            while tries < 5 and not success:
+                                eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
+                                if len(eyes) > 0:
+                                    self.last_seen = datetime.now()
+                                    STATE.cx = 1280 - ((w//2) + x)
+                                    STATE.cy = (h//2) + y
+                                    LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
+                                    cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
+                                    success = True
+                                else: tries = tries+1
 
-                # perform camera requests
-                if tracker and not mood_thrd.is_alive():  # get the mood
-                    mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,), daemon=True)
-                    mood_thrd.name = f"LilL3x GetEmotionThread"
-                    mood_thrd.start()
-                if self.show_view: self._whatISee(img)
-                if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
-                if self._is_dark(): sleep(30) # don't check for dark if there is movement
-            # END if should_wake or not.STATEIsInteractive()
+                        if not success: # lost face
+                            LogDebug("Camera: Lost face")
+                            tracker = None
+                            STATE.cx=0
+                            STATE.cy=0
+                            
+                    if tracker == False:  # don't use an else as tracker might ahve turned false above
+                        faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
+                        if len(faces)>0:
+                            for (x, y, w, h) in faces:
+                                eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
+                                if len(eyes) > 0:
+                                    self.last_seen = datetime.now()
+                                    #tracker=cv2.legacy.TrackerMedianFlow_create()
+                                    #tracker=cv2.legacy.TrackerKCF_create()
+                                    #tracker=cv2.legacy.TrackerMOSSE_create()
+                                    tracker=cv2.legacy.TrackerCSRT_create()
+                                    ret = tracker.init(img, (x, y, w, h))
+                        else:
+                            tracker = None
+                            STATE.cx=0
+                            STATE.cy=0
+                    #end Tracker
 
-            #sleep the camera
-            if tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
-            else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False)  # want to limit sleep to check for tracking
+                    prev = self._detect_motion(img, prev)
 
+                    # perform camera requests
+                    if tracker and not mood_thrd.is_alive():  # get the mood
+                        mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,), daemon=True)
+                        mood_thrd.name = f"LilL3x GetEmotionThread"
+                        mood_thrd.start()
+                    if self.show_view: self._whatISee(img)
+                    if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
+                # END if should_wake or not.STATEIsInteractive()
+
+                #sleep the camera
+                if tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
+                else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False)  # want to limit sleep to check for tracking
+             except Exception as e:
+                  LogError(f"CameraLoop Uncaught Exception {str(e)}")
         if self.cam: self.cam.stop()
         LogInfo("Camera thread exiting.")
 
@@ -293,7 +293,7 @@ class Camera:
         try: os.remove(filename)
         except: pass
 
-        SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, checkState=False)   # don't call more then every INTERACT_MIN minutes
+        SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, watchState=False)   # don't call more then every INTERACT_MIN minutes
         self.mood = ""    # assume that whatever they were feeling is past after INTERACT_MIN minutes
 
     def WhoAmI(self):

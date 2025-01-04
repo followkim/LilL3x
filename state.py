@@ -2,6 +2,9 @@ from datetime import datetime, timedelta
 from time import sleep
 import traceback
 from error_handling import *
+from gpiozero import CPUTemperature
+import psutil
+
 STATE = 0
 MIC_STATUS = 0
 
@@ -12,10 +15,20 @@ class State:
     data = ''
     cx=0
     cy=0
+    last_hw_dt = ''
+    temp= 0
+    cpu = 0
 
     def __init__(self):
         self.current = 'Hello'
         self.last_dt = datetime.now()
+        self.last_hw_dt = datetime.now()
+
+    def HWState(self, debug=False, waitTime=10):
+        if (datetime.now()-self.last_hw_dt).total_seconds() > waitTime:
+            self.temp = round(CPUTemperature().temperature)
+            if debug: self.cpu = round(psutil.cpu_percent())
+            self.last_hw_dt = datetime.now()
 
     def GetState(self):
         return self.current
@@ -70,7 +83,7 @@ class MicStatus:
     def TakeMic(self, timeout=3):
         self.request_mic = True
         if timeout: ud = datetime.now() + timedelta(seconds=timeout)
-        while not self.mic_free:          
+        while not self.mic_free:
             self.request_mic = True    ## ask WW for the mic 
             if timeout and datetime.now() > ud:
                 LogError("Unable to get mic (timeout)")
@@ -93,13 +106,12 @@ class MicStatus:
 
     def WaitMic(self):
         while not self.mic_free:
-            sleep(0.5)
+            sleep(0.25)
         return self.mic_free
 
     def CanUse(self):
         return (not self.request_mic and self.mic_free)
-        return True
-    
+
 if __name__ == '__main__':
 
     s = State()

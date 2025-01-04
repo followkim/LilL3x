@@ -17,7 +17,6 @@ from time import sleep
 from datetime import datetime, timedelta
 from multiprocessing import Process
 import signal
-from gpiozero import CPUTemperature
 
 # START LILL3X modules
 from error_handling import *
@@ -145,14 +144,14 @@ class lill3x:
         LogInfo("Starting Main Loop")
         last_err = False  # we can ignore a single error... but if there are two in a row then quit.
         while not STATE.ShouldQuit():
-            temp = CPUTemperature().temperature
-            if temp >= cf.g('CPU_MAX_TEMP'):
-                if temp >= 80:
-                    self.ai.say(f"I am {temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
-                    RaiseError(f"Heat error: {temp}.  Quitting.")
+            STATE.HWState(cf.g('DEBUG') or cf.g('SCREEN_DEBUG'))  # will only update every 10 secs
+            if STATE.temp >= cf.g('CPU_MAX_TEMP'):
+                if STATE.temp >= 80:
+                    self.ai.say(f"I am {STATE.temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
+                    RaiseError(f"Heat error: {STATE.temp}.  Quitting.")
                     STATE.ChangeState('Quit') 
                 else:
-                    RaiseError(f"Temp Warning: {temp}") 
+                    RaiseError(f"Temp Warning: {STATE.temp}") 
                     sleep(2)
             try:
                 eval("self."+STATE.GetState()+"()")
