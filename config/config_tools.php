@@ -35,7 +35,7 @@
 		}
 
 		echo "<table>";
-		if (sizeof(array_keys($_GET))>0) {  
+		if (sizeof(array_keys($_GET))>0) {
 			PrintConfigDev($configFile);
 		} else {
 			PrintConfigPretty();
