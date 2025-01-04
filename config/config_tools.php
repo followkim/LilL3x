@@ -19,15 +19,15 @@
           echo '<h1>Welcome to '.gethostname().'</h1>';
 	  echo ' <a href="wifi.php">Set Wifi</a><br>';
 	  echo ' <a href="config.php">configure</a><br>';
-	  echo ' <a href="config.php?file=txt">configure (Developer Version)</a><br>';
-	  echo ' <a href="config.php?file=vars">configure variables (Developer Version)</a><br>';
+	  echo ' <a href="config.php?txt">configure (Developer Version)</a><br>';
+	  echo ' <a href="config.php?vars">configure variables (Developer Version)</a><br>';
 	  echo '</body></html>';
 
         }
 
 
 	function PrintConfig() {
-		$configFile = str_replace("txt", isset($_GET['file'])?$_GET['file']:"txt", CONFIG_FILE);
+		$configFile = str_replace("txt", (sizeof(array_keys($_GET))>0?array_keys($_GET)[0]:"txt"), CONFIG_FILE);
 		$configFile = file_exists($configFile)?$configFile:CONFIG_FILE;
 
 		if (isset($_POST)) {
@@ -35,7 +35,7 @@
 		}
 
 		echo "<table>";
-		if ($configFile != CONFIG_FILE) {
+		if (sizeof(array_keys($_GET))>0) {  
 			PrintConfigDev($configFile);
 		} else {
 			PrintConfigPretty();
@@ -264,7 +264,7 @@
 	}
 
         function Print_blob($label, $key, $val, $desc="") {
-		echo "<tr><td id=\"leftHand\"><b>" . $label . "</b></td>";
+		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$key.'" />'.$val.'</textarea></td></tr>';
 		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
 	}
@@ -275,7 +275,7 @@
 	}
 
         function Print_bool($label, $key, $val, $desc="") {
-		echo "<tr><td id=\"leftHand\"><b>" . $label . "</b></td>";
+		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$key.'" '.($val=="1"?'checked':'').'></td></tr>';
 		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
 

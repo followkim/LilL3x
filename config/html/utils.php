@@ -28,28 +28,28 @@
 		echo $js_code;
 	}
 	
-	function trd_labelData($label, $variable, $controlName = "", $isRequired = 0, $type="txt", $size=15  ) {
+	function trd_labelData($label, $variable, $controlName = "", $isRequired=FALSE, $type="txt", $size=15  ) {
 		echo "<tr>".td_labelData($label,$variable,$controlName,$isRequired,$type,$size)."</tr>";
 	}
-	function td_labelData($label, $variable, $controlName = "",  $type="txt", $isRequired = 0, $size=15)	{
+	function td_labelData($label, $variable, $controlName = "",  $type="txt", $isRequired=FALSE, $size=15)	{
 		if ($controlName) {
-			echo "<td id=\"leftHand\">".($isRequired?"<b>":"").($label?"$label":"")."".($isRequired?"*</b>":":")."</td>";
+			echo "<td id=\"leftHand\"><b>".($label?"$label":"").":</b></td>";
 			echo "<td id=\"rightHand\"><input size=\"$size\" type=\"$type\" name=\"$controlName\" value=\"$variable\"/></td>";
 		} else {
-			echo "<td id=\"leftHand\"><b>".($label?"$label:":"")."</b></td>";
+			echo "<td id=\"leftHand\"><b>".($label?"$label:":"").":</b></td>";
 			echo "<td id=\"rightHand\">$variable</td>";
 		}
 	}
 	
-	function trd_dtData($label, $variable, $controlName = "", $isRequired = 0, $type="datetime-local", $size=15  ) {
+	function trd_dtData($label, $variable, $controlName = "", $isRequired=FALSE, $type="datetime-local", $size=15  ) {
 		echo "<tr>".td_labelData($label,$variable,$controlName,$isRequired,$type,$size)."</tr>";
 	}
-	function td_dtData($label, $variable, $controlName = "",  $type="datetime-local", $isRequired = 0, $size=15)	{
+	function td_dtData($label, $variable, $controlName = "",  $type="datetime-local", $isRequired=FALSE, $size=15)	{
 		if ($controlName) {
-			echo "<td id=\"leftHand\">".($isRequired?"<b>":"").($label?"$label":"")."".($isRequired?"*</b>":":")."</td>";
+			echo "<td id=\"leftHand\"><b>".($label?"$label":"").":</b></td>";
 			echo "<td id=\"rightHand\"><input size=\"$size\" type=\"$type\" name=\"$controlName\" value=\"$variable\"/></td>";
 		} else {
-			echo "<td id=\"leftHand\"><b>".($label?"$label:":"")."</b></td>";
+			echo "<td id=\"leftHand\"><b>".($label?"$label:":"").":</b></td>";
 			echo "<td id=\"rightHand\">$variable</td>";
 		}
 	}
