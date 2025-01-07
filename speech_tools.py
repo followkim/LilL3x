@@ -42,7 +42,7 @@ class speech_generator:
                 try:
                     filename = self.engine.tts(txt)
                 except Exception as e:
-                    LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {str(e)}, using gTTS")
+                    LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
                     filename = self.tts(txt)
 
                 if face: face.talking()
@@ -50,8 +50,8 @@ class speech_generator:
                 LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
                 if face: face.off()
-                LogError("speech_tools: tts error: " + str(e))
-                txt = "There was a speech error  " + str(e)
+                LogError("speech_tools: tts error: " + e.args)
+                txt = "There was a speech error  " + e.args
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
             while self.IsBusy(): sleep(0.5)
@@ -210,7 +210,7 @@ class amazon_tts:
             response = self.polly.synthesize_speech(Engine=cf.g('AWS_VOICE_ENGINE'), Text=txt, OutputFormat="mp3", VoiceId=cf.g('AWS_VOICE_ID'))
         except Exception as e:
             # The service returned an error, exit gracefully
-            LogError(f"AWS returned error: {str(e)}")
+            LogError(f"AWS returned error: {e.args}")
             return False
 
         if "AudioStream" in response:
@@ -222,11 +222,11 @@ class amazon_tts:
                        return filename
                except IOError as error:
                   # Could not write to file, exit gracefully
-                  LogError(f"AWS returned error creating file: {str(e)}")
+                  LogError(f"AWS returned error creating file: {e.args}")
                   return False
         else:
             # The response didn't contain audio data, exit gracefully
-            LogError(f"AWS returned error: {str(e)}")
+            LogError(f"AWS returned error: {e.args}")
 
 
     def Close(self):

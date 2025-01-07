@@ -47,7 +47,7 @@ class LEDS:
             else:
                 color = inColor.copy()
         except Exception as e: 
-            LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {str(e)}")
+            LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {e.args}")
         return color
 
     def LEDThread(self):
@@ -61,12 +61,14 @@ class LEDS:
             try:
                 self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
                 if self.is_idle:
+
                     if STATE.IsSleeping():                               # dim the lights
+                        LogDebug(f"Sleeping: brightness=={thisColor[3]}")
                         brightDelta = -1
                         if thisColor[3] > 0:
                             (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
                             self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
-                        elif thisColor[:3] != COLORS_RGB['off'][:3]: self.color = COLORS_RGB['off'].copy()
+##                        elif sum(thisColor) > 0: self.color = COLORS_RGB['off'].copy()
                         else: SleepOn(varf=STATE.IsSleeping, wakeOn=False)
                     elif STATE.CheckState('Surveil'):
                         self.color = COLORS_RGB['red'].copy()
@@ -83,13 +85,13 @@ class LEDS:
                         self.driver.show()
                         has_error = False
                     except Exception as e:
-                        LogError(f"LEDS:LedThread: Exception on driver.show() {str(self.color)}: {str(e)}")
+                        LogError(f"LEDS:LedThread: Exception on driver.show() {str(self.color)}: {e.args}")
                         if has_error: should_quit = True
                         else: has_error = True
                         self.off()
                 sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
             except Exception as e:
-                LogError(f"LEDS:LedThread exception: {str(e)}")
+                LogError(f"LEDS:LedThread exception: {e.args}")
                 if has_error: should_quit = True
                 else: has_error = True
 

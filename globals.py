@@ -28,7 +28,7 @@ def GetIP():
         ips = check_output(['hostname', '--all-ip-addresses'])
         return ips.split()[0].decode()
     except Exception as e:
-        print(str(e))
+        print(e.args)
         return False
 
 def GetHostname():

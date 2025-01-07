@@ -47,7 +47,7 @@ class Camera:
             self.eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml') 
 
         except Exception as e:
-            RaiseError(f"Camera exception in __int__: {str(e)}")
+            RaiseError(f"Camera exception in __int__: {e.args}")
             self.cam = False
         return
 
@@ -68,7 +68,7 @@ class Camera:
             self.cam.configure(video_config)
             self.cam.start()
         except Exception as e:
-            RaiseError(f"Unable to init Picamera: {str(e)}")
+            RaiseError(f"Unable to init Picamera: {e.args}")
             self.cam = None
 
         LogInfo("Camera thread starting.")
@@ -154,7 +154,7 @@ class Camera:
                 if tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
                 else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False, wakeOn=True)  # want to limit sleep to check for tracking
              except Exception as e:
-                  LogError(f"CameraLoop Uncaught Exception {str(e)}")
+                  LogError(f"CameraLoop Uncaught Exception {e.args}")
         if self.cam: self.cam.stop()
         LogInfo("Camera thread exiting.")
 
@@ -165,13 +165,13 @@ class Camera:
         try:
             return cv2.flip(self.cam.capture_buffer("lores"), 0)
         except Exception as e:
-            return RaiseError(f"Error reading camera ({str(e)})")
+            return RaiseError(f"Error reading camera ({e.args})")
 
     def _read_camera_array(self):
         try:
             return cv2.flip(self.cam.capture_array(), 0)
         except Exception as e:
-            return RaiseError(f"Error reading camera ({str(e)})")
+            return RaiseError(f"Error reading camera ({e.args})")
 
 
     def IsDark(self):
@@ -204,7 +204,7 @@ class Camera:
             try:
                 mse = numpy.square(numpy.subtract(cur, prev)).mean()
             except Exception as e: 
-                return LogDebug("_detect motion exptn: {str(e)}")
+                return LogDebug("_detect motion exptn: {e.args}")
             if mse > cf.g('MOTDET_SENS'):
                 self.last_motion = datetime.now()
 #        return icu>=cf.g('MOTDET_THRESH')
@@ -261,7 +261,7 @@ class Camera:
             self.take_picture = False
             return filename
         except Exception as e:
-            LogError(f"_take_picture: Couldn't take pict '{filename}': {str(e)}")
+            LogError(f"_take_picture: Couldn't take pict '{filename}': {e.args}")
             return False
     
     def SendPicture(self):
@@ -333,7 +333,7 @@ def RemoveFile(file):
     try: os.remove(file)
     except: pass
 
-CleanDirs("./picts", 30)
+CleanDirs("./picts")
 
 if __name__ == '__main__':
     global STATE

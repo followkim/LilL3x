@@ -62,7 +62,7 @@ class speech_listener:
         except sr.exceptions.UnknownValueError:
             pass
         except Exception as e:
-            LogError(f"listen_thread error {str(e)}")
+            LogError(f"listen_thread error {e.args}")
 
 
         
@@ -109,7 +109,7 @@ class speech_listener:
                     #force the listen thread to stop
                     while listen_thread.is_alive(): self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
                     MIC_STATE.ReturnMic()
-                    LogError("speech_listener.listener() returned error:" + str(e))
+                    LogError("speech_listener.listener() returned error:" + e.args)
                 if not beQuiet:
                     self.end_mp3.play()
                     if face: face.thinking()
@@ -122,7 +122,7 @@ class speech_listener:
                         pass
                     except Exception as e:
                         MIC_STATE.ReturnMic()
-                        RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {str(e)}")
+                        RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
                     self.audio=False
                 #imp = self.engines['google')(audio)  ## NEEED FIX
                 MIC_STATE.last = datetime.now()
@@ -149,7 +149,7 @@ class speech_listener:
             while pygame.mixer.music.get_busy():
                 continue
         except Exception as e:
-            RaiseError(f"Listener: unable to play file {file} ({str(e)})")
+            RaiseError(f"Listener: unable to play file {file} ({e.args})")
 
         return
 

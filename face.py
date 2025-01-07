@@ -146,7 +146,7 @@ if __name__ == '__main__':
             STATE.cx = int(input("x"))
             STATE.cy = int(input("y"))
         except Exception as e:
-            print(str(e))
+            print(e.args)
             STATE.ChangeState('Quit')
             sleep(5)
             face.Close()

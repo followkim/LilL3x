@@ -63,7 +63,7 @@ class pico_wake:
         except pvporcupine.PorcupineActivationRefusedError as e: LogError("AccessKey '%s' refused" % args.cf.g('PICOVOICE_KEY'))
         except pvporcupine.PorcupineActivationThrottledError as e: LogError("AccessKey '%s' has been throttled" % args.cf.g('PICOVOICE_KEY'))
         except pvporcupine.PorcupineError as e: LogError("Failed to initialize Porcupine")
-        except Exception as e: LogError(f"Failed to initialize Porcupine {str(e)}")
+        except Exception as e: LogError(f"Failed to initialize Porcupine {e.args}")
 
         MIC_STATE.ReturnMic()
         LogInfo(f"Wake Word Set to: {str(self.keywords_path)}.")
@@ -94,7 +94,7 @@ class pico_wake:
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
-            return RaiseError("Unable to create recorder: " + str(e))
+            return RaiseError("Unable to create recorder: " + e.args)
         recorder.start()
         while not MIC_STATE.MicRequested() and not (self.should_quit or STATE.IsInteractive()):
             try:
@@ -108,7 +108,7 @@ class pico_wake:
                         self.wake_mp3.play()
                     else: LogInfo(f"Wake word ignored, audio playing")
             except Exception as e:
-                LogError("pico_wake loop encountered exception: " + str(e))
+                LogError("pico_wake loop encountered exception: " + e.args)
                 
         #mic is requested
         recorder.stop()  # stop the recorder if requested to do so

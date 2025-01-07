@@ -1,20 +1,24 @@
 <?php 	
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
-	ini_set('display_errors', true); 
-        include './utils.php';                   // utils.php: database connection/disconnect functiosn
+	ini_set('display_errors', true);
+        include './utils.php';
 
 	const CONFIG_PATH =  "/home/el3ktra/LilL3x/config/";
-	const CONFIG_DD =  CONFIG_PATH . "config_dd.txt";
 	const CONFIG_ROOT =  "config.txt";
-	const CONFIG_FILE =  CONFIG_PATH . "config.txt";
+	const CONFIG_DD =  CONFIG_PATH . "config_dd.txt";
+	const CONFIG_FILE =  CONFIG_PATH . CONFIG_ROOT;
 
 
-        function PrintIndex() {
+	function HTMLHead() {
 	  echo "<head>";
 	  echo " <title>".gethostname()."</title>";
 	  echo '  <meta name="viewport" content="width=device-width, initial-scale=1">';
 	  echo "</head>";
+	}
+
+        function PrintIndex() {
+          HTMLHead();
 	  echo "<body> <p>";
           echo '<h1>Welcome to '.gethostname().'</h1>';
 	  echo ' <a href="wifi.php">Set Wifi</a><br>';
@@ -25,22 +29,26 @@
 
         }
 
-
 	function PrintConfig() {
 		$configFile = str_replace("txt", (sizeof(array_keys($_GET))>0?array_keys($_GET)[0]:"txt"), CONFIG_FILE);
 		$configFile = file_exists($configFile)?$configFile:CONFIG_FILE;
 
 		if (isset($_POST)) {
-	            WriteConfig($_POST, $configFile);
+			if (count($_POST) > 0 ) {
+		            WriteConfig($_POST, $configFile);
+			}
 		}
 
-		echo "<table>";
-		if (sizeof(array_keys($_GET))>0) {
-			PrintConfigDev($configFile);
-		} else {
-			PrintConfigPretty();
-		}
+		echo "<body><table>";
+                echo "<center><b><h1>Configure ".gethostname()."</b></h1></center>";
+                echo '<form action="" method="POST">';
+
+		if (sizeof(array_keys($_GET))>0) PrintConfigDev($configFile);
+		else PrintConfigPretty();
+
 		echo "</table>";
+                echo '<input type="submit" value="Set"/></form>';
+                echo '<p><a href="index.php">Back to main page</a></body>';
 	}
 
 	function PrintConfigPretty($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
@@ -57,12 +65,13 @@
 	                        $val = array_key_exists($key, $value_dict)?$value_dict[$key][0]:'';
 	                        $type= array_key_exists($key, $value_dict)?trim($value_dict[$key][1]):'str';
 
-
 				if (preg_match("/^[a-zA-Z]/", $key)) {
-	                               if (in_array($key, $func_list)) {
-						eval("Print_".$key."(\$label, \$key, \$val, \$desc);");
-					} elseif ($key=="HEADER") {
+					if ($key=="HEADER") {
 						PrintHEADER($label, (array_key_exists(2, $atts)?$desc:"2"));
+					} elseif (preg_match("/[A-Z]*_LED/", $key)) {
+						Print_LED($label, $key, $val, $desc);
+					} elseif (in_array($key, $func_list)) {
+						eval("Print_".$key."(\$label, \$key, \$val, \$desc);");
 	                                } elseif (in_array($type, $func_list)) {
 	                                        eval("Print_".$type."(\$label, \$key, \$val, \$desc);");
 					} else {
@@ -84,13 +93,11 @@
 				$key = $atts[0];
 				$val = $atts[1];
 				$type = trim($atts[2]);
-				if (in_array($key, $func_list)) {
-					eval("Print_".$key."(\$key, \$key, \$val);");
-				} elseif (in_array($type, $func_list)) {
-					eval("Print_".$type."(\$key, \$key, \$val);");
-				} else {
-					echo trd_labelData($key, $val, $key);
-				}
+				if (preg_match("/[A-Z]*_LED/", $key)) Print_LED($label, $key, $val, $desc);
+				elseif (in_array($key, $func_list)) eval("Print_".$key."(\$key, \$key, \$val);");
+				elseif (in_array($type, $func_list)) 	eval("Print_".$type."(\$key, \$key, \$val);");
+				else 	echo trd_labelData($key, $val, $key);
+				
 			}
 		}
 		fclose($myfile);
@@ -98,13 +105,21 @@
 
 
 	function WriteConfig($post, $configFilePath) {
+
+                $chkFile = FALSE;
+
 		// read current config file
-		$myfile = fopen($configFilePath, "r") or die("Unable to open file!");
+		$myfile = fopen($configFilePath, "r") ;
 		$config_new = "";
 		while(!feof($myfile)) {
 			$line = fgets($myfile);
 			$att = explode('|', $line);
 	                if (count($att) > 2 ) {
+	                        if (($chkFile==FALSE) and (isset($post[$att[0]]) == FALSE)) {
+					echo "Tried to write data to wrong File! \tFile: " . $configFilePath . "\tData:" . $line;
+					break;
+				} else $chkFile = TRUE;
+ 
                                 if (trim($att[2]) == 'bool') {
 					$val =  isset($post[$att[0]]) ? "1" : "0";
 				} else {
@@ -114,17 +129,35 @@
 				for($i=2; $i < count($att); $i++) {
 					$config_new = $config_new . '|' . $att[$i] ;
 				}
+                                unset($post[$att[0]]);
+			} else {
+				 $config_new = $config_new . $line;
 			}
 		}
 		fclose($myfile);
 
-        // write to the new config file
-		$myfile = fopen($configFilePath, "w") or die("Unable to open file!");
-		fwrite($myfile, $config_new);
-		fclose($myfile);
+	        // write to the new config file
+		if ($chkFile) {
+			try {
+//		    		$myfile = fopen("\config.bk", "w");
+		    		$myFile = fopen($configFilePath, "c");
+				if (flock($myFile, LOCK_EX)) {
+					fwrite($myFile, $config_new);
+                                        fwrite($myFile, "##### Written by config_tools.php at ". date("Y-m-d h:i:sa"));
+                                        fflush($myFile);
+                                        flock($myFile, LOCK_UN);
+					fclose($myFile);
+//					rename(CONFIG_PATH."config.bk", $configFilePath);
+					echo "Wrote to file ".$configFilePath;
+				}
+				else echo "Error opening ".$configFilePath. "\n";
+
+			} catch (Exception $e) {
+	                        echo "Error writing to ".$configFilePath .":". $e->getMessage() . "\n";
+			}
+		}
 	}
-
-
+	
         function LoadConfig($configFilePath) {
 	        $value_dict = [];
 		$configf = fopen($configFilePath, "r") or die("Unable to open file!");
@@ -134,7 +167,6 @@
 			if (count($att) > 2 ) {
 				$e = array($att[1], $att[2]);
 				$value_dict[$att[0]] = $e;
-				// echo $value_dict[$att[0]][0]."|".$value_dict[$att[0]][1] . "";
 			}
 		}
 		fclose($configf);
@@ -151,19 +183,15 @@
 			if (preg_match("/^AI_[A-Z]/", $file)) {
 				$pyfile = fopen('/home/el3ktra/LilL3x/beings/'.$file, "r");
 				while(!feof($pyfile)) {
-					$line = fgets($pyfile);
-					if (preg_match_all("/class AI_([A-Z])(.*)\(/", $line, $matches)) {
-						$ai_engine = $matches[1][0].$matches[2][0];
-						echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $value)?"selected":"") . ">" . $ai_engine ."</option>";
+					$line = fgets($pyfile);  // ((AI_[A-Z]*.)\)
+					if (preg_match_all("/class AI_([A-Z].*)\((.*)\):/", $line, $matches)) {
+						$ai_engine = $matches[1][0];
+						$ai_parent = (preg_match("/^AI_/", $matches[2][0]) ? "  (" . ucfirst(str_replace('AI_', '', $matches[2][0])).")" : "");
+						echo "<option value=\"" . $ai_engine . "\" "  .   (($ai_engine == $value)?"selected":"") . ">" . $ai_engine. $ai_parent ."</option>";
 					}
-//                                                $line = "class AI_Artification(AI_parent)";
-//                                                if (preg_match_all("/class AI_([A-Z])(.*)\(AI_(.*)\)/", $line, $matches)) {
-//                                                print_r($matches);
-//                                                $ai_engine = $matches[1][0].$matches[2][0];
-//                                                $ai_engine_parent = $matches[3][0];
 				}
 				fclose($pyfile);
-			} // preg_match filename                                                                      
+			} // preg_match filename
 		}
 		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
@@ -230,6 +258,24 @@
 		else echo "</select></td></tr>";
 	}
 
+	function Print_LED($label, $name, $value, $desc="") {
+		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+		echo "<td id='rightHand' >";
+		echo "<select color=\"".$value."\"name=\"".$name."\" value=".$value.">";
+		$pyfile = fopen('/home/el3ktra/LilL3x/raspberryPi/rasp_leds.py', "r");
+		while(!feof($pyfile)) {
+			$line = fgets($pyfile);
+			if (preg_match_all("/'(.*)':/", $line, $matches)) {
+				$val = $matches[1][0];
+				echo "<option color=\"".$val."\" value=\"" . $val . "\" "  .   (($val == $value)?"selected":"") . ">" . $val ."</option>";
+			}
+		}
+		fclose($pyfile);
+		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
+		else echo "</select></td></tr>";
+	}
+
+
 	function Print_WAKE_WORD($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
@@ -253,14 +299,14 @@
 			if (preg_match_all("/^([a-z]*)_wake.py/", $file, $matches)) {
 				$wake_word_eng = $matches[1][0];
 				echo "<option value=\"" . $wake_word_eng  . "\" " . (($wake_word_eng == $value)?"selected":"") . ">" . ucwords($wake_word_eng) . "</option>";
-			} 
+			}
 		}
   		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
 		else echo "</select></td></tr>";
 	}
 
         function PrintHEADER($label, $ht="2") {
-		echo "<tr><td colspan='2'><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
+		echo "<tr><td colspan='2'><br><hr><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
 	}
 
         function Print_blob($label, $key, $val, $desc="") {

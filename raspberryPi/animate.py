@@ -60,7 +60,7 @@ class Screen:
                              picts[func[0]] = []
                          picts[func[0]].append(Image.open('./frames/'+file).convert("1"))
                  except Exception as e:
-                     LogError("Error loading file {file}: {str(e)}")
+                     LogError("Error loading file {file}: {e.args}")
         self.picts = picts
 
     def AnimateThread(self):
@@ -191,7 +191,7 @@ class Screen:
                 real_fps = round(1000000/(datetime.now()-dt).microseconds, 1)
                 sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
             except Exception as e:
-                LogError(f"AnimateThreadException: {str(e)}")
+                LogError(f"AnimateThreadException: {e.args}")
         self.disp.fill(0)
         self.disp.show()
         LogInfo(f"Animate Thread ended")

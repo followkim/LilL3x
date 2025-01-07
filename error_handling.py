@@ -31,7 +31,7 @@ def InitLogFile():
         print(f"Log File Created: " + log_file_name)
         LnFile()
     except Exception as e:
-        print(f"Unable to create log file: {str(e)}")
+        print(f"Unable to create log file: {e.args}")
 
 def LnFile():
     global log_file_name
@@ -50,7 +50,7 @@ def LnFile():
             if os.path.exists(log_file_ln):
                 print("Log Link Created: " + log_file_ln)
     except Exception as e:
-        print(f"Unable to create log file link: {str(e)}")
+        print(f"Unable to create log file link: {e.args}")
     return os.path.exists(log_file_ln) and os.readlink(log_file_ln) != log_file_name
 
 
@@ -107,15 +107,15 @@ def Log(text, level=""):
     global log_file_name
     global log_file_ln
 
-    if log_file_name == "": print(f"{level}{text}")
     if log_file_name:
+        LnFile()
         try:
-            logFile = open(log_file_name, "a")
+            logFile = open(log_file_ln, "a")
             logFile.write(f"{level}{text}\n")
             logFile.close()
         except Exception as e:
-            print(f"Error writing to logfile: {str(e)}")
-        LnFile()
+            print(f"Error writing to logfile: {e.args}")
+    else: print(f"{level}{text}")
 
 def Color(text, color_code):
     colors = {
@@ -135,23 +135,23 @@ def DumpStack():
             traceback.print_stack(file=logFile)
             logFile.close()
         except Exception as e:
-            print(f"Error writing to logfile: {str(e)}")
+            print(f"Error writing to logfile: {e.args}")
     else: traceback.print_stack()
 
 def CloseLog():
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
     Log(Color(f"********** LOG ENDED **********\n\n\n\n", 'cyan'))
 
-def CleanLogs():
-    time_in_secs = time.time() - (30 * 24 * 60 * 60) #30 days -- need a constant here as we can't access cf
-    if os.path.exists('./log'):
-        for root_folder, folders, files in os.walk('./log'):
+def CleanDirs(dir, hours=30*24):   # 30 days is the default
+    time_in_secs = time.time() - (hours * 60 * 60) 
+    if os.path.exists(dir):
+        for root_folder, folders, files in os.walk(dir):
             for file in files:
                 file_path = os.path.join(root_folder, file)
                 if os.path.getctime(file_path) < time_in_secs:
                     os.remove(file_path)
 
-CleanLogs()
+CleanDirs("./log")
 
 if __name__ == '__main__':
 

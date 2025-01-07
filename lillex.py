@@ -47,21 +47,6 @@ from button import Button
 
 sys.path.insert(0, currentdir)
 
-# how many seconds we should sleep in each state.
- #Note that sleeping still allows for WakeWord but higher values will cause less interaction and checks.
-sleep_secs = {
-    'ActiveIdle': cf.g('ACTIVE_IDLE_SLEEP'),
-    'Idle': cf.g('IDLE_SLEEP'),
-    'SleepState': cf.g('SLEEP_SLEEP')
-}
-
-# How long we stay in each state.
-# State changes resets value.  For example, it takes 1 hour and 31 minutes to get into sleep
-timeout_secs = {
-    'ActiveIdle':cf.g('ACTIVE_IDLE_TO')*60,
-    'Idle': cf.g('IDLE_TO')*60
-}
-
 
 class lill3x:
 
@@ -76,39 +61,39 @@ class lill3x:
         try:
             self.mouth = speech_generator()
         except Exception as e:
-            RaiseError("Init():Could not init speech generator. " + str(e))
+            RaiseError("Init():Could not init speech generator. " + e.args)
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
             self.ears = speech_listener()
         except Exception as e:
-            RaiseError("Init():Could not init listener. " + str(e))
+            RaiseError("Init():Could not init listener. " + e.args)
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
             self.eyes = Camera()
         except Exception as e:
-            RaiseError("Init():Could not init camera. " + str(e))
+            RaiseError("Init():Could not init camera. " + e.args)
 
         try:
             self.face = Face() # note this spawns two threads: animate and led threads
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
-            RaiseError("Init():Could not init Display. " + str(e))
+            RaiseError("Init():Could not init Display. " + e.args)
 
         try:
             self.button = Button() 
         except Exception as e:
-            RaiseError("Init():Could not init Button. " + str(e))
+            RaiseError("Init():Could not init Button. " + e.args)
 
         # get AI (depending on config)
         try:
             self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
             self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
         except Exception as e:
-            RaiseError("Unable to create AI: "+ str(e))
+            RaiseError("Unable to create AI: "+ e.args)
             STATE.ChangeState('Quit')
             return # fatal
         if not self.ai:
@@ -157,7 +142,7 @@ class lill3x:
                 eval("self."+STATE.GetState()+"()")
                 last_err = False
             except Exception as e:
-                LogError(f"Loop(): {STATE.GetState()}: Uncaught Exception: {str(e)}")
+                LogError(f"Loop(): {STATE.GetState()}: Uncaught Exception: {e.args}")
                 if last_err: STATE.ChangeState('Quit')
                 else: last_err = True
         # call the Quit function
@@ -174,8 +159,8 @@ class lill3x:
             new_ai = eval(f"AI_{newAI}()")
 
         except Exception as e:
-            LogError("Unable to create AI: {str(e)}") 
-            self.ai.say(f"I wasn't able to switch to {newAI}.  {str(e)}")
+            LogError("Unable to create AI: {e.args}") 
+            self.ai.say(f"I wasn't able to switch to {newAI}.  {e.args}")
             return False
 
         if not new_ai.has_auth:
@@ -196,7 +181,7 @@ class lill3x:
             try:
                 eval(cmd)
             except Exception as e:
-                LogError(f"EvalCode failed.\n\tcmd:{cmd}\n\tErr: {str(e)}")
+                LogError(f"EvalCode failed.\n\tcmd:{cmd}\n\tErr: {e.args}")
         STATE.data = ""
         STATE.RevertState()
 
@@ -228,7 +213,7 @@ class lill3x:
     def ActiveIdle(self):
 
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
-        if STATE.StateDuration() > cf.g('ACTIVE_IDLE_TO')*60:
+        if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
             STATE.ChangeState('Idle')
 
         if STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
@@ -267,7 +252,10 @@ class lill3x:
 
         # user turned on the light-- goto acttive idle
         if not self.eyes.IsDark():
-            STATE.ChangeState('Idle')  # will switch to Active Idle once user is seen
+            if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
+                STATE.ChangeState('Idle')
+            else:
+                STATE.ChangeState('ActiveIdle')  # will switch to Active Idle once user is seen
         else:
             SleepOn(varf=self.eyes.IsDark)
 
@@ -277,15 +265,15 @@ class lill3x:
         if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving():
             try:
                 self.ai.say(self.ai.Intruder())
-            except Exception as e: LogError(f"Surveil: exceoption on say()) {str(e)}")
+            except Exception as e: LogError(f"Surveil: exceoption on say()) {e.args}")
             try:
                 user_input = self.ai.listen()
-            except Exception as e: LogError(f"Surveil: exception on listen()) {str(e)}")
+            except Exception as e: LogError(f"Surveil: exception on listen()) {e.args}")
             if user_input:
                 try:
                     STATE.ChangeState('Active')
                     self.ai.say(self.ai.respond(user_input))
-                except Exception as e: LogError(f"Surveil: exception on respond() {str(e)}")
+                except Exception as e: LogError(f"Surveil: exception on respond() {e.args}")
             else:
                 self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_WAIT minuntes
         else:

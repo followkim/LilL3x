@@ -28,10 +28,10 @@
 		echo $js_code;
 	}
 	
-	function trd_labelData($label, $variable, $controlName = "", $isRequired=FALSE, $type="txt", $size=15  ) {
+	function trd_labelData($label, $variable, $controlName = "", $isRequired=FALSE, $type="txt", $size=50  ) {
 		echo "<tr>".td_labelData($label,$variable,$controlName,$isRequired,$type,$size)."</tr>";
 	}
-	function td_labelData($label, $variable, $controlName = "",  $type="txt", $isRequired=FALSE, $size=15)	{
+	function td_labelData($label, $variable, $controlName = "",  $type="txt", $isRequired=FALSE, $size=50)	{
 		if ($controlName) {
 			echo "<td id=\"leftHand\"><b>".($label?"$label":"").":</b></td>";
 			echo "<td id=\"rightHand\"><input size=\"$size\" type=\"$type\" name=\"$controlName\" value=\"$variable\"/></td>";
@@ -41,10 +41,10 @@
 		}
 	}
 	
-	function trd_dtData($label, $variable, $controlName = "", $isRequired=FALSE, $type="datetime-local", $size=15  ) {
+	function trd_dtData($label, $variable, $controlName = "", $isRequired=FALSE, $type="datetime-local", $size=50  ) {
 		echo "<tr>".td_labelData($label,$variable,$controlName,$isRequired,$type,$size)."</tr>";
 	}
-	function td_dtData($label, $variable, $controlName = "",  $type="datetime-local", $isRequired=FALSE, $size=15)	{
+	function td_dtData($label, $variable, $controlName = "",  $type="datetime-local", $isRequired=FALSE, $size=50)	{
 		if ($controlName) {
 			echo "<td id=\"leftHand\"><b>".($label?"$label":"").":</b></td>";
 			echo "<td id=\"rightHand\"><input size=\"$size\" type=\"$type\" name=\"$controlName\" value=\"$variable\"/></td>";

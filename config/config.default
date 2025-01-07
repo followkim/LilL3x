@@ -19,6 +19,16 @@ INTERACT_MIN|5|int|time to wait before interacting again
 INTERACT_MAX|15|int|if longer then this since last interaction then force interaction
 SURVEIL_WAIT|5|int|minutes
 SURVEIL_LOOK|120|int|seconds
+ACTIVE_IDLE_TO|30|int|minutes
+
+#LEDS
+BRIGHTNESS|50|int|1-100
+BRIGHT_SPEED|2|int|1-100
+LIGHT_SPEED|75|int|1-100
+LISTEN_LED|green|str
+THINK_LED|purple|str
+TALK_LED|red|str
+LOOK_LED|white|str
 
 #Camera
 ICU_THRESH|2|int
@@ -65,9 +75,6 @@ ELEVENLABS_VOICE_ID||str|
 FPS|3|int|
 MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|
-LIGHT_SPEED|75|int|1-100
-BRIGHTNESS|50|int|1-100
-BRIGHT_SPEED|2|int|1-100
 SCREEN_DEBUG|1|bool|
 
 #system
