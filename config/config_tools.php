@@ -143,7 +143,7 @@
 		    		$myFile = fopen($configFilePath, "c");
 				if (flock($myFile, LOCK_EX)) {
 					fwrite($myFile, $config_new);
-                                        fwrite($myFile, "##### Written by config_tools.php at ". date("Y-m-d h:i:sa"));
+                                        fwrite($myFile, "##### Written by config_tools.php at ". date("Y-m-d h:i:sa")."\n\n");
                                         fflush($myFile);
                                         flock($myFile, LOCK_UN);
 					fclose($myFile);
