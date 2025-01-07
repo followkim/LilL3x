@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import numpy
 import time
 import threading
-from globals import STATE, SleepOn
+from globals import STATE, SleepOn, GetIP
 from config import cf
 #from speech_tools import PlaySound
 from deepface import DeepFace
@@ -38,11 +38,6 @@ class Camera:
     def __init__(self):
         try:
 
-            os.environ["LIBCAMERA_LOG_LEVELS"] = "3"
-            self.cam = Picamera2()
-            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"},
-                                                 lores={"size": (320,240), "format": "YUV420"})
-            self.cam.configure(video_config)
             self.shutter = pygame.mixer.Sound(cf.g('CAMERA_CLICK_MP3'))
 
             # see https://www.geeksforgeeks.org/opencv-python-program-face-detection/
@@ -51,22 +46,30 @@ class Camera:
             self.face_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_frontalface_default.xml') 
             self.eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml') 
 
-            self.cam.start()
-
         except Exception as e:
-            RaiseError(f"Unable to init Picamera: {str(e)}")
+            RaiseError(f"Camera exception in __int__: {str(e)}")
             self.cam = False
         return
-    
+
     def CameraLoopThread(self):
         self._camera_loop_thread()
-               
 
     def _camera_loop_thread(self):
-        tracker = False
+        tracker = None
         prev = None
         dt=datetime.now()
         mood_thrd = threading.Thread(target=self._get_emotion_thread)  # need to init here to call "is_alive" later
+
+        # open the camera
+        try: 
+            os.environ["LIBCAMERA_LOG_LEVELS"] = "3"
+            self.cam = Picamera2()
+            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}, lores={"size": (320,240), "format": "YUV420"})
+            self.cam.configure(video_config)
+            self.cam.start()
+        except Exception as e:
+            RaiseError(f"Unable to init Picamera: {str(e)}")
+            self.cam = None
 
         LogInfo("Camera thread starting.")
         while not STATE.ShouldQuit() and not self.should_quit and self.cam:
@@ -75,16 +78,22 @@ class Camera:
                     LogError(f"Camera not used: CPU too hot ({STATE.temp})")
                     self.cam.stop()
                     while STATE.temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
-                        sleep(60)
+                        sleep(60)  # force sleep
                     self.cam.start()
                     continue
 
                 # do not use the camera if in Active or Wake... unless asked to.  should_wake() is true if user asks for camera.
                 if self.should_wake() or not STATE.IsInteractive():
                     img = self._read_camera_array()
-                    if self._is_dark(img) or isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
-                        sleep(cf.g('CAMERA_SLEEP_SEC')*2)  # nothing to SleepOn
+                    if isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
+                        LogDebug(f"Unable to get camera  image")
+                        SleepOn(cf.g('CAMERA_SLEEP_SEC')*2)
                         continue
+
+                    if self._is_dark(img):
+                        STATE.ChangeState('SleepState')      # allow the camera to dictate this, LilLex.Sleep() will reset state when light again
+                        SleepOn(secs=cf.g('CAMERA_SLEEP_SEC')*2, varf=STATE.IsSleeping, wakeOn=False)
+                        continue                             # as it is dark, we can't see anything and should try to continue loop
 
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -112,7 +121,7 @@ class Camera:
                             STATE.cx=0
                             STATE.cy=0
                             
-                    if tracker == False:  # don't use an else as tracker might ahve turned false above
+                    if tracker == None:  # don't use an else as tracker might ahve turned false above
                         faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
                         if len(faces)>0:
                             for (x, y, w, h) in faces:
@@ -143,7 +152,7 @@ class Camera:
 
                 #sleep the camera
                 if tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
-                else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False)  # want to limit sleep to check for tracking
+                else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False, wakeOn=True)  # want to limit sleep to check for tracking
              except Exception as e:
                   LogError(f"CameraLoop Uncaught Exception {str(e)}")
         if self.cam: self.cam.stop()
@@ -175,7 +184,10 @@ class Camera:
         # Extract the V channel (Value channel represents brightness)
         v_channel = hsv[:, :, 2]
         brightness = numpy.mean(v_channel)
-        self.is_dark= brightness<=cf.g('IS_DARK_THRESH')
+
+        oldDark = self.is_dark
+        self.is_dark = brightness<=cf.g('IS_DARK_THRESH')
+        if oldDark != self.is_dark: LogInfo(f"is_dark changed to {self.is_dark}: (brightness={round(brightness)})")
         return self.is_dark
 
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
@@ -199,15 +211,13 @@ class Camera:
         return cur # allows easy setting of previous frame
 
     def ShowView(self):
-        try: os.remove('./frames/wis.ppm')
-        except: pass
+        RemoveFile(cf.g('WIS_FILE'))  #remove view file if exsists
         self.show_view=True
 
     def EndShowView(self):
         self.show_view = False
-        sleep(0.25)
-        try: os.remove('./frames/wis.ppm')
-        except: pass
+        sleep(0.25) # wait for file to be shown
+        RemoveFile(cf.g('WIS_FILE'))
         return
 
     def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
@@ -215,11 +225,14 @@ class Camera:
 
         gmi = cv2.flip(img, 1)
         ig = cv2.resize(gmi, (128, 64))
-        cv2.imwrite(filename, ig)  # TODO write to temp file and copy over
 
-    def TakePicture(self, fname=cf.g('TEMP_PATH_DEFAULT'), beQuiet=False):
+        temp = filename.replace('.ppm', '_temp.ppm')
+        cv2.imwrite(temp, ig)
+        os.rename(temp, filename)
+
+    def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False):
         if is_dir(fname):
-            filename = fname+'capture_'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
+            filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
             filename = fname
         self.take_picture = filename
@@ -234,14 +247,17 @@ class Camera:
     def _take_picture(self, image, filename, beQuiet=False):
         try:
             if isinstance(image, bool): self.cam.capture_file(filename)
-            else: cv2.imwrite(filename, image)
-            LogDebug(f"_take_picture: '{filename}'")
+            else:
+                cv2.imwrite(f"{cf.g('TEMP_PATH')}temp.jpg", image)
+                os.rename(f"{cf.g('TEMP_PATH')}temp.jpg", filename)
             # show the image for 3 secs and play a shutter sound
             if not beQuiet:
+                LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
                     self._whatISee(image)
                     sleep(cf.g('CAMERA_PICT_SEC'))
+            LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
             self.take_picture = False
             return filename
         except Exception as e:
@@ -266,9 +282,9 @@ class Camera:
         else: LogWarn(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
 
-    def SharePicture(self):
-        fname = self.TakePicture()
-        url = self.UploadPicture(fname) 
+    def SharePicture(self, beQuiet=False):
+        fname = self.TakePicture(beQuiet=beQuiet)
+        url = self.UploadPicture(fname)
         print(f"fname:{fname}")
         print(f"url:{url}")
         return url
@@ -278,7 +294,7 @@ class Camera:
         self.mood = ""
         return ret
 
-    def _get_emotion_thread(self, image=False, filename=cf.g('TEMP_PATH_DEFAULT')+'mood.jpg'):
+    def _get_emotion_thread(self, image=False, filename=cf.g('TEMP_PATH')+'mood.jpg'):
         LogDebug(f"Camera: _get_emotion_thread called at {datetime.now().strftime('%H:%M')}")
         self.mood = ""
         if isinstance(image, bool): imagePath = self.TakePicture(filename, beQuiet=True)
@@ -293,9 +309,9 @@ class Camera:
         try: os.remove(filename)
         except: pass
 
-        SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, watchState=False)   # don't call more then every INTERACT_MIN minutes
+        SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, watchState=False, wakeOn=True)   # don't call more then every INTERACT_MIN minutes
         self.mood = ""    # assume that whatever they were feeling is past after INTERACT_MIN minutes
-
+    
     def WhoAmI(self):
         user_img = self.TakePicture(seeUser=True, beQuiet=True)
         if user_img:
@@ -313,6 +329,11 @@ class Camera:
 def is_dir(path):
     return path[-1] == '/'
 
+def RemoveFile(file):
+    try: os.remove(file)
+    except: pass
+
+CleanDirs("./picts", 30)
 
 if __name__ == '__main__':
     global STATE
@@ -325,8 +346,8 @@ if __name__ == '__main__':
         c.show_view=True
         Thread  = threading.Thread(target=c.CameraLoopThread)
         Thread.start()
-        sleep(10)
-        print(c.SharePicture())
+        sleep(20)
+        print(c.SharePicture(beQuiet=True))
         '''
         x = 0
         while x < 100: 

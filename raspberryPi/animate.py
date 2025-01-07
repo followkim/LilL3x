@@ -1,11 +1,3 @@
-#print SPDX-FileCopyrightText: 2017 Tony DiCola for Adafruit Industries
-# SPDX-FileCopyrightText: 2017 James DeVito for Adafruit Industries
-# SPDX-License-Identifier: MIT
-
-# This example is for use on (Linux) computers that are using CPython with
-# Adafruit Blinka to support CircuitPython libraries. CircuitPython does
-# not support PIL/pillow (python imaging library)!
-
 import re
 import sys
 import os
@@ -22,11 +14,9 @@ import adafruit_ssd1306
 from apa102 import APA102
 
 sys.path.insert(0, '..')
-from globals import STATE
+from globals import STATE, SleepOn
 from config import cf
 from error_handling import *
-LogDebug("LED Display Loading...")
-
 
 class Screen:
     display = 0
@@ -91,6 +81,7 @@ class Screen:
         movY = 1
         locx = 0
         locy = 0
+        errCnt = 0
 
         # Load default font.
         font = ImageFont.load_default()
@@ -103,10 +94,10 @@ class Screen:
             try:
                 # Turn off display in idle/sleep state, or show tracking
                 if self.state == 'Idle':
-                    if STATE.CheckState('SleepState'):
+                    if STATE.IsSleeping():
                         self.disp.fill(0)
                         self.disp.show()
-                        sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
+                        SleepOn(varf=STATE.IsSleeping, wakeOn=False)
                         continue
                     elif random.randint(0, cf.g('FPS')*5) == 1 or STATE.CheckState('Idle'):
                         self.displayPicts = self.picts['blinking']
@@ -204,6 +195,32 @@ class Screen:
         self.disp.fill(0)
         self.disp.show()
         LogInfo(f"Animate Thread ended")
+
+    def DrawText(self, text, where, font):
+        ret = {'x':0,'y': 0, 'xx': 0, 'yy': 0}
+        width = self.disp.width
+        height = self.disp.height
+        bb = draw.textbbox((0,0), text, font=font)
+
+        # y axis
+        if where[0]=='u':
+            ret['y'] = 0  #y
+            ret['yy'] = bb[2]
+        else:
+            ret['y'] = height-bb[3]
+            ret['yy'] = height
+
+        #x axis
+        if where[1]=='r':
+            ret['x'] = width-bb[2]  
+            ret['xx'] = width
+        else:
+            ret['x'] = 0
+            ret['xx'] = bb[3]
+
+        draw.rectangle((ret['x'], ret['y'], ret['xx'], ret['yy']), fill=0, outline=0)
+        draw.text((ret['x'], ret['y']), text, font=font, fill=255)
+        return ret
 
     def talking(self):
         self.state = 'Talk'

@@ -8,7 +8,7 @@ from apa102 import APA102
 #from config import cf
 
 sys.path.insert(0, '..')
-from globals import STATE
+from globals import STATE, SleepOn
 from config import cf
 from error_handling import *
 
@@ -30,7 +30,7 @@ NUM_LEDS = 12
 class LEDS:
     driver = 0
     power = 0
-    color = COLORS_RGB['white']
+    color = COLORS_RGB['off']
     color[3] = cf.g('BRIGHTNESS') # se we aren't asking driver to set constantly
     should_quit = False
     is_idle = True
@@ -61,14 +61,13 @@ class LEDS:
             try:
                 self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
                 if self.is_idle:
-                    if STATE.CheckState('SleepState'):                                      # dim the lights
+                    if STATE.IsSleeping():                               # dim the lights
                         brightDelta = -1
                         if thisColor[3] > 0:
                             (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle
                             self.color[3] = max(thisColor[3] + (cf.g('BRIGHT_SPEED') * brightDelta), 0)  # reset brightness from default
                         elif thisColor[:3] != COLORS_RGB['off'][:3]: self.color = COLORS_RGB['off'].copy()
-                        else:
-                            sleep(cf.g('SLEEP_SLEEP'))
+                        else: SleepOn(varf=STATE.IsSleeping, wakeOn=False)
                     elif STATE.CheckState('Surveil'):
                         self.color = COLORS_RGB['red'].copy()
                         (self.color[3], brightDelta) = bounce(thisColor[3], cf.g('BRIGHT_SPEED')*2, brightDelta)
@@ -100,34 +99,46 @@ class LEDS:
 
     def blue(self):
         self.color = self.SetColor(COLORS_RGB['blue'])
+
     def green(self):
         self.color = self.SetColor(COLORS_RGB['green'])
+
     def orange(self):
         self.color = self.SetColor(COLORS_RGB['orange'])
+
     def pink(self):
         self.color = self.SetColor(COLORS_RGB['pink'])
+
     def purple(self):
         self.color = self.SetColor(COLORS_RGB['purple'])
+
     def red(self):
         self.color = self.SetColor(COLORS_RGB['red'])
+
     def white(self):
         self.color = self.SetColor(COLORS_RGB['white'])
+
     def yellow(self):
         self.color = self.SetColor(COLORS_RGB['yellow'])
+
     def off(self):
         self.color = self.SetColor(COLORS_RGB['off'])
         self.is_idle = True
 
     def talking(self):
-        self.red()
+        self.color = self.SetColor(COLORS_RGB[cf.g('TALK_LED')])
+
     def listening(self):
-        self.green()
+        self.color = self.SetColor(COLORS_RGB[cf.g('LISTEN_LED')])
+
     def thinking(self):
-        self.purple()
+        self.color = self.SetColor(COLORS_RGB[cf.g('THINK_LED')])
+
     def looking(self):
-        self.blue()
+        self.color = self.SetColor(COLORS_RGB[cf.g('LOOK_LED')])
+
     def idle(self):
-        self.off()
+        self.color = self.SetColor(COLORS_RGB['off'])
  
     def Close(self):
         self.should_quit = True

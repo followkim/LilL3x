@@ -65,6 +65,18 @@ class Face:
 
     def message(self, text):
         self.screen.message(text)
+def dummy(): pass
+class DummyFace:
+    def __init__(self): pass
+    def SetViewControl(self, showViewStartFunc=dummy, showViewEndFunc=dummy): pass
+    def Close(self):pass
+    def talking(self):pass
+    def listening(self):pass
+    def thinking(self):pass
+    def looking(self):pass
+    def idle(self): pass
+    def off(self): pass
+    def message(self, text): pass
 
 if __name__ == '__main__':
     from time import sleep
@@ -106,12 +118,12 @@ if __name__ == '__main__':
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
     face.idle()
-    STATE.ChangeState('SleepState')
-    sleep(30)
-    STATE.ChangeState('Surveil')
-    sleep(30)
+#    STATE.ChangeState('Looking')
+#    sleep(5)
+#    STATE.ChangeState('Surveil')
+#    sleep(5)
 
-    '''
+    
     face.looking()
     sleep(10)
     face.listening()
@@ -127,6 +139,7 @@ if __name__ == '__main__':
     sleep(10)
     '''
     face.Close()
+    '''
     '''
     while face:
         try:

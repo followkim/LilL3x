@@ -21,7 +21,7 @@ import signal
 # START LILL3X modules
 from error_handling import *
 InitLogFile()
-from globals import STATE
+from globals import STATE, SleepOn
 import vosk_wake
 import pico_wake
 from config import cf
@@ -210,7 +210,7 @@ class lill3x:
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
         wp = self.ww.GetWakePhrase()
-        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.g('AINAME').lower()}$", wp.lower()):
+        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.c('AINAMEP', 'AINAME').lower()}$", wp.lower()):
             self.ai.say(self.ai.respond(wp))
         STATE.ChangeState('Active')
  
@@ -219,8 +219,6 @@ class lill3x:
     def Active(self):
         user_input = self.ai.listen()
         if user_input:
-            update_thread = threading.Thread(target=self.ears.update)
-            update_thread.start()
             self.ai.say(self.ai.respond(user_input))
         else:
             STATE.ChangeState('ActiveIdle')
@@ -230,13 +228,10 @@ class lill3x:
     def ActiveIdle(self):
 
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
-        if STATE.StateDuration() > timeout_secs.get(STATE.GetState(), 0):
+        if STATE.StateDuration() > cf.g('ACTIVE_IDLE_TO')*60:
             STATE.ChangeState('Idle')
 
-        if self.eyes.IsDark():
-             STATE.ChangeState('SleepState')
-             self.face.off()
-        elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
+        if STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
             thought = self.ai.Interact()  
             if thought:
                 self.ears.update()  # get ambient noise
@@ -247,7 +242,7 @@ class lill3x:
                     if STATE.CheckState('ActiveIdle'):
                         STATE.ChangeState('Active')
 
-        self.Sleep(sleep_secs.get(STATE.GetState(), 0))
+        if STATE.CheckState('ActiveIdle'): SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
 
     # Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai
     #       AI can: machine laining, check lights/sound
@@ -255,23 +250,16 @@ class lill3x:
 
         #TODO: Thinkign while activeIdle is different then thinkign while IdleIdle
         self.ai.Think()  # will need a flag that data should be saved for later
-
-#        if STATE.StateDuration() > timeout_secs[STATE.GetState()]:
-        if self.eyes.IsDark():
-            STATE.ChangeState('SleepState')
-            self.face.off()
-        # Check for the user
+        
+        if self.ai.LookForUser():
+            self.ai.say(self.ai.Greet())
+            user_input = self.ai.listen()
+            if user_input:
+                self.ai.say(self.ai.respond(user_input))
+                STATE.ChangeState('Active')
+            else: STATE.ChangeState('ActiveIdle')
         else:
-            is_user_there = self.ai.LookForUser()
-            if is_user_there:
-                self.ai.say(self.ai.Greet())
-                user_input = self.ai.listen()
-                if user_input:
-                    self.ai.say(self.ai.respond(user_input))
-                    STATE.ChangeState('Active')
-                else: STATE.ChangeState('ActiveIdle')
-            else:
-                self.Sleep(sleep_secs.get(STATE.GetState(), 0))
+            SleepOn(varf=self.ai.LookForUser)  # sleep until State change or seeing user
 
     # Sleep: User is not present.   User needs to use wakeword or respond to "welcome back" to activate ai
     #       AI can: machine learning, check lights/sound
@@ -279,8 +267,9 @@ class lill3x:
 
         # user turned on the light-- goto acttive idle
         if not self.eyes.IsDark():
-            STATE.ChangeState('ActiveIdle')
-        else: self.Sleep(sleep_secs.get(STATE.GetState(), 0))
+            STATE.ChangeState('Idle')  # will switch to Active Idle once user is seen
+        else:
+            SleepOn(varf=self.eyes.IsDark)
 
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
@@ -352,6 +341,7 @@ class lill3x:
 ## THREADING INFO
 #os.chdir('/home/el3ktra/LilL3x/')
 # Get the current working directory
+CleanDirs("./temp", )
 
 print(f"LilL3x started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()

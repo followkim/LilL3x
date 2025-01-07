@@ -1,3 +1,4 @@
+import socket
 from datetime import datetime, timedelta
 from time import sleep
 import traceback
@@ -37,6 +38,7 @@ class State:
         return self.current == checkState
 
     def ChangeState(self, new_state):
+        if new_state == self.current: return self.current  # don't do anything if asked to Change State to current state
         if self.current == 'EvalCode' and new_state != self.last_state:
             LogInfo(f"State: tried to change from {self.current} to {new_state}, saving for later.")
             self.last_state = new_state
@@ -69,11 +71,16 @@ class State:
     def ShouldQuit(self):
         return self.current in ('Quit', 'Reboot', 'Restart')
 
+    def IsSleeping(self):
+        return self.CheckState('SleepState')
+
     def IsInteractive(self):
         return self.current in ('Hello', 'Wake', 'Active')
 
     def IsInactive(self):
         return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive()
+    def GetHostname(self):
+        return socket.gethostname()
 
 class MicStatus:
     def __init__(self):
@@ -116,3 +123,4 @@ if __name__ == '__main__':
 
     s = State()
     s.ChangeState('Active')
+    print(s.GetHostname())
