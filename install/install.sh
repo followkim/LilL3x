@@ -65,7 +65,7 @@ crontab -e
 @reboot sh /home/el3ktra/LilL3x/launch.sh >/home/el3ktra/LilL3x/Logcron/log
 
 wpa_passphrase Lill3x <passprase>
-sudo cp ~/LilL3x/config/rclocal /etc/rc.local # if no rc.local
+sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo nano /etc/rc.local # put passprhase in local nano file
 chmod +x ~/.bashrc
 sudo chmod +x /etc/rc.local
@@ -83,14 +83,13 @@ sudo usermod -a -G www-data www-data
 
 sudo chmod a+x /var/www/html/*.sh
 sudo chown root:root /var/www/html/*.sh
-sudo chown www-data:www-data ~/LilL3x/config/config.txt
-sudo chown www-data:www-data ~/LilL3x/config/config.vars
-
+sudo chown el3ktra:www-data ~/LilL3x/config ~/LilL3x/config/config.txt 
+sudo chmod og+rw  ~/LilL3x/config ~/LilL3x/config/config.txt 
 echo "%www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
 echo "%www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
 
-sudo rm /etc/apache2/sites-enabled/000-default.conf 
-sudo cp -l ~/LilL3x/config/apache_default.conf /etc/apache2/sites-enabled/000-default.conf 
+sudo rm /etc/apache2/sites-enabled/000-default.conf
+sudo cp -l ~/LilL3x/install/apache_default.conf /etc/apache2/sites-enabled/000-default.conf 
 sudo chown root:root /etc/apache2/sites-enabled/000-default.conf 
 sudo chmod a+rwx /etc/apache2/sites-enabled/000-default.conf 
 sudo chmod a+rx /home/el3ktra
