@@ -86,7 +86,7 @@ class Camera:
                 if self.should_wake() or not STATE.IsInteractive():
                     img = self._read_camera_array()
                     if isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
-                        LogDebug(f"Unable to get camera  image")
+                        LogError(f"Unable to get camera  image")
                         SleepOn(cf.g('CAMERA_SLEEP_SEC')*2)
                         continue
 
@@ -102,18 +102,16 @@ class Camera:
                         success,bbox=tracker.update(img)
                         if success:
                             (x, y, w, h) = bbox
-                            tries = 0
-                            success = False
-                            while tries < 5 and not success:
-                                eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
-                                if len(eyes) > 0:
-                                    self.last_seen = datetime.now()
-                                    STATE.cx = 1280 - ((w//2) + x)
-                                    STATE.cy = (h//2) + y
-                                    LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
+                            eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
+                            if len(eyes) > 0:
+                                self.last_seen = datetime.now()
+                                STATE.cx = 1280 - ((w//2) + x)
+                                STATE.cy = (h//2) + y
+                                #LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
+                                if cf.g('SCREEN_DEBUG'):
                                     cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
-                                    success = True
-                                else: tries = tries+1
+                                    cv2.rectangle(img,(int(eyes[0]),int(eyes[1])),(int(eyes[0]+eyes[2]),int(eyes[1]+eyes[3])),(0,0,0),10)
+                                success = True
 
                         if not success: # lost face
                             LogDebug("Camera: Lost face")
@@ -121,7 +119,7 @@ class Camera:
                             STATE.cx=0
                             STATE.cy=0
                             
-                    if tracker == None:  # don't use an else as tracker might ahve turned false above
+                    if not tracker:  # don't use an else as tracker might ahve turned false above
                         faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
                         if len(faces)>0:
                             for (x, y, w, h) in faces:
@@ -133,6 +131,7 @@ class Camera:
                                     #tracker=cv2.legacy.TrackerMOSSE_create()
                                     tracker=cv2.legacy.TrackerCSRT_create()
                                     ret = tracker.init(img, (x, y, w, h))
+                                    LogDebug(f"Camera: Found Face at (({x}, {y}, {w}, {h})")
                         else:
                             tracker = None
                             STATE.cx=0
@@ -173,7 +172,6 @@ class Camera:
         except Exception as e:
             return RaiseError(f"Error reading camera ({e.args})")
 
-
     def IsDark(self):
         return self.is_dark
     
@@ -187,7 +185,7 @@ class Camera:
 
         oldDark = self.is_dark
         self.is_dark = brightness<=cf.g('IS_DARK_THRESH')
-        if oldDark != self.is_dark: LogInfo(f"is_dark changed to {self.is_dark}: (brightness={round(brightness)})")
+        if oldDark != self.is_dark: LogDebug(f"is_dark changed to {self.is_dark}: (brightness={round(brightness)})")
         return self.is_dark
 
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
@@ -204,14 +202,14 @@ class Camera:
             try:
                 mse = numpy.square(numpy.subtract(cur, prev)).mean()
             except Exception as e: 
-                return LogDebug("_detect motion exptn: {e.args}")
+                return LogError("_detect motion exptn: {e.args}")
             if mse > cf.g('MOTDET_SENS'):
                 self.last_motion = datetime.now()
 #        return icu>=cf.g('MOTDET_THRESH')
         return cur # allows easy setting of previous frame
 
     def ShowView(self):
-        RemoveFile(cf.g('WIS_FILE'))  #remove view file if exsists
+        if not self.show_view: RemoveFile(cf.g('WIS_FILE'))  #remove view file if exsists
         self.show_view=True
 
     def EndShowView(self):
@@ -223,8 +221,8 @@ class Camera:
     def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
         if isinstance(img, bool): img = self._read_camera_buffer()
 
-        gmi = cv2.flip(img, 1)
-        ig = cv2.resize(gmi, (128, 64))
+#        gmi = cv2.flip(img, 1)
+        ig = cv2.resize(img, (128, 64))
 
         temp = filename.replace('.ppm', '_temp.ppm')
         cv2.imwrite(temp, ig)
@@ -251,13 +249,12 @@ class Camera:
                 cv2.imwrite(f"{cf.g('TEMP_PATH')}temp.jpg", image)
                 os.rename(f"{cf.g('TEMP_PATH')}temp.jpg", filename)
             # show the image for 3 secs and play a shutter sound
+            LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
             if not beQuiet:
-                LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
-                    self._whatISee(image)
-                    sleep(cf.g('CAMERA_PICT_SEC'))
-            LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
+                    self._whatISee(image)    # show_view is set outside the loop
+                    while self.show_view: sleep(0.25)
             self.take_picture = False
             return filename
         except Exception as e:
