@@ -1,11 +1,11 @@
 import os
 import sys
 import inspect
-from gpiozero import CPUTemperature
 from pathlib import Path
 from time import sleep
 import requests
 import re
+import math
 from datetime import datetime, timedelta
 import random
 import threading
@@ -35,10 +35,14 @@ class AI:
     has_auth = False
     training = False
 
-
     def __init__(self):
-        self.last_user_interaction = datetime.now()
-        self.last_ai_interaction = datetime.now()
+        try:
+            self.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
+        except:  # might throw if the string is malformed
+            self.last_ai_interaction = datetime.now()
+        self.last_user_interaction = self.last_ai_interaction
+
+        LogInfo(f"Last Interaction:  {self.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
         self.has_auth = True
 
     def SetBody(self, ears, eyes, mouth, face):
@@ -46,14 +50,14 @@ class AI:
         self.eyes = eyes
         self.mouth = mouth
         self.face = face
-        self.face.message(f"Hello, {cf.g('USERNAME')}")
+        self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
 
     def respond(self, txt):
         if not txt:
             return False
 
         if re.search(r"^(what is|what(')?s) your temp(erature)?", txt.lower()):
-            return f"I am running at {CPUTemperature().temperature} celcius."
+            return f"I am running at {STATE.temp} celcius."
 
         if re.search(r"^what time is it$", txt.lower()):
             return "It's " + datetime.now().strftime("%l %M %p")
@@ -76,10 +80,6 @@ class AI:
             ips = check_output(['hostname', '--all-ip-addresses'])
             self.face.message(ips.split()[0].decode())
             return "My IP address is " + ips.split()[0].decode()
-
-        if re.search(r"^max (idle|idol)$", txt.lower()): 
-            self.last_user_interaction = self.last_user_interaction + timedelta(minutes=360)
-            STATE.last_dt = STATE.last_dt + timedelta(minutes=360)
 
         if re.search(r"^(quit|exit|goodbye)$", txt.lower()): 
             STATE.ChangeState('Quit')
@@ -118,10 +118,6 @@ class AI:
         if re.search(r"^show (me|us) what you see$", txt.lower()):
             self.LookForUser(10)
             return "Here is what I see"
-
-#        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", txt.lower()):
-#            g = re.compile("^turn( off| down)? the (light|led)(s?)( down| off)?").match(txt.lower())
-#            return "Here is what I see"
 
         # TODO: parse out picture description
         if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
@@ -176,20 +172,36 @@ class AI:
                 new_engine = ret[0]
 
             if (self.mouth.SwitchEngine(new_engine)):
-                cf.s('SPEECH_ENGINE', new_engine)
+                cf.w('SPEECH_ENGINE', new_engine)
                 return (f"Switched speech engine to {new_engine}")
             else:
                 return (f"Couldn't switch to {new_engine}")
 
+        if re.search(r"^(set|switch|change) (your |the )?listen(ing|er)?( engine)? to (.*)$", txt):
+            engine  = False
 
-        if re.search(r"^((re)?load|import) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+            if re.search(r"speech( )?recogni(tion|ize)$", txt.lower()):
+                engine = "SpeechRecognition"
+            elif re.search(r"vos(c|k|t)$", txt.lower()):
+                engine = 'Vosk'
+            if engine:
+                STATE.ChangeState('ChangeListener')
+                STATE.data = engine
+                return f"Sure, I'll try to switch the listener to {engine}."
+            else: return f"I can't seen to find a listening engine called {txt.split()[-1]}"
+
+#        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", txt.lower()):
+#            g = re.compile("^turn( off| down)? the (light|led)(s?)( down| off)?").match(txt.lower())
+#            return "Here is what I see"
+
+        if re.search(r"^((re)?load|import) (the |your )?config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
             return(self.YesNo(cf.LoadConfig(), "Configuration variables updated.", "I couldn't load the config file"))
 
-        if re.search(r"^(save|write|export) config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+        if re.search(r"^(save|write|export) (the |your )?config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
             return(self.YesNo(cf.WriteConfig(), "Configuration variables saved.", "I couldn't write the config file"))
 
-        if re.search(r"^what is (the |your )?(.*) set to$", txt.lower()):
-            (x, key) = re.compile("^what is (the |your )?(.*) set to$").match(txt).groups()
+        if re.search(r"^what is ((the|your) )?(.+) set to$", txt.lower()):
+            (x, y, key) = re.compile("^what is( (the|your))? (.+) set to$").match(txt).groups()
             key = key.upper().replace(' ', '_') 
             val = cf.g(key)
             if val == False:
@@ -198,8 +210,8 @@ class AI:
                 return f"{key} is set to {val}."
 
         #TODO cuases error, needs fix
-        if re.search(r"^set (the |your )?(.*) to (.*)$", txt.lower()):
-            (x, key, val) = re.compile("^set (the |your )?(.*) to (.*)$").match(txt).groups()
+        if re.search(r"^(set|change|update) (the |your )?(.+) to (.+)$", txt.lower()):
+            (x, xx, key, val) = re.compile("^(set|change|update) (the |your )?(.+) to (.+)$").match(txt).groups()
             key = key.upper().replace(' ', '_') 
             # check that key exsosts:
             if not cf.g(key):
@@ -216,7 +228,7 @@ class AI:
         # reboot
 
         return False # unable to match string, have child do it
-
+    
 
     def YesNo(self, test, yes, no):
         if test:
@@ -238,17 +250,19 @@ class AI:
         return ret
 
     def listen(self, beQuiet=False):
-        resp = self.ears.listen(face=self.face, beQuiet=beQuiet)
-        resp = resp.replace('Alexa', 'El3ktra')
+        resp = self.ears.listen(beQuiet=beQuiet)
+        regex = re.compile(f"\\b{cf.c(cf.c('WAKE_WORD_REGEX', 'AINAMEP'), 'AINAME')}\\b")
+        resp = re.sub(regex,  cf.g('AINAMEP'), resp)
         if resp and not beQuiet:
             self.last_user_interaction = datetime.now()
         return resp
 
     def TrainData(self, user_input, reply):
         if self.training:
+            reply = self.StripActions(reply).strip('\n')+"\n"  # can't include '\n' in {}
             filename = "training/AI_"+self.name + "_trn.dat"
             f = open(filename, 'a')
-            f.write(user_input + "|" + reply.strip("\n") + "\n")
+            f.write(f"{datetime.now().strftime('%y-%m-%d %H:%M:%S')}|{user_input}|{reply}")
             f.close()
 
     def Intruder(self):
@@ -271,11 +285,8 @@ class AI:
             self.face.looking()
             if self.WaitWIS(duration): sleep(duration)
 
-        path = self.eyes.TakePicture()  # will shutter sound
-        if path and duration:
-            #show the picture TODO: this just shows the view
-            sleep(duration)
-        if duration: self.face.off()
+        path = self.eyes.TakePicture(beQuiet=(duration==0))  # will shutter sound if duration
+        if path: sleep(duration)    #pause to show the picture (if duration==0 no sleep)
         return path
 
     def WaitWIS(self, duration):
@@ -294,28 +305,38 @@ class AI:
 #        self.face.off()
         return
 
-    def Interact(self, dice=False):
-        secs = (datetime.now() - self.last_ai_interaction).seconds
+    def IsIdle(self):
+         return not self.LookForUser() and self.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60
+
+    def CanInteract(self):
+        if not ('INITIATE_ODDS'): return 0
+        if not self.LookForUser(): return 0
+        secs = self.LastAIInteraction()
 
         # too soon for an action (and action not forced)
-        if not dice and secs < (cf.g('INTERACT_MIN')*60):
-             return
+        if secs > 0 and secs < (cf.g('INTERACT_MIN')*60):
+            return 0
         elif secs > (cf.g('INTERACT_MAX')*60):
-            dice = 1
+            return 2
+        else: return 1
 
-        #  You can specify the action-- used in respond()
-        if not dice:
-            #                            interactions per hour (ie 12)
-            dice = random.randint(0, ((60*60)/cf.g('ACTIVE_IDLE_SLEEP')) / cf.g('INITIATE_ODDS'))   #TODO
+    def Interact(self, dice=False):
 
-        # Try initiate convo based on past interactions
+        dice = self.CanInteract()-1
+
+        if dice<0: return  # can't interact
+
+        # if could interact: calculate random.  interactions per hour (ie 12) / initiate odds
+        if not dice: dice = random.randint(0, round(((60*60)/cf.g('ACTIVE_IDLE_SLEEP')) / cf.g('INITIATE_ODDS')))   #TODO
+
+        # If we hit the jackpot, interact
         if dice == 1:
             self.face.thinking()
-            LogInfo(f"Performing Interaction after {round(secs/60)} minutes.")
+            LogInfo(f"Performing Interaction after {round(self.LastUserInteraction()/60)} minutes.")
             
             #if self. the user is talking, evesdrop, otherwise try to start a convo
             if not self.ears.CanIHearYou():
-                return(self.InitiateConvo(topic=self.eyes.GetEmotion()))
+                return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
 #            if self.ears.PlayingMusic():
 #                self.messages.SetMessage("music", something, datetime.now())
 
@@ -327,6 +348,12 @@ class AI:
             self.face.off()
         return
 
+    def LastUserInteraction(self):
+        return (datetime.now()-self.last_user_interaction).seconds
+
+    def LastAIInteraction(self):
+        return (datetime.now()-self.last_ai_interaction).seconds
+
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
         event_name = event['event_name']
         event_date = event['event_date']
@@ -335,6 +362,7 @@ class AI:
 
 
     def Close(self):
+        cf.s('LAST_INTERACTION', self.last_ai_interaction.strftime(cf.g('CONFIG_DT_FORMAT')))
         return
 
     # A few time utilities - might wnat to move these into a seperate file
@@ -343,13 +371,13 @@ class AI:
         resp = ""
         # what time is it?  Is it morning?
         hour = int(datetime.now().strftime("%H"))
-        if hour in range (5, 11): 
+        if hour in range (5, 12): 
             resp =  "morning"
-        elif hour in range (12, 17):
+        elif hour in range (12, 18):
             resp =  "afternoon"
-        elif hour in range (18, 20):
+        elif hour in range (18, 21):
             resp =  "evening"
-        elif hour in range (21, 23) or hour in range(0,5):
+        elif hour in range (21, 24) or hour in range(0,5):
             resp =  "night"
         return resp
       
