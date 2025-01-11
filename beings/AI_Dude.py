@@ -9,6 +9,7 @@ import random
 
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
+from error_handling import *
 from globals import STATE
 from config import cf
 
@@ -29,7 +30,7 @@ class AI_Dude(AI):
     training = True
     def __init__(self):
         AI.__init__(self)
-        print("Welcome to D.U.D.E!")
+        LogInfo("Welcome to D.U.D.E!")
         return
 
     # respond to the users statement
