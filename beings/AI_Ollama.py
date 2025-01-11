@@ -116,19 +116,25 @@ class AI_ollama(AI_openAI):
     def reply_async(self, args):
         reply = ""
         full_reply = ""
+        face = self.face
         response = self.client.chat(**args)
+        
+        if args['model']==self.model(vision=True):
+            face=None            # don't allow mouth to control the face
+            self.face.looking()  # turn the screen
+
         for chunk in response:
             m = chunk['message']['content']
             full_reply = full_reply + m
             eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
             if eos:
                 reply = reply + m[:(eos.span()[0])+2]
-                self.mouth.say(self.StripActions(reply), face=self.face, asyn=True)
+                self.mouth.say(self.StripActions(reply), face=face, asyn=True)
                 LogDebug("Async: " + str(chunk))
                 reply = m[(eos.span()[0])+2:]
             else: reply = reply + m
-        self.mouth.say(self.StripActions(reply), face=self.face, asyn=False)
-        self.face.off()
+        self.mouth.say(self.StripActions(reply), face=face, asyn=False)
+        if face: face.off()
         return self.StripActions(full_reply)
 
 
@@ -184,8 +190,12 @@ class AI_ollama(AI_openAI):
 
         #reply is a picture
         elif user_input[:1] == '#': #picture-- TODO!!!
+             if user_input[1] == "!":
+                 arg['stream'] = False
+                 user_input = user_input[2:]
+             else: user_input = user_input[1:]
              LogDebug(f"Input is pict: {user_input}")
-             (x, user_input, path, url) = user_input.split('#')
+             (user_input, path, url) = user_input.split('#')
              arg['model']=self.model(vision=True)
              self.memory.append({"role": role, "content": user_input,  "id": cf.g('CONVO_ID'), 'images':[path]})
 
