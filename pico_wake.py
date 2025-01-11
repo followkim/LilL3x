@@ -91,6 +91,7 @@ class pico_wake:
 
     def listen_loop(self):
         LogDebug("ww listen_loop started")
+        avgDelta = 1
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
@@ -100,7 +101,7 @@ class pico_wake:
             try:
                 pcm = recorder.read()
                 result = self.ww_listener.process(pcm)
-                # TODO: put this in a "wake" function to share with the button
+
                 if result >= 0:
                     LogInfo(f"Wake word heard {self.keywords_path[result]}")
                     if not pygame.mixer.get_busy():

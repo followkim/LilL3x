@@ -16,7 +16,7 @@ def dummy():
     return
 LogInfo("Listen Engine Loading...")
 
-class speech_listener:
+class SpeechRecognition_listener:
 
     engine = 0
 #    pygame_start = 0  # try to preload mp3s
@@ -24,12 +24,14 @@ class speech_listener:
     start_mp3 = 0
     end_mp3 = 0
     audio = 0
-    def __init__(self):
+    face = None
+    def __init__(self, face=None):
         self.speech = sr.Recognizer()
 #        self.speech.dynamic_energy_ratio = 2
         self.update()
         self.start_mp3 = pygame.mixer.Sound(cf.g('START_LISTEN_MP3'))
         self.end_mp3 = pygame.mixer.Sound(cf.g('END_LISTEN_MP3'))
+        self.face = face
         return
 
     def clear(self):
@@ -66,7 +68,7 @@ class speech_listener:
 
 
         
-    def listen(self, beQuiet=False, face=False, time_out=cf.g('MIC_TO'), adjust_for_ambient=cf.g('AMBIENT')):
+    def listen(self, beQuiet=False, time_out=cf.g('MIC_TO'), adjust_for_ambient=cf.g('AMBIENT')):
         imp = ""
         audio = False
         dt = datetime.now()
@@ -79,7 +81,7 @@ class speech_listener:
 
                 if not beQuiet:
                     self.start_mp3.play()
-                    if face: face.listening()
+                    if self.face: self.face.listening()
                 try:
 #                    audio = self.speech.listen(source, timeout=5.0) #,dynamic_energy_threshold=False)
                     self.audio = 0
@@ -112,7 +114,7 @@ class speech_listener:
                     LogError("speech_listener.listener() returned error:" + e.args)
                 if not beQuiet:
                     self.end_mp3.play()
-                    if face: face.thinking()
+                    if self.face: self.face.thinking()
                 if self.audio:
                     try:
                         self.update(asyn=True)
@@ -130,7 +132,7 @@ class speech_listener:
                 MIC_STATE.ReturnMic()
                 #self.speech.energy_threshold = start_et
                 self.update(asyn=True)
-                if face: face.off()
+                if self.face: self.face.off()
         return imp
 
     def Close(self):
@@ -141,17 +143,6 @@ class speech_listener:
 
     def CanIHearYou(self, dur=30):
         return self.listen(True, time_out=dur) != ""
-
-    def PlayFile(self, file):
-        try:
-            pygame.mixer.music.load(file)
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                continue
-        except Exception as e:
-            RaiseError(f"Listener: unable to play file {file} ({e.args})")
-
-        return
 
     ####### Engines in here
 
