@@ -1,14 +1,16 @@
 import json
 import os
 import sys
+import re
 import inspect
 from pathlib import Path
 from datetime import datetime, timedelta
-import re
 import openai
 import llamaapi
+import random
 from AI_class import AI
 from error_handling import *
+
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
@@ -80,12 +82,8 @@ class AI_openAI(AI):
         return
 
     def model(self, vision=False):
-        if vision:
-            try:
-                return cf.g(self.vision_model_key)
-            except:
-                pass # key doens't exsitst
-        return cf.g(self.model_key)
+        if vision: return cf.g(self.vision_model_key, self.model_key)
+        else: return cf.g(self.model_key)
 
     def respond(self, user_input, canParaphrase=False):
         self.face.thinking()
@@ -97,7 +95,7 @@ class AI_openAI(AI):
 
         reply = ""
         response = ""
-        #TODO: call update!
+
         try:
             args = {
                 'model': self.model(),
@@ -209,28 +207,37 @@ class AI_openAI(AI):
 
     #ON Startup
     def Hello(self):
-        return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+#        return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_user_interaction))}")
+        return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     # On Wake State return greeting
     def WakeMessage(self):
-        resp = "!{cf.g('WAKE_STR')}"
+        resp = "!{cf.g('WAKE_STR').format(cf.c('USERNAMEP', 'USERNAME'))}"
         return self.respond(resp)
 
     # From Sleep State return greeting
     def Greet(self):
-          if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_user_interaction).total_seconds() / 3600) > 6:
-              resp = f"!{cf.g('MORNING_STR')}"
-
-          else: resp = f"!{cf.g('GREET_STR').format(AI.PrettyDuration(self, datetime.now() - self.last_user_interaction))}"
-          return self.respond(resp)
+        if self.CanInteract():
+              if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_ai_interaction).total_seconds() / 3600) > 6:
+                  resp = f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}"
     
-    def Think(self):      
+              else: resp = f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_ai_interaction))}"
+              return self.respond(resp)
+        else: return False
+
+    def Think(self):
         return AI.Think(self)
-        
-    def InitiateConvo(self, topic=""):
-        if topic: ret = f"!{cf.g('MOOD_STR').format(topic)}"
-        else: ret = f"!{cf.g('CONVO_STR').format(AI.TimeOfDay(self))}"
-        return self.respond(ret)
+
+    def InitiateConvo(self, mood=""):
+        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(cf.c('USERNAMEP', 'USERNAME'), mood)}")
+        elif random.randint(0, 5) > 0:
+            path = self.TakePicture(0)
+            if path:
+                url  = self.eyes.UploadPicture(path)
+                desc = f"{self.GetString('CAMERA_CONVO_STR').format(cf.g('USERNAME'))}"
+                return self.respond(f'#!{desc}#{path}#{url}') # force async
+
+        return self.respond(f"!{cf.g('CONVO_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.TimeOfDay(self))}")
 
 
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
@@ -293,22 +300,10 @@ if __name__ == '__main__':
 #    eyes = Camera()
  
     global STATE
+    from face import DummyFace
     STATE.ChangeState('Idle')
-
-    class LEDS:
-        def __init__(self):
-             return
-        def thinking(self):
-             return
-        def talking(self):
-             return
-        def off(self):
-             return
- 
- 
     ai = AI_ChatGPT()
-    ai.leds = LEDS()
-    ai.face = LEDS()
+    ai.face = DummyFace()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()
 #    ai.WakeMessage()
@@ -320,12 +315,13 @@ if __name__ == '__main__':
 #    user_inp = "#this is a picture of me, waht do you think?#temp/capture_0_20240912133342132801.jpg#http://el3ktra.el3ktra.net/uploads/capture_0_20240911223907988147.jpg"
 #    out = ai.respond(user_inp)
 #    print(f'AI: {out}')
+    print(ai.Hello())
+    print(ai.Greet())
+    print(ai.WakeMessage())
+    print(ai.InitiateConvo())
+#    user_inp = ""
+#    while not STATE.ShouldQuit():
+#        user_inp = input(f"{cf.g('USERNAME')}: ")
+#        print(f'{cf.g("AINAME")}: {ai.respond(user_inp)}')
 
-    user_inp = ""
-    while user_inp != "quit":
-        print("User: ", end="")
-        user_inp = input()
-        out = ai.respond(user_inp)
-        print(f'AI: {out}')
-
-    ai.Close()
+#    ai.Close()
