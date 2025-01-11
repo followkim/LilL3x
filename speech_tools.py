@@ -21,12 +21,14 @@ def dummy():
 class speech_generator:
 
     engine = 0
+    engineName = ''
     last = 0
     volume = 0
 
     def __init__(self):
         pygame.mixer.init()
-        self.engine = eval(cf.g('SPEECH_ENGINE')+'_tts()')
+        self.engine_name = cf.g('SPEECH_ENGINE')
+        self.engine = eval(self.engine_name+'_tts()')
         return
 
     def Hello(self):
@@ -81,15 +83,18 @@ class speech_generator:
         new_engine = 0
         try:
             new_engine = eval(engine_name+'_tts()')
-        except:
-            new_engine = False
+        except Exception as e:
+            LogError(f"Switch Engine caught exception {e.args}")
+
         if new_engine:
             self.engine.Close()
             self.engine = new_engine
             return True
         else:
-            LogWarn(f"Unable to switch to engine {engine_name}")
-            return False
+            LogWarn(f"SwitchEngine: Unable to switch to engine {engine_name}")
+
+        cf.s('SPEECH_ENGINE', self.engine_name) # if we are here we weren't able to switch to teh new engine.
+        return False
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
         tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
