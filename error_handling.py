@@ -72,35 +72,35 @@ def SetErrorLevel(level):
 
 def RaiseError(e):
     LogError(e)
-    DumpStack()
+    #DumpStack()
     return False
 
 def LogFatal(txt):
     return RaiseError(txt)
 
 def LogError(txt):
-    Log(txt, Color("ERR:\t", 'red'))
+    Log(txt, ColorDate(f"ERR:\t", 'red'))
     return
 
 def LogConvo(txt):
     if ERROR_LEVEL >= 1:
         ta = txt.split(":", 1)
-        Log(ta[1], Color(ta[0]+": ", 'purple'))
+        Log(ta[1], ColorDate(ta[0]+": ", 'purple'))
     return
 
 def LogWarn(txt):
     if ERROR_LEVEL >= 2:
-        Log(txt, Color("WARN:\t", 'yellow'))
+        Log(txt, ColorDate("WARN:\t", 'yellow'))
     return
 
 def LogInfo(txt):
     if ERROR_LEVEL >= 3:
-        Log(txt, Color("INFO:\t", 'blue'))
+        Log(txt, ColorDate("INFO:\t", 'blue'))
     return
 
 def LogDebug(txt):
     if ERROR_LEVEL >= 4:
-        Log(txt, Color("DEBUG:\t", 'green'))
+        Log(txt, ColorDate("DEBUG:\t", 'green'))
     return
 
 def Log(text, level=""):
@@ -116,6 +116,9 @@ def Log(text, level=""):
         except Exception as e:
             print(f"Error writing to logfile: {e.args}")
     else: print(f"{level}{text}")
+
+def ColorDate(text, color_code):
+    return Color(f"{datetime.now().strftime('%H:%M:%S')} {text}", color_code)
 
 def Color(text, color_code):
     colors = {
