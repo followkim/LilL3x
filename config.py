@@ -9,7 +9,6 @@ from globals import STATE, SleepOn
 from time import sleep
 from datetime import datetime, timedelta
 import git
-from filelock import Timeout, FileLock
 
 def to_str(val=0):
     if type(val) == str: return val
@@ -19,11 +18,18 @@ def to_int(val=0):
     return int(val)
 
 def to_dt(val):
-#    return datetime.strptime(val, "%Y-%m-%d")
      return val
 
 def to_blob(val):
     return val.replace("'", '`').replace('"', '`')
+
+def from_regex(regex):
+    ascii = ",".join(map(str, list(val.encode('ascii'))))
+    return ascii
+
+def to_regex(regex):
+    ascii = regex.split(",")
+    return ''.join(chr(int(num)) for num in ascii)
 
 type_f = {
     'num' : float,
@@ -48,8 +54,10 @@ class Config:
     configFileStatic = "./config/config.vars"
     configFileDefault = "./config/config.default"
     configFile = "./config/config.txt"
+    configFileLock = "./config/config.txt.LOCK"
 
     config= {}
+    configDef= {}
     lastLoad =  datetime.now()
     lastGit =  datetime.now()
     should_quit = False
@@ -67,51 +75,54 @@ class Config:
         currWW = ''
         currWWe = ''
         newConfig = {}
+
         # variables that would cause a hardware change
-        currAI = self.sg('AI_ENGINE')
-#        currListen = self.config.get('LISTEN_ENGINE','')
-        currSpeech = self.sg('SPEECH_ENGINE')
-#        currWWe = self.config.get('WAKE_WORD_ENGINE','')
-        currWW = self.sg('WAKE_WORD')
-
-
+        currAI = self.g('AI_ENGINE')
+        currListen = self.g('LISTEN_ENGINE','')
+        currSpeech = self.g('SPEECH_ENGINE')
+        currWWe = self.g('WAKE_WORD_ENGINE','')
+        currWW = self.g('WAKE_WORD')
+#        currAudioProfile = self.g('AUDIO_PROFILE') TODO
+#        currFramesProfile = self.g('FRAMES_PROFILE')
 
         # if there isn't a config file, create one from the default
         if not os.path.exists(self.configFile) or  os.path.getsize(self.configFile) == 0:
             LogInfo(f"No config file!  Using default.")
             os.system("cp " + self.configFileDefault + " " + self.configFile)
 
-
-        user = self.CheckConfig(self.LoadConfigDict(self.configFile), self.LoadConfigDict(self.configFileDefault))  # laod first to override any leftovers in confileFile
+        
         static = self.CheckConfig(self.LoadConfigDict(self.configFileStatic))
-        if len(static)<25: LogError(f"LoadConfig: {self.configFileStatic} is blank!")
+        if len(static)<25: LogError(f"LoadConfig: {self.configFileStatic} is too short! ({len(static)})")
         else: newConfig = static
-
-        if len(user)<25: LogError(f"LoadConfig: {self.configFile} is blank!")
+        
+        self.configDef = self.LoadConfigDict(self.configFileDefault, isDict=True)
+        user = self.CheckConfig(self.LoadConfigDict(self.configFile), self.configDef)  # laod first to override any leftovers in confileFile
+        if len(user)<25: LogError(f"LoadConfig: {self.configFile} is too short! ({len(user)})")
         else: newConfig.update(user)
 #        self.config.update(self.LoadConfigDict(self.configFile))
 
         if len(newConfig)>75:
             self.config = newConfig
-            self.lastLoad = datetime.now() + timedelta(seconds=1)
-            LogInfo(f"Config File loaded at {self.lastLoad.strftime('%Y-%m-%d %H:%M:%S')}")
-            SetErrorLevel(self.sg('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
+            self.lastLoad = datetime.now()
+            LogInfo(f"Config File loaded at {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
+            SetErrorLevel(self.g('DEBUG'))  # need to set ErrorLevel manually as error_handling doesn't know about config to avoid circular
             if self.config_changed: self.WriteConfig()
-        else: return False
+        else:
+            LogError(f"LoadConfig: {self.configFile} is too short! ({len(newConfig)})")
 
         # check for hardware updates.  Blanks indicate that this is first time loading dictionary
         if currAI:
             cmds = []
-            if currAI and currAI != self.sg('AI_ENGINE'):   	 		cmds.append(f"self.SwitchAI('{self.sg('AI_ENGINE')}')")
-            if currSpeech and currSpeech != self.sg('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{cf.sg('SPEECH_ENGINE')}')")
-            if currWW and currWW != self.sg('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{cf.sg('WAKE_WORD')}')")
-    #        if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListenEngine({cf.sg('LISTEN_ENGINE')})")
-    #        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW({cf.sg('WAKE_WORD_ENGINE')})") TODO
+            if currAI and currAI != self.g('AI_ENGINE'):   	 		cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
+            if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
+            if currWW and currWW != self.g('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
+            if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
+    #        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW('{self.g('WAKE_WORD_ENGINE')}')") TODO
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
                 STATE.data = cmds
-        return True
+        return len(self.config)
 
     def CheckConfig(self, load, check=False):
         if not check: iter = load
@@ -119,46 +130,63 @@ class Config:
 
         for key in iter:
             try:
+                reload = False
                 if (check and key not in load):
                     LogWarn(f"CheckConfig: Key {key} not found, using defaults")
                     load[key] = {'val': type_f[check[key]['type']](check[key]['val']), 'type': check[key]['type'] }
-                    self.config_changed = True
-                if (load[key]['type']=='path' and load[key]['val']=='') or will_except("type_f['" + load[key]['type'] + "']('" + str(load[key]['val']) + "')"):
-                    LogWarn(f"LoadConfig: Data Mismatch for '{key}': [" + "type_f['"+load[key]['type']+"']('"+str(load[key]['val'])+"') ]")
+                    reload = True
+
+                if will_except("type_f['" + load[key]['type'] + "']('" + str(load[key]['val']) + "')"):
+                    LogWarn(f"CheckConfig: Exception for '{key}': [" + "type_f['"+load[key]['type']+"']('"+str(load[key]['val'])+"') ]")
                     if check:
-                        load[key] = {'val': type_f[check[key]['type']](check[key]['val']), 'type': chec[key]['type'] }
+                        reload = True
+                if check:
+                    if load[key]['type'] != check[key]['type']:
+                        LogWarn(f"CheckConfig Type Error for key '{key}': Config={load[key]['type']}: Default Key type {check[key]['type']}")
+                        reload = True
+
+                    if  (load[key]['type'] in ('path', 'dt') or check[key]['req']) and load[key]['val'] in ('', '0'):
+                        LogWarn(f"CheckConfig Blank '{key}': using default {check[key]['val']}")
+                        reload = True
+                    if reload:
+                        load[key] = {'val': type_f[check[key]['type']](check[key]['val']), 'type': check[key]['type'] }
                         self.config_changed = True
-                if check and load[key]['type'] != check[key]['type']:
-                    LogWarn(f"CheckConfig Type Error for key '{key}': Config={load[key]['type']}: Default Key type {check[key]['type']}")
-                    load[key]['val'] = check[key]['val']
-                    load[key]['type'] = check[key]['type']
-                    self.config_changed = True
+
             except Exception as e:
                 LogError(f"CheckConfig got exception on key {key}: {str(e)}: {str(e.args)}")
         return load
 
     def IsConfigDirty(self):
-        f_dt = datetime.fromtimestamp(max(os.path.getmtime(self.configFile), os.path.getmtime(self.configFileStatic)))
-        if f_dt > self.lastLoad:
-            return True
+        try:
+            f_dt = datetime.fromtimestamp(max(os.path.getmtime(self.configFile), os.path.getmtime(self.configFileStatic)))
+            if f_dt > self.lastLoad:
+                return True
+        except Exception as e:
+            LogWarn(f'IsConfigDirty Caught Exception: {e.args}')
         return False
 
-    def LoadConfigDict(self, fileName):
+    def LoadConfigDict(self, fileName, isDict=False):
         cnfg = {}
         self.LockFile()
-        with open(fileName) as file:
-            for line in file:
-                (key, val, type) = self.ReadConfigLine(line)
-                if key:
-                    try:
-                        cnfg[key] = {'val': type_f[type](val), 'type':type }
-                    except Exception as e:
-                        LogWarn(f'Error inserting {key}:{val}({type}) ({e.args})')
-        os.system(f"sudo touch {fileName}")
+        try:
+            with open(fileName) as file:
+                for line in file:
+                    (key, val, type, req) = self.ReadConfigLine(line)
+                    if key:
+                        try:
+                            cnfg[key] = {'val': type_f[type](val), 'type':type }
+                            if isDict: cnfg[key]['req'] = req
+                        except Exception as e:
+                            LogWarn(f'Error inserting {key}:{val}({type}) ({e.args})')
+            if not isDict: os.system(f"sudo touch {fileName}")
+        except Exception as e:
+            LogError(f'LoadConfigDict ({fileName}) caught exception: ({e.args})')
+
         self.UnlockFile()
         return cnfg
 
     def ReadConfigLine(self, line):
+        req = False
         try:
             # Check for speacuial "REGEX entries"
             m = re.search("^([A-Z|_]*)\|(.*)\|REGEX", line)
@@ -166,34 +194,58 @@ class Config:
             elif re.search("^[A-Z0-9_]*\|", line):
                 ret = (line.rstrip()).split('|')
                 if len(ret)>=3:
-                    key = ret.pop(0)
-                    val = ret.pop(0)
-                    type = ret.pop(0)
-                    return (key, val, type)
+                    key = ret[0]
+                    val = ret[1]
+                    type = ret[2]
                 else:
                     LogError(f"ReadConfigLine got bad string: {line}")
+                if len(ret)>=4: req=ret[3]=='1'
+                return (key, val, type, req)
         except Exception as e: LogError(f"ReadConfigLine encountered an exception parsing '{line}': (str{e}))")
-        return (False, False, False)
+        return (False, False, False, False)
 
     def LockFile(self):
-        while self.block_file: sleep(0.1)
+        SleepOn(varf=self.IsLocked, step=0.1, watchState=False, wakeOn=False)
+        os.system(f"touch {self.configFileLock}")
         self.block_file = True
 
+    def IsLocked(self):
+        if os.path.exists(self.configFileLock):
+            if (datetime.now()-datetime.fromtimestamp(os.path.getmtime(self.configFileLock))).seconds > 10:
+                LogWarn(f"Config.BreakLock: lock is {(datetime.now()-datetime.fromtimestamp(os.path.getmtime(self.configFileLock))).seconds} seconds old , must break.")
+                self.BreakLock()
+                LogInfo("Config.BreakLock: lock broken.")
+                return False
+            else: return True
+        else: return False
+
+    def BreakLock(self):
+        while os.path.exists(self.configFileLock):
+            try:
+                os.remove(self.configFileLock)
+            except:
+                pass
+
     def UnlockFile(self):
+        self.BreakLock()
         self.block_file = False
 
     def WriteConfig(self):
+        ret = False
         newConfig = ""
         tempFile = self.configFile+"bk"
         try:
 
             # read the default config file
-            dict = self.LoadConfigDict(self.configFileDefault)
+            dict = self.configDef
             for key in dict:
-               newConfig = f"{newConfig}{key}|{to_str(self.config[key]['val'])}|{dict[key]['type']}\n"
+               if dict[key]['type'] == 'blob': newConfig = f"{newConfig}{key}|{to_blob(self.config[key]['val'])}|{dict[key]['type']}\n"
+               elif dict[key]['type'] == 'regex': newConfig = f"{newConfig}{key}|{re.escape(self.config[key]['val'])}|{dict[key]['type']}\n"
+               else:
+                   newConfig = f"{newConfig}{key}|{to_str(self.config[key]['val'])}|{dict[key]['type']}\n"
 
             if len(newConfig)>0:
-                newConfig = f"{newConfig}##### LilL3x Config.WriteConfig: Written at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                newConfig = f"{newConfig}##### LilL3x Config.WriteConfig: Written at {datetime.now().strftime(self.g('CONFIG_DT_FORMAT'))}\n"
              
                 with open(tempFile, "w") as configFileTemp:
                     configFileTemp.write(newConfig)
@@ -201,18 +253,21 @@ class Config:
  
                 if (os.path.getsize(tempFile) > 0):
                     self.LockFile()
-                    os.rename(tempFile, self.configFile)
-                    os.system(f"sudo chown www-data:www-data {self.configFile}; sudo chmod a+w {self.configFile}")
+                    try:
+                        os.rename(tempFile, self.configFile)
+                        os.system(f"sudo chown el3ktra:www-data {self.configFile} config ; sudo chmod og+rw {self.configFile}; sudo chmod og+rw config")
+                        self.lastLoad = datetime.now()  # theself.configfile is up to date
+                        LogInfo(f"Config File written {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
+                        self.config_changed = False
+                        ret = True
+                    except Exception as e:
+                        LogError(f'WriteConfig caught exception: ({e.args})')
                     self.UnlockFile()
-                    self.lastLoad = datetime.now()  # theself.configfile is up to date
-                    LogInfo(f"Config File written {self.lastLoad.strftime('%Y-%m-%d %H:%M:%S')}")
-                    self.config_changed = False
-                    return True
                 else: LogError(f"WriteConfig: temp file {tempFile} is empty!")
             else: LogError(f"WriteConfig: unable to read {self.configFileDefault}")
         except Exception as e:
             LogError(f"WriteConfig exception: {e.args}")
-        return False
+        return ret
 
     def IsGitDirty(self):
         self.lastGit = datetime.now()
@@ -263,11 +318,6 @@ class Config:
         except Exception as e: LogError(f"Error pulling from Git: {e.args}")
         return False
     
-    def sg(self, key, default=False):
-        '''simple get'''
-        if key not in self.config: return default
-        else: return self.config[key]['val']
-
     def g(self, key, default=False):
 #        if self.IsConfigDirty(): self.LoadConfig()
         if key in self.config:
@@ -276,12 +326,33 @@ class Config:
             except Exception as e: LogError(f"Config.g caught exception: {e.args}")
         else: return default
 
+    def d(self, key):
+#        if self.IsConfigDirty(): self.LoadConfig()
+        if key in self.configDef:
+            try:
+                return self.configDef[key]['val']
+            except Exception as e: LogError(f"Config.d caught exception: {e.args}")
+        else: return False
+
+
     def c(self, key, alt):
         tryK = self.g(key)
         if not tryK:
             return self.g(alt)
         else:
             return tryK
+
+    def dc(self, key): self.cd(key)
+    def cd(self, key):
+        tryK = self.g(key)
+        if not tryK:
+            return self.d(key)
+        else:
+            return tryK
+
+    def w(self, key, val):
+        self.s(key, val)
+        self.WriteConfig()
 
     def s(self, key, val):
         try:
@@ -290,8 +361,8 @@ class Config:
                 else: val = w2n.word_to_num(val)                     # convert string from int
             LogInfo(f"Config.s: Setting {key} to {val}.")
             self.config[key]['val'] = val
-            if key=='DEBUG': SetErrorLevel(cf.g('DEBUG')) # error_handling doesn't have a Config object
-            self.WriteConfig()  # save whenever dirty
+            if key=='DEBUG': SetErrorLevel(self.g('DEBUG')) # error_handling doesn't have a Config object
+            self.config_changed = True
             return val
 
         except Exception as e:
@@ -305,7 +376,8 @@ class Config:
     def config_thread(self):
         while not self.should_quit:
             try:
-                if (datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                   if self.config_changed: self.WriteConfig() # periodically write just in case
                    self.IsGitDirty() # will update then change state to restart!!
                 if self.IsConfigDirty(): self.LoadConfig()
 
@@ -315,31 +387,43 @@ class Config:
             except  Exception as e:
                 LogError(f"ConfigThread uncaught exception {e.args}")
         LogInfo("Config thread ended.")
+        self.WriteConfig()
 
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > cf.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.should_quit
+        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.should_quit
 
 # we want to Load config here so that just including will load config
 cf = Config()
 
 if __name__ == '__main__':
+    
     SetErrorLevel(4)
-    if len(sys.argv)>1: 
+    if len(sys.argv)>1:
         if len(sys.argv)==2:
             print(cf.g(sys.argv[1].upper()))
         elif len(sys.argv)==3:
-            if sys.argv[1].lower()[0] == "g": print(cf.g(sys.argv[2].upper()))
+ 
+            if   sys.argv[1].lower()[0] == "g": print(cf.g(sys.argv[2].upper()))
+            elif sys.argv[1].lower()[0] == "d": print(cf.d(sys.argv[2].upper()))
+            elif sys.argv[1].lower()   == "cd": print(cf.cd(sys.argv[2].upper()))
             else: print(cf.s(sys.argv[1].upper(), sys.argv[2]))
         elif len(sys.argv)==4:
-            if sys.argv[1].lower()[0] == "s": cf.s(sys.argv[2].upper(), sys.argv[3])
+            if   sys.argv[1].lower()[0] == "s": cf.s(sys.argv[2].upper(), sys.argv[3])
+            elif sys.argv[1].lower()[0] == "w": cf.w(sys.argv[2].upper(), sys.argv[3])
             elif sys.argv[1].lower()[0] == "c": print(cf.c(sys.argv[2].upper(), sys.argv[3].upper()))
-            
+    else:
+        print("Starting Config Stress Test")
+        try:
+            while True:
+                cf.LoadConfig()
+                cf.WriteConfig()
+        except Exception as e: 
+            print(f"Exception Caught: {e.args}")
+    
 #    print(f"IsGitDirty:{bool(cf.IsGitDirty())}")
 
 #    from time import sleep
-#    print(f'LoadConfig returned {cf.LoadConfig()}')
 #    print(str(cf.config)+"\n\n\n\n")
-#    cf.WriteConfig()
 #    print(f'LoadConfig returned {cf.LoadConfig()}')
 #    print(str(cf.config)+"\n\n\n\n")
 #    print(f"IsConfigDirty={bool(cf.IsGitDirty())}")
