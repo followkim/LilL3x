@@ -79,6 +79,7 @@ class State:
 
     def IsInactive(self):
         return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive()
+
     def GetHostname(self):
         return socket.gethostname()
 
