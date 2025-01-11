@@ -1,88 +1,68 @@
-#User information
-USERNAME|Friend|str|description
-USERNAMEP|Friend|str|description
-USEREMAIL||str|desc
-
-#AI information
-AINAME|El3ktra|str|Name of the AI
-AINAMEP|electra|str|description
-AI_ENGINE|El3ktra|str|description
-LAST_INTERACTION|2024-8-8|dt|
+USERNAME|Friend|str|1
+USERNAMEP|Friend|str|
+USEREMAIL||str|
+AINAME|El3ktra|str|1
+AINAMEP|electra|str
+AI_ENGINE|El3ktra|str|1
+LAST_INTERACTION|2024-08-08 18:08:08|dt|1|
 BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
 HISTORY||blob
 TEMPERATURE|1|int|
-SAVE_TOKENS|1|int
-
-#behavior
-INITIATE_ODDS|4|int|description  #times per hour that AI should try to initiate
-INTERACT_MIN|5|int|time to wait before interacting again
-INTERACT_MAX|15|int|if longer then this since last interaction then force interaction
-SURVEIL_WAIT|5|int|minutes
-SURVEIL_LOOK|120|int|seconds
-ACTIVE_IDLE_TO|30|int|minutes
-
-#LEDS
-BRIGHTNESS|50|int|1-100
-BRIGHT_SPEED|2|int|1-100
-LIGHT_SPEED|75|int|1-100
-LISTEN_LED|green|str
-THINK_LED|purple|str
-TALK_LED|red|str
-LOOK_LED|white|str
-
-#Camera
+SAVE_TOKENS|1|bool
+INITIATE_ODDS|4|int|
+INTERACT_MIN|5|int|
+INTERACT_MAX|15|int|
+SURVEIL_WAIT|5|int|
+SURVEIL_LOOK|120|int|
+ACTIVE_IDLE_TO|30|int|
+BRIGHTNESS|50|int|
+BRIGHT_SPEED|2|int|1
+LIGHT_SPEED|75|int|1
+LISTEN_LED|green|str|1
+THINK_LED|purple|str|1
+TALK_LED|red|str|1
+LOOK_LED|white|str|1
 ICU_THRESH|2|int
 MOTDET_SENS|7|int
 MOTDET_THRESH|10|int
 IS_DARK_THRESH|20|int
-CAMERA_PICT_SEC|3|int|Number of seconds to show a new picture on the screen
+CAMERA_PICT_SEC|3|int|
 CAMERA_SLEEP_SEC|5|int
 IMGUR_ID||str|
 IMGUR_SECRET||str|
 FLICKR_API||str|
 FLICKR_SECRET||str|
-
-# listening
-LISTEN_ENGINE||str|
-INTERPRET_ENGINE|google|str|no other tested options
+LISTEN_ENGINE|SpeechRecognition|str|1
+INTERPRET_ENGINE|google|str|1
 MIC_TO|5|int
 MIC_LIMIT|1|int
 AMBIENT|1|int|
 ENERGY_THRESH|25|int|
 ENERGY_DYNAMIC|0|int
-
-#wake word
-WAKE_WORD|/home/el3ktra/LilL3x/wake/hey-vee-too_en_raspberry-pi_v3_0_0.ppn|path
-WAKE_WORD_ENGINE|pico|str
+WAKE_WORD|/home/el3ktra/LilL3x/wake/el3ktra_en_raspberry-pi_v3_0_0.ppn|path|1
+WAKE_WORD_ENGINE|pico|str|1
 WAKE_WORD_REGEX||regex
 WAKE_WORD_TRIES|0|int
 PICOVOICE_KEY||str|
-
-# speech 
-SPEECH_ENGINE|amazon|str|
+SPEECH_ENGINE|gTTS|str|1|
 VOLUME|10|int
-GTTS_VOICE|us|str|Voice for gTTS
-GOOGLE_CLOUD_SPEECH_CREDENTIALS||str|description
+GTTS_VOICE|us|str|1
+GOOGLE_CLOUD_SPEECH_CREDENTIALS||str|
 AWS_ACCESS_KEY||str|
 AWS_ACCESS_KEY_SECRET||str|
 AWS_VOICE_ID|Ruth|str|
 AWS_VOICE_ENGINE|neural|str|
-CHATGPT_VOICE|nova|str|Voice for CHAT GPT
+CHATGPT_VOICE|nova|str|
 ELEVENLABS_API_KEY||str|
 ELEVENLABS_VOICE_ID||str|
-
-#screen
-FPS|3|int|
+FPS|3|int|1
 MESSAGE_SHOW_SECS|10|int|
-SCREEN_SPEED|1|int|
-SCREEN_DEBUG|1|bool|
-
-#system
-DEBUG|2|int|
-WELCOME_IMAGE|./frames/cosmic_girl.ppm|path
-CHECK_GIT|30|int
-
-# OPEN AI Models
+SCREEN_SPEED|1|int|1
+SCREEN_DEBUG|0|bool|1
+DEBUG|2|int|1
+WELCOME_IMAGE|./frames/el3ktra.ppm|path|1
+CHECK_GIT|30|int|1
+CONFIG_DT_FORMAT|%Y-%m-%d %H:%M:%S|str|1
 OPEN_AI_API_KEY||str
 CHATGPT_MODEL|gpt-4o|str|
 CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
@@ -90,28 +70,24 @@ GEMMA_MODEL|gemma2-27b|str|
 GEMMA_MODEL_SLOW|gemma2-9b|str|
 QWEN_MODEL|Qwen1.5-72B-Chat|str|
 QWEN_MODEL_SLOW|Qwen1.5-7B-Chat|str|
-LLAMA_BASE_URL|http://api.llama-api.com|str
+LLAMA_BASE_URL|http://api.llama-api.com|str|1
 LLAMA_KEY||str|
 LLAMA_MODEL|llama3.1-8b|str|
 LLAMA_MODEL_SLOW|llama3.1-8b|str|
-
-# OLLAMA models
-ADHOC_URL|http://192.168.0.128:11434/v1|str|
+ADHOC_URL|http://192.168.0.128:11434/v1|str|1
 ADHOC_MODEL|qwen2|str|
 ADHOC_MODEL_SLOW|qwen2|str|
 ADHOC_API_KEY|http://192.168.0.128:11434/v1|str|
-CORGI_URL|http://192.168.15.58:11434|str|
+CORGI_URL|http://192.168.15.58:11434|str|1
 CORGI_API_KEY|na|str|
 CORGI_MODEL|llama3.1|str|
-EL3KTRA_URL|http://el3ktra.net:11434|str|
-EL3KTRA_API_KEY|llama3.1:8b|str|
-EL3KTRA_MODEL|llama3.1:8b|str|
-EL3KTRA_VISION_MODEL|llama3.2-vision:latest|str|
+EL3KTRA_URL|http://el3ktra.net:11434|str|1
+EL3KTRA_API_KEY|llama3.1:8b|str|1
+EL3KTRA_MODEL|llama3.1:8b|str|1
+EL3KTRA_VISION_MODEL|llama3.2-vision:latest|str|1
 LOCAL_MODEL|qwen2:0.5b|str|
 CONVO_ID||str|
-
-# Other models
-GOOGLE_API||str|description
+GOOGLE_API||str|
 GEMINI_API_KEY||str|
 GEMINI_MODEL|gemini-1.5-flash|str|
 GEMINI_MODEL_SLOW|gemini-1.5-flash|str|
@@ -124,3 +100,5 @@ KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
 KINDRIOD_GMPID||str|
 FIREBASE_WEB_API_KEY||str|
 BARD_API||str|
+##### Written by config_tools.php at 2025-01-09 08:57:35am
+
