@@ -8,6 +8,7 @@
 	const CONFIG_ROOT =  "config.txt";
 	const CONFIG_DD =  CONFIG_PATH . "config_dd.txt";
 	const CONFIG_FILE =  CONFIG_PATH . CONFIG_ROOT;
+	const CONFIG_FILE_LOCK =  CONFIG_FILE . ".LOCK";
 
 
 	function HTMLHead() {
@@ -23,6 +24,9 @@
           echo '<h1>Welcome to '.gethostname().'</h1>';
 	  echo ' <a href="wifi.php">Set Wifi</a><br>';
 	  echo ' <a href="config.php">configure</a><br>';
+	  echo ' <a href="LilL3x/picts">Image Gallery</a><br>';
+	  echo ' <a href="LilL3x/">Browse directory</a><br>';
+	  echo ' <p><hr>';
 	  echo ' <a href="config.php?txt">configure (Developer Version)</a><br>';
 	  echo ' <a href="config.php?vars">configure variables (Developer Version)</a><br>';
 	  echo '</body></html>';
@@ -43,7 +47,7 @@
                 echo "<center><b><h1>Configure ".gethostname()."</b></h1></center>";
                 echo '<form action="" method="POST">';
 
-		if (sizeof(array_keys($_GET))>0) PrintConfigDev($configFile);
+		if ((sizeof(array_keys($_GET))>0) and (strlen(array_keys($_GET)[0])>1)) PrintConfigDev($configFile);
 		else PrintConfigPretty();
 
 		echo "</table>";
@@ -93,7 +97,7 @@
 				$key = $atts[0];
 				$val = $atts[1];
 				$type = trim($atts[2]);
-				if (preg_match("/[A-Z]*_LED/", $key)) Print_LED($label, $key, $val, $desc);
+				if (preg_match("/[A-Z]*_LED/", $key)) Print_LED($key, $key, $val);
 				elseif (in_array($key, $func_list)) eval("Print_".$key."(\$key, \$key, \$val);");
 				elseif (in_array($type, $func_list)) 	eval("Print_".$type."(\$key, \$key, \$val);");
 				else 	echo trd_labelData($key, $val, $key);
@@ -103,7 +107,20 @@
 		fclose($myfile);
 	}
 
+        function LockFile() {
+		while (file_exists(CONFIG_FILE_LOCK)) {
+			usleep(1000000/0.25);
+		}
 
+		$myfileLock = fopen(CONFIG_FILE_LOCK, "w");
+		fclose($myfileLock);
+	}
+	function UnlockFile() {
+		while (file_exists(CONFIG_FILE_LOCK)) {
+			unlink(CONFIG_FILE_LOCK);
+		}
+	}
+ 
 	function WriteConfig($post, $configFilePath) {
 
                 $chkFile = FALSE;
@@ -130,8 +147,6 @@
 					$config_new = $config_new . '|' . $att[$i] ;
 				}
                                 unset($post[$att[0]]);
-			} else {
-				 $config_new = $config_new . $line;
 			}
 		}
 		fclose($myfile);
@@ -140,20 +155,19 @@
 		if ($chkFile) {
 			try {
 //		    		$myfile = fopen("\config.bk", "w");
-		    		$myFile = fopen($configFilePath, "c");
-				if (flock($myFile, LOCK_EX)) {
-					fwrite($myFile, $config_new);
-                                        fwrite($myFile, "##### Written by config_tools.php at ". date("Y-m-d h:i:sa")."\n\n");
-                                        fflush($myFile);
-                                        flock($myFile, LOCK_UN);
-					fclose($myFile);
-//					rename(CONFIG_PATH."config.bk", $configFilePath);
-					echo "Wrote to file ".$configFilePath;
-				}
-				else echo "Error opening ".$configFilePath. "\n";
+		    		$myFile = fopen($configFilePath."php.BAK", "w");
+				fwrite($myFile, $config_new);
+                                fwrite($myFile, "##### Written by config_tools.php at ". date("Y-m-d h:i:sa")."\n\n");
+                                fflush($myFile);
+				fclose($myFile);
+
+				LockFile();
+				rename($configFilePath."php.BAK", $configFilePath);
+				UnlockFile();
+				echo "<i>Wrote to file '".basename($configFilePath)."'<i>";
 
 			} catch (Exception $e) {
-	                        echo "Error writing to ".$configFilePath .":". $e->getMessage() . "\n";
+	                        echo "Error writing to ".basename($configFilePath) .":". $e->getMessage() . "\n";
 			}
 		}
 	}
@@ -193,8 +207,8 @@
 				fclose($pyfile);
 			} // preg_match filename
 		}
-		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
 	function Print_INTERPRET_ENGINE($label, $name, $value, $desc="") {
@@ -218,8 +232,8 @@
 		foreach ($engines as $engine) {
 			echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
 		}
-		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
 	function Print_SPEECH_ENGINE($label, $name, $value, $desc="") {
@@ -235,10 +249,29 @@
 			}
 		}
 		fclose($pyfile);
-		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 
 	}
+
+        function Print_LISTEN_ENGINE($label, $name, $value, $desc="") {
+                echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
+                echo "<td id='rightHand' >";
+                echo "<select name=\"".$name."\" value=".$value.">";
+                $pyfile = fopen('/home/el3ktra/LilL3x/lillex.py', "r");
+                while(!feof($pyfile)) {
+                        $line = fgets($pyfile);
+                        if (preg_match_all("/from .* import (.*)_listener/", $line, $matches)) {
+                        $engine = $matches[1][0];
+                        echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
+                        }
+                }
+                fclose($pyfile);
+                echo "</select></td></tr>";
+                echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
+
+        }
+
 
 	function Print_DEBUG($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
@@ -254,8 +287,8 @@
 			}
 		}
 		fclose($pyfile);
-		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
 	function Print_LED($label, $name, $value, $desc="") {
@@ -271,8 +304,8 @@
 			}
 		}
 		fclose($pyfile);
-		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
 
@@ -287,8 +320,8 @@
 				echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
 			}
 		}
-  		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+  		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
@@ -301,8 +334,8 @@
 				echo "<option value=\"" . $wake_word_eng  . "\" " . (($wake_word_eng == $value)?"selected":"") . ">" . ucwords($wake_word_eng) . "</option>";
 			}
 		}
-  		if ($desc!="") echo "</select></td></tr><tr><td></td><td><i>".$desc."</i></td></tr>";
-		else echo "</select></td></tr>";
+                echo "</select></td></tr>";
+  		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
         function PrintHEADER($label, $ht="2") {
@@ -312,23 +345,23 @@
         function Print_blob($label, $key, $val, $desc="") {
 		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$key.'" />'.$val.'</textarea></td></tr>';
-		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
         function Print_int($label, $key, $val, $desc="") {
                 echo trd_labelData($label, $val, $key, 0, "number");
-		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
         function Print_bool($label, $key, $val, $desc="") {
 		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$key.'" '.($val=="1"?'checked':'').'></td></tr>';
-		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 
 	}
         function Print_other($label, $key, $val, $desc="") {
                 echo trd_labelData($label, $val, $key);
-		echo ($desc == ""?"":"<tr><td></td><td><i>".$desc."</i></td></tr>");
+		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
 
