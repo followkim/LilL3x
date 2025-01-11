@@ -12,6 +12,7 @@ echo "running stats..."
 
 echo "git pull..."
 git pull
+bash /home/el3ktra/LilL3x/install/update.sh
 
 echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
