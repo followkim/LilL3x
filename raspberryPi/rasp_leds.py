@@ -62,8 +62,8 @@ class LEDS:
                 self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
                 if self.is_idle:
 
-                    if STATE.IsSleeping():                               # dim the lights
-                        LogDebug(f"Sleeping: brightness=={thisColor[3]}")
+                    # If sleeping, dim the lights
+                    if STATE.IsSleeping():
                         brightDelta = -1
                         if thisColor[3] > 0:
                             (ir, jr, self.color) = rainbow_cycle(ir, jr) # continuie to cycle

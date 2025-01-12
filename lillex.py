@@ -122,9 +122,12 @@ class lill3x:
         config_thread.name = f"LilL3x ConfigThread"
         config_thread.start()
 
-        if '--restart' in sys.argv: STATE.ChangeState('ActiveIdle')
+        if '--restart' in sys.argv:
+            STATE.ChangeState('ActiveIdle')
+            try: self.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
+            except:  pass
+            LogInfo(f"Last Interaction:  {self.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
         else:
-            self.mouth.Hello()
             STATE.ChangeState('Hello')
 
     def Loop(self):
@@ -192,8 +195,9 @@ class lill3x:
         # were able to create the listner
         self.ears.Close() # blocks, no threads
         self.ears = ears
-        self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
+        self.ai.ears = self.ears
         cf.s('LISTEN_ENGINE', newListener)
+        STATE.ChangeState('Active')
         return True
 
     def EvalCode(self):
