@@ -30,19 +30,15 @@ class AI:
     memory = 0
     ears = 0
     eyes =0
+
     mouth = 0
     face = 0
     has_auth = False
     training = False
 
     def __init__(self):
-        try:
-            self.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
-        except:  # might throw if the string is malformed
-            self.last_ai_interaction = datetime.now()
+        self.last_ai_interaction = datetime.now()
         self.last_user_interaction = self.last_ai_interaction
-
-        LogInfo(f"Last Interaction:  {self.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
         self.has_auth = True
 
     def SetBody(self, ears, eyes, mouth, face):
@@ -187,7 +183,7 @@ class AI:
             if engine:
                 STATE.ChangeState('ChangeListener')
                 STATE.data = engine
-                return f"Sure, I'll try to switch the listener to {engine}."
+                return f"Sure, I'll switch the listener to {engine}."
             else: return f"I can't seen to find a listening engine called {txt.split()[-1]}"
 
 #        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", txt.lower()):
