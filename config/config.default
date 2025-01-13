@@ -35,10 +35,10 @@ FLICKR_SECRET||str|
 LISTEN_ENGINE|SpeechRecognition|str|1
 INTERPRET_ENGINE|google|str|1
 MIC_TO|5|int
-MIC_LIMIT|1|int
+MIC_LIMIT|0.8|float
 AMBIENT|1|int|
 ENERGY_THRESH|25|int|
-ENERGY_DYNAMIC|0|int
+ENERGY_DYNAMIC|1|bool|
 WAKE_WORD|/home/el3ktra/LilL3x/wake/el3ktra_en_raspberry-pi_v3_0_0.ppn|path|1
 WAKE_WORD_ENGINE|pico|str|1
 WAKE_WORD_REGEX||regex
@@ -100,5 +100,4 @@ KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
 KINDRIOD_GMPID||str|
 FIREBASE_WEB_API_KEY||str|
 BARD_API||str|
-##### Written by config_tools.php at 2025-01-09 08:57:35am
 
