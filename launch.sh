@@ -1,23 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 # launcher.sh
 # navigate to home directory, then to this directory, then execute python script, then back home
 source $HOME/.bash_profile
 
 date
 
-cd /home/el3ktra/LilL3x/
+cd $HOME/LilL3x
 
 echo "running stats..."
 /home/el3ktra/LilL3x/bin/python stats.py
 
 echo "git pull..."
-git pull
-bash /home/el3ktra/LilL3x/install/update.sh
+git pull >> ./log/git_$(date +"%Y-%m-%d").txt
+
+echo "Run update.sh..."
+. $HOME/LilL3x/install/update.sh >> ./log/update_$(date +"%Y-%m-%d").txt
 
 echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
 
 echo "Starting LilL3x..."
-/home/el3ktra/LilL3x/bin/python lillex.py > log/lillex_launch.txt
+/home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt
 
 echo "Done."
