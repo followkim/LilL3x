@@ -5,6 +5,7 @@ import traceback
 from error_handling import *
 from gpiozero import CPUTemperature
 import psutil
+from subprocess import check_output
 
 STATE = 0
 MIC_STATUS = 0
@@ -58,6 +59,14 @@ class State:
     def RevertState(self):
         return self.ChangeState(self.last_state)
 
+    def RevertWake(self):
+        if (self.current == 'Wake'):
+            if self.last_state in ('Wake', 'Active'): self.ChangeState('Active')
+            else:
+                self.last_dt = datetime.now()
+                LogInfo(f"RevertWake: State changed: from {self.current} to {self.last_state} after being idle for {self.StateDuration()} secs")
+                self.current = self.last_state
+
     def StateDuration(self):
         return (datetime.now()-self.last_dt).seconds
 
@@ -82,6 +91,10 @@ class State:
 
     def GetHostname(self):
         return socket.gethostname()
+
+    def GetIPAddress(self):
+        ips = check_output(['hostname', '--all-ip-addresses'])
+        return ips.split()[0].decode()
 
 class MicStatus:
     def __init__(self):
@@ -125,3 +138,6 @@ if __name__ == '__main__':
     s = State()
     s.ChangeState('Active')
     print(s.GetHostname())
+    print(s.GetIPAddress())
+    s.ChangeState('Wake')
+    s.RevertWake()
