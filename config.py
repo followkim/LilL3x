@@ -33,6 +33,7 @@ def to_regex(regex):
 
 type_f = {
     'num' : float,
+    'float' : float,
     'int' : to_int,
     'str' : to_str,
     'path' : to_str,
@@ -255,7 +256,7 @@ class Config:
                     self.LockFile()
                     try:
                         os.rename(tempFile, self.configFile)
-                        os.system(f"sudo chown el3ktra:www-data {self.configFile} config ; sudo chmod og+rw {self.configFile}; sudo chmod og+rw config")
+                        os.system(f"sudo chown el3ktra:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
                         self.lastLoad = datetime.now()  # theself.configfile is up to date
                         LogInfo(f"Config File written {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
                         self.config_changed = False
@@ -356,9 +357,11 @@ class Config:
 
     def s(self, key, val):
         try:
-            if re.search(r"^(int|num|float|bool)", self.config[key]['type']) and isinstance(val, str):
-                if val[0]=="-":  val = w2n.word_to_num(val[1:]) * -1 # w2n can't do negative numbers for some reason
-                else: val = w2n.word_to_num(val)                     # convert string from int
+            if re.search(r"^(int|bool)", self.config[key]['type']) and isinstance(val, str):
+                val = int(val)
+            if re.search(r"^(float|num)", self.config[key]['type']) and isinstance(val, str):
+                val = float(val)
+
             LogInfo(f"Config.s: Setting {key} to {val}.")
             self.config[key]['val'] = val
             if key=='DEBUG': SetErrorLevel(self.g('DEBUG')) # error_handling doesn't have a Config object
