@@ -19,11 +19,11 @@ class Face:
         self.screen = Screen()
         self.leds = LEDS()
         animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-        animate_thread.name = f"LilL3x AnimateThread"
+        animate_thread.name = f"{GetHostname()} AnimateThread"
         animate_thread.start()
         
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
-        led_thread.name = f"LilL3x LEDThread"
+        led_thread.name = f"{GetHostname()} LEDThread"
         led_thread.start()
  
 
@@ -66,6 +66,7 @@ class Face:
     def message(self, text):
         self.screen.message(text)
 def dummy(): pass
+
 class DummyFace:
     def __init__(self): pass
     def SetViewControl(self, showViewStartFunc=dummy, showViewEndFunc=dummy): pass
@@ -81,14 +82,26 @@ class DummyFace:
 if __name__ == '__main__':
     from time import sleep
     from globals import STATE
+    import pico_wake
+    import threading
     global STATE
+    import pygame
+    pygame.mixer.init()
+
 
     def dummy():
         pass
     face = Face() #main
     face.SetViewControl(dummy, dummy)
     STATE.ChangeState('ActiveIdle')
-    
+
+    ww = pico_wake.pico_wake()
+    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
+    ww_thread.name = f"{GetHostname()} WakeWordThread"
+    ww_thread.start()
+
+
+    sleep(20)
     '''
     # state test
     face.talking()
@@ -124,13 +137,16 @@ if __name__ == '__main__':
 #    sleep(5)
 
     
-    face.looking()
-    sleep(10)
-    face.listening()
-    sleep(10)
+#    face.looking()
+#    sleep(10)
+#    face.listening()
+#    sleep(10)
+#    cf.s('SCREEN_DEBUG', True)
     face.idle()
-    STATE.ChangeState('ActiveIdle')
-    sleep(10)
+##    face.message("Hi there!")
+    STATE.ChangeState('Active')
+    face.looking()
+#    sleep(360)
     STATE.ChangeState('Idle')
     sleep(10)
     STATE.ChangeState('SleepState')

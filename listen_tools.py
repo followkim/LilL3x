@@ -25,38 +25,55 @@ class SpeechRecognition_listener:
     end_mp3 = 0
     audio = 0
     face = None
+    quiet = 0
+
     def __init__(self, face=None):
         self.speech = sr.Recognizer()
 #        self.speech.dynamic_energy_ratio = 2
-        self.update()
+#        self.update()
         self.start_mp3 = pygame.mixer.Sound(cf.g('START_LISTEN_MP3'))
         self.end_mp3 = pygame.mixer.Sound(cf.g('END_LISTEN_MP3'))
         self.face = face
+        self.quiet = self.update()
         return
 
-    def clear(self):
-#          self.listen(beQuiet=True, adjust_for_ambient=2)
-          return   
+    def SetQuiet(self):
+          self.quiet = self.update()
+          return
 
     def update(self, asyn=False, needMic=True):
         if asyn:
             update_thread = threading.Thread(target=self.update_thread)
-            update_thread.name = f"LilL3x SR.update_thread {update_thread.native_id}"
+            update_thread.name = f"{GetHostname()} SR.update_thread {update_thread.native_id}"
             update_thread.start()
-
-        else: self.update_thread(True)
+            return update_thread
+        else: return self.update_thread(needMic=needMic)
 
     def update_thread(self, adjust_for_ambient=cf.g('AMBIENT'), needMic=False):
         self.speech.pause_threshold = cf.g('MIC_LIMIT')
         self.speech.dynamic_energy_threshold = cf.g('ENERGY_DYNAMIC')==1
 
+        if self.speech.dynamic_energy_threshold:  # vut 
+            self.speech.dynamic_energy_adjustment_ratio = 1 + (cf.g("ENERGY_THRESH")/50.0)
+            LogInfo(f"SR Update: Using dynamic: ratio = {1 + (cf.g('ENERGY_THRESH')/50.0)}")
+        else:
+            self.speech.dynamic_energy_adjustment_ratio =1.5  # reset to default
+            LogInfo(f"SR Update: no dynamic, energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
+
         if not needMic or MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
                 self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
-            LogInfo(f"energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
-            self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g("ENERGY_THRESH")/100.0))
+ 
             if needMic: MIC_STATE.ReturnMic()
-        else: LogInfo(f"Ambeint: Unable to get Mic after {cf.g('MIC_TO')}s.")
+
+            if not self.speech.dynamic_energy_threshold: self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g('ENERGY_THRESH')/100.0))
+
+            LogInfo(f"SR Update: thresh = {self.speech.energy_threshold}")
+
+            return self.speech.current_energy
+
+        else: LogError(f"update_thread: Unable to get Mic after {cf.g('MIC_TO')}s.")
+        return False
 
     def listen_thread(self, source, timeout):
         try:
@@ -74,6 +91,7 @@ class SpeechRecognition_listener:
         dt = datetime.now()
         self.speech.pause_threshold = cf.g('MIC_LIMIT')
         start_et = self.speech.energy_threshold
+        old_quiet = 0
         if MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
             #    self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
@@ -86,7 +104,7 @@ class SpeechRecognition_listener:
 #                    audio = self.speech.listen(source, timeout=5.0) #,dynamic_energy_threshold=False)
                     self.audio = 0
                     listen_thread = threading.Thread(target=self.listen_thread, args=(source, time_out))
-                    listen_thread.name = f"LilL3x SR.listen_thread"
+                    listen_thread.name = f"{GetHostname()} SR.listen_thread"
                     listen_thread.start()
                     run_avg = []
                     x=0
@@ -95,12 +113,13 @@ class SpeechRecognition_listener:
                     while listen_thread.is_alive():
                         x += 1
                         speaking_energy = round(self.speech.current_energy-self.speech.energy_threshold)
+                        STATE.volume = speaking_energy
                         run_avg.append(speaking_energy) # should be positive if user is speaking
                         if (x % 120) == 0: # print debug string every 1 secs
                             LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{speaking_energy}\t{round(sum(run_avg)/len(run_avg))}\t{(datetime.now()-dt).seconds}s")
                         if len(run_avg) == 120:
                             run_avg.pop(0) # only keep 1s frames at a time
-                            if (datetime.now()-last_listen).seconds>cf.g('MIC_TO'): ## after this many secs, check if user is really talkiung
+                            if (datetime.now()-last_listen).seconds>cf.g('MIC_TO') or STATE.CheckState('Wake'): ## after this many secs, check if user is really talkiung
                                 if (sum(run_avg)/len(run_avg))<0:
                                     # they aren't talking, so start to jack up the threshold (limit to x4)
                                     self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
@@ -110,87 +129,96 @@ class SpeechRecognition_listener:
                 except Exception as e:
                     #force the listen thread to stop
                     while listen_thread.is_alive(): self.speech.energy_threshold=min(self.speech.energy_threshold*1.25, start_et*4)
-                    MIC_STATE.ReturnMic()
-                    LogError("speech_listener.listener() returned error:" + e.args)
+                    MIC_STATE.ReturnMic()  # if there is an error, return tthe MIC.  Will need to call update() if no error
+                    LogError(f"speech_listener.listener() returned error: {e.args}")
+                    self.audio = None  # don't try to use the mic again (was returned)
+
+                # reset the energy_thresh
+                self.speech.energy_threshold = start_et
+
                 if not beQuiet:
                     self.end_mp3.play()
                     if self.face: self.face.thinking()
+                STATE.RevertWake()  # If Wake state while listening, user pushed button.  If not Wake State, this does nothing. 
+
                 if self.audio:
+                    updt_thrd = self.update(asyn=True, needMic=False)
                     try:
-                        self.update(asyn=True)
 #                        imp = self.speech.recognize_google(audio)
                         imp = eval(f"self.speech.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
                     except sr.exceptions.UnknownValueError:
                         pass
                     except Exception as e:
-                        MIC_STATE.ReturnMic()
                         RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
                     self.audio=False
-                #imp = self.engines['google')(audio)  ## NEEED FIX
-                MIC_STATE.last = datetime.now()
-                LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
+                    while updt_thrd.is_alive(): sleep(0.25)
                 MIC_STATE.ReturnMic()
+                #imp = self.engines['google')(audio)  ## NEEED FIX
+                if imp: self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
+                LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
                 #self.speech.energy_threshold = start_et
-                self.update(asyn=True)
                 if self.face: self.face.off()
         return imp
 
     def Close(self):
         return
- 
+
     def Evesdrop(self):
         return self.listen(True)
-
-    def CanIHearYou(self, dur=30):
-        return self.listen(True, time_out=dur) != ""
-
+ 
     ####### Engines in here
 
-    #Sphinx
-    def sphinx(self, audio):
+    def recognize_default(self, audio):
+        try:
+            return self.speech.recognize_google(audio)
+        except sr.RequestError as e:
+            LogError("SRL Default RequestError; {0}".format(e))
+        return ""
+
+    def recognize_google(self, audio):
+        try:
+            return self.speech.recognize_google(audio)
+        except sr.RequestError as e:
+            LogError("SR: google RequestError; {0}".format(e))
+            return self.speech.recognize_default(audio)
+
+    def recognizex_sphinx(self, audio):
         try:
             return self.speech.recognize_sphinx(audio)
         except sr.RequestError as e:
             LogError("Sphinx RequestError; {0}".format(e))
+            return self.speech.recognize_default(audio)
 
-    def google(self, audio):
+    def recognize_google_api(self, audio):
         try:
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-            if False: # cf.g('GOOGLE_API'):
+            if cf.g('GOOGLE_API'):
                 self.speech.recognize_google(audio, key=cf.g('GOOGLE_API'))
             else:
                 self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("Google Speech Recognition service RequestError; {0}".format(e))
+            return self.speech.recognize_default(audio)
 
-'''
 
-    def googleCloud(self, audio):
+    def recognize_google_cloud(self, audio):
         try:
-            if cf.g('GOOGLE_API'):
+            if cf.g('GOOGLE_CLOUD_SPEECH_CREDENTIALS'):
                 return self.speech.recognize_google_cloud(audio, credentials_json=cf.g('GOOGLE_CLOUD_SPEECH_CREDENTIALS'))
             else:
                 self.speech.recognize_google(audio)
         except sr.RequestError as e:
-            print("Google Speech Recognition service RequestError; {0}".format(e))
+            LogError("Google Speech Cloud Recognition service RequestError; {0}".format(e))
+            return self.speech.recognize_default(audio)
 
-
-GOOGLE_CLOUD_SPEECH_CREDENTIALS = r"""INSERT THE CONTENTS OF THE GOOGLE CLOUD SPEECH JSON CREDENTIALS FILE HERE""" #TODO Get from config
+    def recognizex_whisper(self, audio):
         try:
-            # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-            print("Google Speech Recognition thinks you said " + r.recognize_google(audio))
+            return self.speech.recognize_whisper_api(audio)
         except sr.RequestError as e:
-            print("Google Speech Recognition service RequestError; {0}".format(e))
+            LogError(f"Could not request results from Whisper API; {e}")
+            return self.speech.recognize_default(audio)
 
-# recognize speech using Google Cloud Speech
-GOOGLE_CLOUD_SPEECH_CREDENTIALS = r"""INSERT THE CONTENTS OF THE GOOGLE CLOUD SPEECH JSON CREDENTIALS FILE HERE"""
-try:
-    print("Google Cloud Speech thinks you said " + r.recognize_google_cloud(audio, credentials_json=GOOGLE_CLOUD_SPEECH_CREDENTIALS))
-except sr.UnknownValueError:
-    print("Google Cloud Speech could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Google Cloud Speech service; {0}".format(e))
-
+    '''
 # recognize speech using Wit.ai
 WIT_AI_KEY = "INSERT WIT.AI API KEY HERE"  # Wit.ai keys are 32-character uppercase alphanumeric strings
 try:
@@ -239,19 +267,12 @@ except sr.RequestError as e:
     print("Could not request results from IBM Speech to Text service; {0}".format(e))
 
 
-# recognize speech using Whisper API
-OPENAI_API_KEY = "INSERT OPENAI API KEY HERE"
-try:
-    print(f"Whisper API thinks you said {r.recognize_whisper_api(audio, api_key=OPENAI_API_KEY)}")
-except sr.RequestError as e:
-    print(f"Could not request results from Whisper API; {e}")
-    
 '''
 
 
 if __name__ == '__main__':
     pygame.mixer.init()
-    sg = speech_listener()
+    sg = SpeechRecognition_listener()
     sg.update()
 #    sg.engine="whisper"
 #    while True:
@@ -267,5 +288,5 @@ if __name__ == '__main__':
         print("Speak")
         txt = sg.listen()
         print(txt)
-        print(f'\nElapsed Seconds: {(datetime.now()-dt).seconds}')
+        print(f'\nElapsed Seconds: {(datetime.now()-dt).seconds}.  thrsh = {int(sg.speech.energy_threshold)}')
         sleep(1)

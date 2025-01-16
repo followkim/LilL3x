@@ -26,9 +26,9 @@ import vosk_wake
 import pico_wake
 from config import cf
 
-from speech_tools import speech_generator
 from listen_tools import SpeechRecognition_listener
 from vosk_wake import Vosk_listener
+from speech_tools import speech_generator
 from camera_tools import Camera
 from face import Face
 
@@ -56,46 +56,46 @@ class lill3x:
     def __init__(self):
 
 #        InitLogFile()  This is done above to capture log messages while loading externals
-        LogInfo("Starting LilL3x")        
+        LogInfo(f"Starting {GetHostname()}")
         # create the hardware objects
-  
+
         try:
             self.mouth = speech_generator()
         except Exception as e:
-            RaiseError("Init():Could not init speech generator. " + e.args)
+            RaiseError(f"Init():Could not init speech generator. {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
             self.eyes = Camera()
         except Exception as e:
-            RaiseError("Init():Could not init camera. " + e.args)
+            RaiseError(f"Init():Could not init camera. {e.args}")
 
         try:
             self.face = Face() # note this spawns two threads: animate and led threads
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
-            RaiseError("Init():Could not init Display. " + e.args)
+            RaiseError(f"Init():Could not init Display. {e.args}")
 
         try:
             self.ears = eval(f"{cf.g('LISTEN_ENGINE')}_listener(self.face)")
 #            self.ears = SpeechRecognition_listener()
         except Exception as e:
-            RaiseError("Init():Could not init listener. " + e.args)
+            RaiseError(f"Init():Could not init listener. {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
 
         try:
-            self.button = Button() 
+            self.button = Button()
         except Exception as e:
-            RaiseError("Init():Could not init Button. " + e.args)
+            RaiseError(f"Init():Could not init Button. {e.args}")
 
         # get AI (depending on config)
         try:
-            self.ai = eval("AI_"+cf.g('AI_ENGINE')+"()")
+            self.ai = eval(f"AI_{cf.g('AI_ENGINE')}()")
             self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
         except Exception as e:
-            RaiseError("Unable to create AI: "+ e.args)
+            RaiseError(f"Unable to create AI: {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
         if not self.ai:
@@ -105,21 +105,21 @@ class lill3x:
         
         # THREADS
         cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
-        cam_thread.name = f"LilL3x CameraLoopThread"
+        cam_thread.name = f"{GetHostname()} CameraLoopThread"
         cam_thread.start()
 
 #        self.ww = vosk_wake.vosk_wake(self.face)
         self.ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
         ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)
-        ww_thread.name = f"LilL3x WakeWordThread"
+        ww_thread.name = f"{GetHostname()} WakeWordThread"
         ww_thread.start()
         
         button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
-        button_thread.name = f"LilL3x ButtonThread"
+        button_thread.name = f"{GetHostname()} ButtonThread"
         button_thread.start()
 
         config_thread = threading.Thread(target=cf.config_thread, daemon=True)
-        config_thread.name = f"LilL3x ConfigThread"
+        config_thread.name = f"{GetHostname()} ConfigThread"
         config_thread.start()
 
         if '--restart' in sys.argv:
@@ -150,6 +150,7 @@ class lill3x:
                 LogError(f"Loop(): {STATE.GetState()}: Uncaught Exception: {e.args}")
                 if last_err: STATE.ChangeState('Quit')
                 else: last_err = True
+
         # call the Quit function
         eval("self."+STATE.GetState()+"()")
 
@@ -158,6 +159,7 @@ class lill3x:
         self.SwitchAI(STATE.data)
         STATE.ChangeState('Hello')
         return True
+
 
     def SwitchAI(self, newAI):
         try:
@@ -213,7 +215,6 @@ class lill3x:
 
     # Hello: Give a greeting to the user:
     def Hello(self):
-        self.ears.clear()
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
         return
@@ -244,17 +245,13 @@ class lill3x:
         if self.ai.IsIdle(): # not (cf.g('ACTIVE_IDLE_TO')*60)):  #hasn't seen the user in ACTIVE_IDLE_TO minutes, go to idle
             STATE.ChangeState('Idle')
 
-        elif STATE.CheckState('ActiveIdle') and not self.ww.is_speaking and self.ai.LookForUser():
+        elif self.ai.CanInteract():
             thought = self.ai.Interact()    #returns text, but we want to update first
             if thought:
-                self.ears.update()  # get ambient noise
                 self.ai.say(thought)
-                user_input = self.ai.listen()
-                if user_input:
-                    self.ai.say(self.ai.respond(user_input))
-                    if STATE.CheckState('ActiveIdle'): STATE.ChangeState('Active')
-
-        if STATE.CheckState('ActiveIdle'): SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
+                STATE.ChangeState('Active')
+            else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
+        else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
 
     # Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai
     #       AI can: machine laining, check lights/sound
@@ -264,20 +261,10 @@ class lill3x:
         self.ai.Think()  # will need a flag that data should be saved for later
         
         if self.ai.CanInteract():        # can see user and not too soon
-            if self.ai.LastAIInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
-                thought = self.ai.Greet()
-            else:
-                thought = self.ai.Interact()
-
-            if thought:
-              self.ai.say(thought)
-              user_input = self.ai.listen()
-              if user_input:
-                  self.ai.say(self.ai.respond(user_input))
-                  STATE.ChangeState('Active')
-              else: STATE.ChangeState('ActiveIdle')
+          self.ai.say(self.ai.Greet())
+          STATE.ChangeState('Active')
         else:
-            SleepOn(varf=self.ai.CanInteract)  # sleep until State change or seeing user
+            SleepOn(varf=self.ai.CanInteract, wakeOn=True)  # sleep until State change or seeing user
 
     # Sleep: User is not present.   User needs to use wakeword or respond to "welcome back" to activate ai
     #       AI can: machine learning, check lights/sound
@@ -285,12 +272,13 @@ class lill3x:
 
         # user turned on the light-- goto acttive idle
         if not self.eyes.IsDark():
-            if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
+            if self.ai.IsIdle():
                 STATE.ChangeState('Idle')
             else:
                 STATE.ChangeState('ActiveIdle')  # will switch to Active Idle once user is seen
         else:
-            SleepOn(varf=self.eyes.IsDark)
+            CleanDirs(cf.g('TEMP_PATH'), 6)
+            SleepOn(varf=self.eyes.IsDark, wakeOn=False)
 
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
     # Will not leave state until wakeword heard.  (Eventually woudl be nice to be able to recognise user
@@ -298,13 +286,13 @@ class lill3x:
         if STATE.StateDuration() > (cf.g('SURVEIL_WAIT')*60) and self.eyes.IsUserMoving():
             self.ai.say(self.ai.Intruder())
             user_input = self.ai.listen()
-            if user_input:
+            if user_input:                                 # have to see if the user responds before going into active
                 self.ai.say(self.ai.respond(user_input))
                 STATE.ChangeState('Active')
             else:
-                self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_WAIT minuntes
+                self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_LOOK minuntes
         else:
-            SleepOn(varf=self.eyes.IsUserMoving)
+            SleepOn(varf=self.eyes.IsUserMoving, wakeOn=True)
         return
 
     def Quit(self):
@@ -337,7 +325,7 @@ class lill3x:
            threads = threading.enumerate()
            numThreads = len(threads)
            for t in threads:
-               if re.search("^LilL3x", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
+               if re.search(f"{GetHostname()}", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
                else: numThreads = numThreads - 1
            sleep(2)
 
@@ -358,7 +346,7 @@ class lill3x:
 # Get the current working directory
 CleanDirs("./temp", )
 
-print(f"LilL3x started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
+print(f"{GetHostname()} started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()
 l3x.Loop()
-print(f"LilL3x exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
+print(f"{GetHostname()} exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")

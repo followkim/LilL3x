@@ -97,10 +97,11 @@
 				$key = $atts[0];
 				$val = $atts[1];
 				$type = trim($atts[2]);
-				if (preg_match("/[A-Z]*_LED/", $key)) Print_LED($key, $key, $val);
-				elseif (in_array($key, $func_list)) eval("Print_".$key."(\$key, \$key, \$val);");
-				elseif (in_array($type, $func_list)) 	eval("Print_".$type."(\$key, \$key, \$val);");
-				else 	echo trd_labelData($key, $val, $key);
+				$keyLabel = $key. " (<i>" . $type . "</i>)";
+				if (preg_match("/[A-Z]*_LED/", $key)) Print_LED($keyLabel, $key, $val);
+				elseif (in_array($key, $func_list)) eval("Print_".$key."(\$keyLabel, \$key, \$val);");
+				elseif (in_array($type, $func_list)) 	eval("Print_".$type."(\$keyLabel, \$key, \$val);");
+				else 	echo trd_labelData($keyLabel, $val, $key);
 				
 			}
 		}
@@ -163,6 +164,7 @@
 
 				LockFile();
 				rename($configFilePath."php.BAK", $configFilePath);
+                                chmod($configFilePath, 0664);
 				UnlockFile();
 				echo "<i>Wrote to file '".basename($configFilePath)."'<i>";
 
@@ -215,7 +217,7 @@
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<select name=\"".$name."\" value=".$value.">";
-		$pyfile = fopen('/home/el3ktra/LilL3x/sr.py', "r");
+		$pyfile = fopen('/home/el3ktra/LilL3x/listen_tools.py', "r");
 		$engines = [];
 		while(!feof($pyfile)) {
 			$line = fgets($pyfile);

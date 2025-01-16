@@ -246,7 +246,7 @@ class Config:
                    newConfig = f"{newConfig}{key}|{to_str(self.config[key]['val'])}|{dict[key]['type']}\n"
 
             if len(newConfig)>0:
-                newConfig = f"{newConfig}##### LilL3x Config.WriteConfig: Written at {datetime.now().strftime(self.g('CONFIG_DT_FORMAT'))}\n"
+                newConfig = f"{newConfig}##### {GetHostname()} Config.WriteConfig: Written at {datetime.now().strftime(self.g('CONFIG_DT_FORMAT'))}\n"
              
                 with open(tempFile, "w") as configFileTemp:
                     configFileTemp.write(newConfig)
@@ -382,6 +382,7 @@ class Config:
                 if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                    if self.config_changed: self.WriteConfig() # periodically write just in case
                    self.IsGitDirty() # will update then change state to restart!!
+                   CleanDirs(cf.g('TEMP_PATH'), 12)
                 if self.IsConfigDirty(): self.LoadConfig()
 
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)

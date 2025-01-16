@@ -32,6 +32,7 @@ class Camera:
     eye_cascade = 0
     show_view = False
     take_picture = False
+    take_portrait = False
     be_quiet = False
     mood=""
     should_quit = False
@@ -105,13 +106,14 @@ class Camera:
                             eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
                             if len(eyes) > 0:
                                 self.last_seen = datetime.now()
-                                STATE.cx = 1280 - ((w//2) + x)
-                                STATE.cy = (h//2) + y
+                                STATE.cx = int((w//2) + x)
+                                STATE.cy = int((h//2) + y)
+                                if cf.g('SCREEN_DEBUG') and self.show_view: cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
                                 #LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
-                                if cf.g('SCREEN_DEBUG'):
-                                    cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
-                                    cv2.rectangle(img,(int(eyes[0]),int(eyes[1])),(int(eyes[0]+eyes[2]),int(eyes[1]+eyes[3])),(0,0,0),10)
+                                if self.take_portrait:
+                                    self._take_picture(image=img, filename=self.take_portrait, beQuiet=self.be_quiet, seeUser=True)
                                 success = True
+                            else: success = False
 
                         if not success: # lost face
                             LogDebug("Camera: Lost face")
@@ -131,7 +133,8 @@ class Camera:
                                     #tracker=cv2.legacy.TrackerMOSSE_create()
                                     tracker=cv2.legacy.TrackerCSRT_create()
                                     ret = tracker.init(img, (x, y, w, h))
-                                    LogDebug(f"Camera: Found Face at (({x}, {y}, {w}, {h})")
+                                    if cf.g('SCREEN_DEBUG') and self.show_view: cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
+                                    LogDebug(f"Camera: Found Face at ({x}, {y}, {w}, {h})")
                         else:
                             tracker = None
                             STATE.cx=0
@@ -143,14 +146,15 @@ class Camera:
                     # perform camera requests
                     if tracker and not mood_thrd.is_alive():  # get the mood
                         mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,), daemon=True)
-                        mood_thrd.name = f"LilL3x GetEmotionThread"
+                        mood_thrd.name = f"{GetHostname()} GetEmotionThread"
                         mood_thrd.start()
                     if self.show_view: self._whatISee(img)
                     if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
                 # END if should_wake or not.STATEIsInteractive()
 
                 #sleep the camera
-                if tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
+                if self.should_wake(): pass # don't sleep if there is a request
+                elif tracker: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0)) # match screen FPS.  Too short to use SleepOn
                 else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False, wakeOn=True)  # want to limit sleep to check for tracking
              except Exception as e:
                   LogError(f"CameraLoop Uncaught Exception {e.args}")
@@ -158,7 +162,7 @@ class Camera:
         LogInfo("Camera thread exiting.")
 
     def should_wake(self):
-          return self.show_view or self.take_picture
+          return self.show_view or self.take_picture or self.take_portrait
 
     def _read_camera_buffer(self):
         try:
@@ -228,34 +232,40 @@ class Camera:
         cv2.imwrite(temp, ig)
         os.rename(temp, filename)
 
-    def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False):
+    def TakePortrait(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=True):
+        return self.TakePicture(fname, beQuiet, seeUser)
+
+    def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False):
         if is_dir(fname):
             filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
             filename = fname
-        self.take_picture = filename
+        if seeUser: self.take_portrait = filename
+        else: self.take_picture = filename
+
         self.be_quiet = beQuiet
         cnt = 0
-        while (not os.path.isfile(filename)) and cnt<8: # 2 sec
-            sleep(0.25)
+        while (not os.path.isfile(filename)) and (cnt<20 or seeUser): # 2 sec
+            sleep(0.1)
             cnt = cnt+1   # just in case the file never materializes
-        if cnt<8: return filename
+        if os.path.isfile(filename): return filename
         else: return False
 
-    def _take_picture(self, image, filename, beQuiet=False):
+    def _take_picture(self, image, filename, beQuiet=False, seeUser=False):
         try:
             if isinstance(image, bool): self.cam.capture_file(filename)
             else:
                 cv2.imwrite(f"{cf.g('TEMP_PATH')}temp.jpg", image)
                 os.rename(f"{cf.g('TEMP_PATH')}temp.jpg", filename)
             # show the image for 3 secs and play a shutter sound
-            LogInfo(f"_take_picture: http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
+            LogInfo(f"_take_picture: seeUser={seeUser}, http://{GetIP()}/{filename}".replace('./', 'LilL3x/'))
             if not beQuiet:
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
                     self._whatISee(image)    # show_view is set outside the loop
                     while self.show_view: sleep(0.25)
-            self.take_picture = False
+            if seeUser: self.take_portrait = False
+            else: self.take_picture = False
             return filename
         except Exception as e:
             LogError(f"_take_picture: Couldn't take pict '{filename}': {e.args}")
@@ -301,12 +311,14 @@ class Camera:
             if objs: self.mood = objs[0]['dominant_emotion']
         except:
             pass
+        LogDebug(f"Camera: _get_emotion_thread returned {mood}")
+        LogDebug(f"File =  {http://{GetIP()}/{filename.replace('./', 'LilL3x/')}")
         if self.mood=="neutral": self.mood=""
 
-        try: os.remove(filename)
-        except: pass
-
         SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, watchState=False, wakeOn=True)   # don't call more then every INTERACT_MIN minutes
+
+        try: os.remove(filename)  # leave the file so it can be seen in logdebug
+        except: pass
         self.mood = ""    # assume that whatever they were feeling is past after INTERACT_MIN minutes
     
     def WhoAmI(self):
@@ -340,11 +352,12 @@ if __name__ == '__main__':
     c = Camera()
 #    exit(0)
     try: 
-        c.show_view=True
         Thread  = threading.Thread(target=c.CameraLoopThread)
         Thread.start()
-        sleep(20)
-        print(c.SharePicture(beQuiet=True))
+        c.ShowView()
+        while not c.CanISeeYou(): sleep(0.25)
+        print("user seen")
+        print(c.TakePortrait())
         '''
         x = 0
         while x < 100: 
@@ -359,5 +372,6 @@ if __name__ == '__main__':
         '''
         STATE.ChangeState('Quit')
         sleep(2)
-    except:
+    except Exception as e:
+        print(f"exception {e.args}")
         exit(0)

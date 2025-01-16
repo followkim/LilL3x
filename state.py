@@ -1,4 +1,3 @@
-import socket
 from datetime import datetime, timedelta
 from time import sleep
 import traceback
@@ -20,6 +19,7 @@ class State:
     last_hw_dt = ''
     temp= 0
     cpu = 0
+    volume = 2000
 
     def __init__(self):
         self.current = 'Hello'
@@ -89,12 +89,16 @@ class State:
     def IsInactive(self):
         return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive()
 
-    def GetHostname(self):
-        return socket.gethostname()
-
     def GetIPAddress(self):
-        ips = check_output(['hostname', '--all-ip-addresses'])
-        return ips.split()[0].decode()
+        try:
+            ips = check_output(['hostname', '--all-ip-addresses'])
+            return ips.split()[0].decode()
+        except Exception as e:
+            LogError(f"GetIpAddress returned error {e.args}")
+            return ""
+
+    def GetVolume(self):
+        return self.volume
 
 class MicStatus:
     def __init__(self):

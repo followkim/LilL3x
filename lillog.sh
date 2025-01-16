@@ -1,1 +1,1 @@
-tail -f lill3x.log
+tail -f LilL3x.log

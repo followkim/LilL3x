@@ -103,10 +103,11 @@ class AI:
             return f"I have {ShowThreads()} running, check the logs for a list."
 
         if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", txt.lower()):
+            self.LookForUser(cf.g('CAMERA_PICT_SEC'))
             return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
 
         if re.search(r"^can you see me$", txt.lower()):
-            return self.YesNo(self.LookForUser(5), "Yes",  "No, I can't")
+            return self.YesNo(self.LookForUser(cf.g('CAMERA_PICT_SEC')), "Yes",  "No, I can't")
 
         if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
@@ -116,12 +117,23 @@ class AI:
             return "Here is what I see"
 
         # TODO: parse out picture description
-        if (re.search(r"^take (a|my) (picture|photo|snapshot)( of (that|this|me|us))?$", txt.lower()) or
-                re.search(r"^(hey )?look at (this|that)$", txt.lower())):
-            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'))
+        if (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", txt.lower()) or
+                re.search(r"^(hey )?look at (.*)$", txt.lower())):
+
+            m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", txt.lower())
+            if not m: m2 = re.search(r"^(hey )?look at (.*)$", txt.lower())
+
+            selfie=False
+            if m:
+                if m[5]: desc = f"{self.GetString('CAMERA_STR').format('and '+ str(m[5]))}"
+                if m[1] in ('my', 'our') or m[5] in ('me', 'us'): selfie = True
+            elif m2: desc = f"{self.GetString('CAMERA_STR').format('and '+str(m2[2]))}"
+            else: desc = f"{self.GetString('CAMERA_STR').format(cf.g('USERNAME'))}"
+
+            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'), selfie=selfie)
+
             if path:
                 url  = self.eyes.UploadPicture(path)
-                desc = f"{self.GetString('CAMERA_STR').format(cf.g('USERNAME'))}"
                 return f'#{desc}#{path}#{url}'
             else:
                 return "Sorry, I couldn't take a picture"
@@ -267,6 +279,16 @@ class AI:
         #email URL
         return
 
+    def CanIHearYou(self, duration=cf.g('AMBIENT')):
+        start = datetime.now()
+        avg = [STATE.volume]
+        while (datetime.now()-start).seconds<duration:
+            avg.append(STATE.volume)
+        vol = round(sum(avg) / len(avg))
+        LogDebug(f"CanIHearYou:vol= {vol} > q={round(self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))}: {vol > (self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))}")
+        return vol and vol > (self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))
+
+
     def LookForUser(self, duration=0):
         if duration:
             self.face.looking()
@@ -274,18 +296,20 @@ class AI:
             self.face.off()
         return self.eyes.CanISeeYou()
 
-    def TakePicture(self, duration=0):
+    def TakePicture(self, duration=0, selfie=False):
 
         # wait for WIS file, then show the view to get teh user ready
         if duration>0:
             self.face.looking()
-            if self.WaitWIS(duration): sleep(duration)
+            if self.WaitWIS():
+                sleep(duration)  # second sleep allows the user to see the camera
 
-        path = self.eyes.TakePicture(beQuiet=(duration==0))  # will shutter sound if duration
-        if path: sleep(duration)    #pause to show the picture (if duration==0 no sleep)
+        if selfie: path = self.eyes.TakePortrait(beQuiet=(duration==0))  # will shutter sound if duration
+        else: path = self.eyes.TakePicture(beQuiet=(duration==0))  # will shutter sound if duration
+#        if path: sleep(duration)    #pause to show the picture (if duration==0 no sleep)
         return path
 
-    def WaitWIS(self, duration):
+    def WaitWIS(self, duration=5):
         # wait for the view to be shown
         end = datetime.now() + timedelta(seconds=duration)
         while not os.path.exists(cf.g('WIS_FILE')) and end>datetime.now(): sleep(0.1)
@@ -305,25 +329,21 @@ class AI:
          return not self.LookForUser() and self.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60
 
     def CanInteract(self):
-        if not ('INITIATE_ODDS'): return 0
-        if not self.LookForUser(): return 0
+        if not ('INITIATE_ODDS') or not self.LookForUser() or self.CanIHearYou(): return False
         secs = self.LastAIInteraction()
 
         # too soon for an action (and action not forced)
         if secs > 0 and secs < (cf.g('INTERACT_MIN')*60):
-            return 0
+            return False
         elif secs > (cf.g('INTERACT_MAX')*60):
-            return 2
-        else: return 1
+            return True
+        else: return False
 
     def Interact(self, dice=False):
-
-        dice = self.CanInteract()-1
-
-        if dice<0: return  # can't interact
-
+        if not dice:
+            if self.LastAIInteraction() > (cf.g('INTERACT_MAX')*60): dice = 1
         # if could interact: calculate random.  interactions per hour (ie 12) / initiate odds
-        if not dice: dice = random.randint(0, round(((60*60)/cf.g('ACTIVE_IDLE_SLEEP')) / cf.g('INITIATE_ODDS')))   #TODO
+        else: dice = random.randint(0, round(((60*60)/cf.g('ACTIVE_IDLE_SLEEP')) / cf.g('INITIATE_ODDS')))
 
         # If we hit the jackpot, interact
         if dice == 1:
@@ -331,18 +351,18 @@ class AI:
             LogInfo(f"Performing Interaction after {round(self.LastUserInteraction()/60)} minutes.")
             
             #if self. the user is talking, evesdrop, otherwise try to start a convo
-            if not self.ears.CanIHearYou():
+            if not self.CanIHearYou():
                 return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
 #            if self.ears.PlayingMusic():
 #                self.messages.SetMessage("music", something, datetime.now())
 
-            else:
-                LogInfo("Can't Interact: Talking heard.  Evesdropping instead.")
-                heard = self.ears.Evesdrop()
-                if heard:
-                    self.messages.SetMessage("evesdrop", heard, datetime.now())
+#            else:
+#                LogInfo("Can't Interact: Talking heard.  Evesdropping instead.")
+#                heard = self.ears.Evesdrop()
+#                if heard:
+#                    self.messages.SetMessage("evesdrop", heard, datetime.now())
             self.face.off()
-        return
+        return ""
 
     def LastUserInteraction(self):
         return (datetime.now()-self.last_user_interaction).seconds

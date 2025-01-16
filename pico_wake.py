@@ -14,6 +14,7 @@ import os
 import struct
 import wave
 import pygame
+import numpy as np
 import sounddevice as sd
 from datetime import datetime
 from globals import STATE,  MIC_STATE
@@ -29,6 +30,7 @@ class pico_wake:
     should_quit = False
     ww_listener = None
     audio_device_index = -1  #RasperbyPI  TODO PULL FROM GLOBALS
+    volume = 0
 #    keyword_paths = []
     keywords_path = 0
     def __init__(self, face=False):
@@ -95,11 +97,12 @@ class pico_wake:
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
-            return RaiseError("Unable to create recorder: " + e.args)
+            return RaiseError(f"Unable to create recorder: {e.args})")
         recorder.start()
         while not MIC_STATE.MicRequested() and not (self.should_quit or STATE.IsInteractive()):
             try:
                 pcm = recorder.read()
+                STATE.volume = np.mean(np.abs(pcm))
                 result = self.ww_listener.process(pcm)
 
                 if result >= 0:
@@ -109,7 +112,7 @@ class pico_wake:
                         self.wake_mp3.play()
                     else: LogInfo(f"Wake word ignored, audio playing")
             except Exception as e:
-                LogError("pico_wake loop encountered exception: " + e.args)
+                LogError(f"pico_wake loop encountered exception: {e.args})")
                 
         #mic is requested
         recorder.stop()  # stop the recorder if requested to do so
@@ -117,6 +120,9 @@ class pico_wake:
         sd.default.reset()
         LogDebug("pico_wake listen_loop ended")
         return
+    
+    def GetVolume(self):
+        return self.volume
 
     def GetWakePhrase(self):
         return False

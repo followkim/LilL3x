@@ -9,9 +9,11 @@
 import os
 import inspect
 import sys
-
+import re
 import time
+from datetime import datetime
 import subprocess
+import socket
 
 from board import SCL, SDA
 import busio
@@ -67,8 +69,10 @@ font = ImageFont.load_default()
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON, GPIO.IN)
 
+hostname = socket.gethostname()
+start = datetime.now()
 
-while (GPIO.input(BUTTON)):
+while (GPIO.input(BUTTON)) and (datetime.now()-start).seconds < (60*10):
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
 
@@ -85,42 +89,29 @@ while (GPIO.input(BUTTON)):
     try:
         cmd = "/usr/sbin/iwgetid -r"
         SSID = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        if SSID in ("", "LilL3x") and IP.count(".")<3:
+            start = datetime.now()  # don't time out if wainting for IP
+            SSID="LilL3x" #hostname #TODO use hostname as ssid
     except:
         pass
 
-    '''
-    cmd = 'cut -f 1 -d " " /proc/loadavg'
-    CPU = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%s MB  %.2f%%\", $3,$2,$3*100/$2 }'"
-    MemUsage = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    cmd = 'df -h | awk \'$NF=="/"{printf "Disk: %d/%d GB  %s", $3,$2,$5}\''
-    Disk = subprocess.check_output(cmd, shell=True).decode("utf-8")
-    '''
     # Write four lines of text.
 
     if IP.count(".")>=3:
-        draw.text((x, top + 0), "IP: " + IP, font=font, fill=255)
-        draw.text((x, top + (height/4)), SSID, font=font, fill=255)
+        draw.text((x, top + 0), "IP: " + IP, font=font, fill=255)   # L1: write IP
+        draw.text((x, top + (height/4)), SSID, font=font, fill=255) # L2: write the SSID
  
-    if not IP or IP.count(".")<3:
+    if IP.count(".")<3:
         draw.text((x, top + ((height/4)*2)), "Waiting for IP...", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), " ", font=font, fill=255)
 
-    elif not SSID or SSID == "LilL3x": 
-        draw.text((x, top + ((height/4)*2)), "Logon to local wifi:", font=font, fill=255)
-        draw.text((x, top + ((height/4)*3)), "http://"+IP+"/wifi.php", font=font, fill=255)
+    elif SSID == "LilL3x":
+        draw.text((x, top + ((height/4)*2)), "Logon to local wifi.", font=font, fill=255)
+        draw.text((x, top + ((height/4)*3)), "Goto wifi.php", font=font, fill=255)
     else:
-        draw.text((x, top + ((height/4)*2)), "Welcome to LilL3x!  Press", font=font, fill=255)
+        draw.text((x, top + ((height/4)*2)), f"Welcome to {hostname}!  Press", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "Button to Continue", font=font, fill=255)
 
-    '''
-    draw.text((x, top + (height/4)), "CPU load: " + CPU, font=font, fill=255)
-    draw.text((x, top + ((height/4)*2)), MemUsage, font=font, fill=255)
-    draw.text((x, top + ((height/4)*3)), Disk, font=font, fill=255)
-    '''
-    # Display image.
-#    rot_img = image.transpose(Image.ROTATE_180)
-#    disp.image(rot_img)
     disp.image(image)
     disp.show()
     time.sleep(0.1)

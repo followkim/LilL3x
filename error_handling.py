@@ -5,6 +5,7 @@ import re
 from datetime import datetime
 import time
 import threading
+import socket
 
 err_level = {
     0: "Errors Only",
@@ -16,14 +17,18 @@ err_level = {
 
 ERROR_LEVEL = 4
 
+def GetHostname():
+    return socket.gethostname()
+
+
 log_file_name = ""
-log_file_ln = "lill3x.log"
+log_file_ln = f"{GetHostname()}.log"
 
 def InitLogFile():
     global log_file_name
     global log_file_ln
     try:
-        log_file_name = "./log/lill3x_"+datetime.now().strftime("%Y%m%d_%H")+".log"
+        log_file_name = f"./log/{GetHostname()}_{datetime.now().strftime('%Y%m%d')}.log"
         logFile = open(log_file_name, "a")
         logFile.write(Color(f"\n\n\n\n********** LOG STARTED **********\n", 'cyan'))
         logFile.write(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n", 'cyan'))
@@ -59,8 +64,8 @@ def ShowThreads():
     numThreads = len(threads)
     for t in threads:
         LogInfo(f"\t\t{t.name}")
-        if not re.search("^LilL3x", t.name): numThreads = numThreads - 1
-    LogInfo(f"{len(threads)} total threads, {numThreads} LilL3x threads.")
+        if not re.search(f"{GetHostname()}", t.name): numThreads = numThreads - 1
+    LogInfo(f"{len(threads)} total threads, {numThreads} {GetHostname()} threads.")
     return numThreads+1   # add main Thread
 
 def SetErrorLevel(level):

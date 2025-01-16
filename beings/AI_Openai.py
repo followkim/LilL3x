@@ -217,20 +217,21 @@ class AI_openAI(AI):
 
     # From Sleep State return greeting
     def Greet(self):
-        if self.CanInteract():
-              if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_ai_interaction).total_seconds() / 3600) > 6:
-                  resp = f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}"
-    
-              else: resp = f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_ai_interaction))}"
-              return self.respond(resp)
-        else: return False
+
+          if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_ai_interaction).total_seconds() / 3600) > 6:
+              return self.respond(f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+
+          elif self.eyes.IsUserMoving(3600*6):
+              return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_ai_interaction))}")
+
+          else: return self.InitiateConvo()
 
     def Think(self):
         return AI.Think(self)
 
     def InitiateConvo(self, mood=""):
         if mood: return self.respond(f"!{cf.g('MOOD_STR').format(cf.c('USERNAMEP', 'USERNAME'), mood)}")
-        elif random.randint(0, 5) > 0:
+        elif random.randint(0, 1) == 1:
             path = self.TakePicture(0)
             if path:
                 url  = self.eyes.UploadPicture(path)
