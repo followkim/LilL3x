@@ -311,8 +311,8 @@ class Camera:
             if objs: self.mood = objs[0]['dominant_emotion']
         except:
             pass
-        LogDebug(f"Camera: _get_emotion_thread returned {mood}")
-        LogDebug(f"File =  {http://{GetIP()}/{filename.replace('./', 'LilL3x/')}")
+        LogDebug(f"Camera: _get_emotion_thread returned {self.mood}")
+        LogDebug(f"File =  http://{GetIP()}/{filename.replace('./', 'LilL3x/')}")
         if self.mood=="neutral": self.mood=""
 
         SleepOn(cf.g('INTERACT_MIN')*60, STATE.ShouldQuit, 5, watchState=False, wakeOn=True)   # don't call more then every INTERACT_MIN minutes
