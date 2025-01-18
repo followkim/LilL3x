@@ -46,6 +46,7 @@ MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talkin
 ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.  
 INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!
 ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.
+DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.
 
 HEADER|Speech Tools|2
 SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
