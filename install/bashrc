@@ -1,0 +1,7 @@
+
+
+
+cd LilL3x
+. bin/activate
+alias log='. ~/LilL3x/lillog.sh'
+#. lillog.sh

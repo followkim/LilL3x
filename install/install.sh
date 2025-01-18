@@ -69,6 +69,8 @@ crontab -e
 wpa_passphrase Lill3x <passprase>
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo nano /etc/rc.local # put passprhase in local nano file
+cp /etc/skel/.bashrc ~/.bashrc
+cat install/bashrc >> ~/.bashrc
 chmod +x ~/.bashrc
 sudo chmod +x /etc/rc.local
 
