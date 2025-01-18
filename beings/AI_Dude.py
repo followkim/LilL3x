@@ -26,7 +26,7 @@ responces_now = {
 
 class AI_Dude(AI):
 
-    name = "Dude"
+    name = "D.U.D.E."
     training = True
     def __init__(self):
         AI.__init__(self)
