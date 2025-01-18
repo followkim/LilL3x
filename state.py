@@ -75,7 +75,7 @@ class State:
         return self.last_dt
 
     def ShouldWake(self):
-        return self.current == "Wake"
+        return self.current == "Wake" or self.ShouldQuit()
 
     def ShouldQuit(self):
         return self.current in ('Quit', 'Reboot', 'Restart')
@@ -87,7 +87,7 @@ class State:
         return self.current in ('Hello', 'Wake', 'Active')
 
     def IsInactive(self):
-        return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive()
+        return self.current not in ('ActiveIdle', 'Surveil') and not self.IsInteractive() and not self.ShouldQuit()
 
     def GetIPAddress(self):
         try:
