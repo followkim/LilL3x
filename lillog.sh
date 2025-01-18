@@ -1,1 +1,1 @@
-tail -f LilL3x.log
+tail -f $HOSTNAME.log
