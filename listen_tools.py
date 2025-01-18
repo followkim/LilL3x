@@ -54,8 +54,8 @@ class SpeechRecognition_listener:
         self.speech.dynamic_energy_threshold = cf.g('ENERGY_DYNAMIC')==1
 
         if self.speech.dynamic_energy_threshold:  # vut 
-            self.speech.dynamic_energy_adjustment_ratio = 1 + (cf.g("ENERGY_THRESH")/50.0)
-            LogInfo(f"SR Update: Using dynamic: ratio = {1 + (cf.g('ENERGY_THRESH')/50.0)}")
+            self.speech.dynamic_energy_adjustment_ratio = 1 + (cf.g('DYNAMIC_RATIO')/100.0)
+            LogInfo(f"SR Update: Using dynamic: ratio = {1 + (cf.g('DYNAMIC_RATIO')/100.0)}")
         else:
             self.speech.dynamic_energy_adjustment_ratio =1.5  # reset to default
             LogInfo(f"SR Update: no dynamic, energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
@@ -68,7 +68,7 @@ class SpeechRecognition_listener:
 
             if not self.speech.dynamic_energy_threshold: self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g('ENERGY_THRESH')/100.0))
 
-            LogInfo(f"SR Update: thresh = {self.speech.energy_threshold}")
+            LogInfo(f"SR Update: thresh = {round(self.speech.energy_threshold)}")
 
             return self.speech.current_energy
 
