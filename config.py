@@ -88,7 +88,7 @@ class Config:
 
         # if there isn't a config file, create one from the default
         if not os.path.exists(self.configFile) or  os.path.getsize(self.configFile) == 0:
-            LogInfo(f"No config file!  Using default.")
+            LogWarn(f"No config file!  Using default.")
             os.system("cp " + self.configFileDefault + " " + self.configFile)
 
         
@@ -270,12 +270,12 @@ class Config:
             LogError(f"WriteConfig exception: {e.args}")
         return ret
 
-    def IsGitDirty(self):
+    def CheckGit(self):
         self.lastGit = datetime.now()
         update_files = -1
         try:
             repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
-            diff = self.CheckGit(repo)
+            diff = self.GitDiff(repo)
             update_files = len(diff)
             if update_files>0:
                 LogInfo(f"Local branch {repo.active_branch.name} out of date by {update_files} file(s).")
@@ -286,7 +286,7 @@ class Config:
                     orgin.pull()
                 except Exception as e: LogError(f"Error pulling from Git: {e.args}")
 
-                chk = self.CheckGit(repo) # see if we were successful
+                chk = self.GitDiff(repo) # see if we were successful
                 chk_files = len(chk)
                 update_files = update_files - chk_files
                 LogInfo(f"Updated {update_files} file(s) at at {datetime.now().strftime('%H:%M')}") ## double check the pull
@@ -309,7 +309,7 @@ class Config:
         except Exception as e: LogError(f"Error Updating Git: {e.args}")
         return update_files
 
-    def CheckGit(self, repo):
+    def GitDiff(self, repo):
         try:
             repo.remotes.origin.fetch()
             remote_head = repo.remotes.origin.refs[repo.active_branch.name].commit
@@ -351,8 +351,8 @@ class Config:
         else:
             return tryK
 
-    def w(self, key, val):
-        self.s(key, val)
+    def w(self, key=False, val=False):
+        if key: self.s(key, val)
         self.WriteConfig()
 
     def s(self, key, val):
@@ -362,7 +362,7 @@ class Config:
             if re.search(r"^(float|num)", self.config[key]['type']) and isinstance(val, str):
                 val = float(val)
 
-            LogInfo(f"Config.s: Setting {key} to {val}.")
+            LogDebug(f"Config.s: Setting {key} to {val}.")
             self.config[key]['val'] = val
             if key=='DEBUG': SetErrorLevel(self.g('DEBUG')) # error_handling doesn't have a Config object
             self.config_changed = True
@@ -373,7 +373,7 @@ class Config:
             return False
 
     def Close(self):
-        self.IsGitDirty()
+        self.CheckGit()
         self.should_quit = True
 
     def config_thread(self):
@@ -381,7 +381,7 @@ class Config:
             try:
                 if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                    if self.config_changed: self.WriteConfig() # periodically write just in case
-                   self.IsGitDirty() # will update then change state to restart!!
+                   self.CheckGit() # will update then change state to restart!!
                    CleanDirs(cf.g('TEMP_PATH'), 12)
                 if self.IsConfigDirty(): self.LoadConfig()
 
@@ -424,13 +424,13 @@ if __name__ == '__main__':
         except Exception as e: 
             print(f"Exception Caught: {e.args}")
     
-#    print(f"IsGitDirty:{bool(cf.IsGitDirty())}")
+#    print(f"CheckGit:{bool(cf.CheckGit())}")
 
 #    from time import sleep
 #    print(str(cf.config)+"\n\n\n\n")
 #    print(f'LoadConfig returned {cf.LoadConfig()}')
 #    print(str(cf.config)+"\n\n\n\n")
-#    print(f"IsConfigDirty={bool(cf.IsGitDirty())}")
+#    print(f"IsConfigDirty={bool(cf.CheckGit())}")
 #    print(str(cf.config))
     # testing dirty config
     #    print(str(cf.config))
