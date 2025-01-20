@@ -46,7 +46,7 @@ class AI:
         self.eyes = eyes
         self.mouth = mouth
         self.face = face
-        self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
+        self.face.message(self.name)
 
     def respond(self, txt):
         if not txt:
@@ -87,7 +87,7 @@ class AI:
 
         if re.search(r"^update( yourself| your code| git)?$", txt.lower()):
             retStr = "I had an error trying to update.  Check my logs."
-            f = cf.IsGitDirty()
+            f = cf.CheckGit()
             if f>0:
                 retStr = f"I updated {f} files.  "
                 if STATE.ShouldQuit(): retStr = retStr + "It looks like I need a restart.  See you soon!"
@@ -284,9 +284,10 @@ class AI:
         avg = [STATE.volume]
         while (datetime.now()-start).seconds<duration:
             avg.append(STATE.volume)
+            sleep(0.2)
         vol = round(sum(avg) / len(avg))
-        LogDebug(f"CanIHearYou:vol= {vol} > q={round(self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))}: {vol > (self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))}")
-        return vol and vol > (self.ears.quiet * (1 + cf.g('ENERGY_THRESH')/100))
+        LogDebug(f"CanIHearYou:vol={vol} > q={round(self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100))}: {vol > (self.ears.quiet * (1 + cf.g('QUIET_BOOST')/100))}")
+        return vol and vol > (self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100))
 
 
     def LookForUser(self, duration=0):
@@ -326,7 +327,8 @@ class AI:
         return
 
     def IsIdle(self):
-         return not self.LookForUser() and self.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60
+         return not self.LookForUser() and self.LastInteraction() > ((cf.g('ACTIVE_IDLE_TO')*60) & 0xffffffff)
+
 
     def CanInteract(self):
         if not ('INITIATE_ODDS') or not self.LookForUser() or self.CanIHearYou(): return False
@@ -363,6 +365,10 @@ class AI:
 #                    self.messages.SetMessage("evesdrop", heard, datetime.now())
             self.face.off()
         return ""
+
+    def LastInteraction(self):
+        if cf.g('IDLE_ON_CAMERA'): return self.eyes.LastSeen()
+        else: return self.LastUserInteraction()
 
     def LastUserInteraction(self):
         return (datetime.now()-self.last_user_interaction).seconds

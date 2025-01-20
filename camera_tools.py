@@ -195,6 +195,9 @@ class Camera:
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
         return self.last_seen > (datetime.now() - timedelta(seconds=secs))
 
+    def LastSeen(self):
+        return (datetime.now()-self.last_seen).total_seconds()
+
     # Note: _look_for_user assumes OPEN cameara instance.
     #https://github.com/raspberrypi/picamera2/blob/main/examples/capture_motion.py
     def IsUserMoving(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
@@ -372,6 +375,7 @@ if __name__ == '__main__':
         '''
         STATE.ChangeState('Quit')
         sleep(2)
+        c.Close()
     except Exception as e:
         print(f"exception {e.args}")
         exit(0)
