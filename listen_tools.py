@@ -38,8 +38,11 @@ class SpeechRecognition_listener:
         return
 
     def SetQuiet(self):
-          self.quiet = self.update()
-          return
+        self.quiet = self.update()
+        return
+
+    def GetQuiet(self):
+        return self.quiet
 
     def update(self, asyn=False, needMic=True):
         if asyn:
