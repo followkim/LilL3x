@@ -20,7 +20,6 @@ q = queue.Queue()
 LogInfo("Importing Vosk Wake...")
 
 def callback(indata, frames, time, status):
-    if status: print(status)
     q.put(bytes(indata))
 
 class Vosk_listener:
@@ -35,6 +34,7 @@ class Vosk_listener:
     face = 0
     wake_phrase = ""
     should_quit = False
+    quiet = 2000
 
     def __init__(self, face):
 
@@ -47,9 +47,11 @@ class Vosk_listener:
         self.face = face
         self.start_mp3 = pygame.mixer.Sound(cf.g('START_LISTEN_MP3'))
         self.end_mp3 = pygame.mixer.Sound(cf.g('END_LISTEN_MP3'))
+        self.quiet = STATE.volume
 
     def update(self, asyn=False, needMic=True):
-         return
+#        self.quiet = STATE.volume
+        return
 
     def clear(self):
          while not q.empty(): q.get()
@@ -57,8 +59,8 @@ class Vosk_listener:
     def Evesdrop(self):
         return self.listen(beQuiet=True)
 
-    def CanIHearYou(self, dur=30):
-        return self.listen(True, time_out=dur) != ""
+    def GetQuiet(self):
+        return self.quiet
 
     def ww_thread(self):
         stream = 0
@@ -75,7 +77,7 @@ class Vosk_listener:
                         data = q.get()
                         if self.rec.AcceptWaveform(data):
                             jt = json.loads(self.rec.Result())
-                            if will_wake or re.search(regex, jt["text"].lower()):
+                            if re.search(regex, jt["text"].lower()):
                                 input = jt["text"]
                                 match = re.findall(regex, input.lower())
                                 if match: input = input.lower().replace(match[0][0], cf.g('AINAMEP'))

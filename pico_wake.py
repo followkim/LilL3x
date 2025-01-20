@@ -130,7 +130,9 @@ class pico_wake:
     def Close(self):
         LogInfo("Exiting pico_wake")
         self.should_quit = True
-        
+
+    def IsUserSpeaking(self, quiet=0):
+        return self.volume>quiet
 
 if __name__ == '__main__':
    import threading
