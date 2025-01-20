@@ -154,14 +154,18 @@ class lill3x:
         # call the Quit function
         eval("self."+STATE.GetState()+"()")
 
-    def ChangeAI(self):
+    def ChangeAI(self):  
+        '''Called via a ChangeState'''
         LogInfo(f"Changing AI to {STATE.data}.")
-        self.SwitchAI(STATE.data)
-        STATE.ChangeState('Hello')
-        return True
-
+        if self.SwitchAI(STATE.data):
+            STATE.ChangeState('Hello')
+            cf.WriteConfig()
+            return True
+        else: STATE.RevertState()
+  
 
     def SwitchAI(self, newAI):
+        '''called directly from EvalCode'''
         try:
             new_ai = eval(f"AI_{newAI}()")
 
@@ -184,8 +188,10 @@ class lill3x:
 
     def ChangeListener(self):
         LogInfo(f"Changing Listener to {STATE.data}.")
-        self.SwitchListener(STATE.data)
-
+        if self.SwitchListener(STATE.data):
+            cf.WriteConfig()
+        STATE.RevertState()
+         
     def SwitchListener(self, newListener):
         ears = None
         try:
@@ -199,7 +205,6 @@ class lill3x:
         self.ears = ears
         self.ai.ears = self.ears
         cf.s('LISTEN_ENGINE', newListener)
-        STATE.ChangeState('Active')
         return True
 
     def EvalCode(self):
@@ -215,6 +220,7 @@ class lill3x:
 
     # Hello: Give a greeting to the user:
     def Hello(self):
+        self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
         return
@@ -242,29 +248,31 @@ class lill3x:
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
 #        if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
 
-        if self.ai.IsIdle(): # not (cf.g('ACTIVE_IDLE_TO')*60)):  #hasn't seen the user in ACTIVE_IDLE_TO minutes, go to idle
+        if self.ai.IsIdle():
             STATE.ChangeState('Idle')
 
         elif self.ai.CanInteract():
             thought = self.ai.Interact()    #returns text, but we want to update first
             if thought:
-                self.ai.say(thought)
                 STATE.ChangeState('Active')
+                self.ears.update()
+                self.ai.say(thought)
             else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
         else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
 
     # Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai
-    #       AI can: machine laining, check lights/sound
     def Idle(self):
 
-        #TODO: Thinkign while activeIdle is different then thinkign while IdleIdle
-        self.ai.Think()  # will need a flag that data should be saved for later
-        
-        if self.ai.CanInteract():        # can see user and not too soon
-          self.ai.say(self.ai.Greet())
-          STATE.ChangeState('Active')
+        if self.ai.LastAIInteraction() > ((cf.g('IDLE_WAIT_MIN')*60) & 0xffffffff): # force unsigned
+            if not self.ai.IsIdle():
+                if self.ai.CanInteract():        # can see user, not hear user, and not too soon
+                   STATE.ChangeState('Active')
+                   self.ears.update()
+                   self.ai.say(self.ai.Greet())
+            else:
+                SleepOn(varf=self.ai.IsIdle, wakeOn=False)  # sleep until State change or seeing user
         else:
-            SleepOn(varf=self.ai.CanInteract, wakeOn=True)  # sleep until State change or seeing user
+            SleepOn((cf.g('IDLE_WAIT_MIN')*60) - self.ai.LastAIInteraction()) # may be negative, will sleep until state change (wake)
 
     # Sleep: User is not present.   User needs to use wakeword or respond to "welcome back" to activate ai
     #       AI can: machine learning, check lights/sound
@@ -328,8 +336,6 @@ class lill3x:
                if re.search(f"{GetHostname()}", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
                else: numThreads = numThreads - 1
            sleep(2)
-
-       
 
      # A version of sleep that will break out if the state changes by WakeWord.   Avoids long period of uninterruptable sleep.
     def Sleep(self, secs):
