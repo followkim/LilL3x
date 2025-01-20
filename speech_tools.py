@@ -227,7 +227,9 @@ class amazon_tts:
                        return filename
                except IOError as error:
                   # Could not write to file, exit gracefully
-                  LogError(f"AWS returned error creating file: {e.args}")
+                  LogError(f"AWS returned IO error")
+               except Exception as e:
+                  LogError(f"AWS returned IO error creating file: {e.args}")
                   return False
         else:
             # The response didn't contain audio data, exit gracefully
