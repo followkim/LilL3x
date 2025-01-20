@@ -74,8 +74,9 @@ class AI_ollama(AI_openAI):
         self.client=ollama.Client(host=self.base_url)
 
         self.memory = [
-            {"role": "system", "content": f"Your name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
-            {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
+            {"role": "system", "content": f"Your name is {cf.g('AINAME')}, and the user's name is {cf.g('USERNAME')}. {cf.g('BACKSTORY')}."},
+            {"role": "system", "content": cf.g('INSTRUCTION')},
+            {"role": "system", "content": f"You wrote this about your history with {cf.g('USERNAME')}: '{cf.g('HISTORY')}'"}
         ]
         LogInfo(f"AI {self.name}:{self.model()} loaded.")
         return

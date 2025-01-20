@@ -74,9 +74,10 @@ class AI_openAI(AI):
             self.client = openai.Client(api_key=self.api_key,base_url=self.base_url)
         else:
             self.client = openai.Client(api_key=self.api_key,)
-        self.memory = [ 
-            {"role": "system", "content": f"Your name is {cf.g('AINAME')}. {cf.g('BACKSTORY')}"}, 
-            {"role": "system", "content": 'Your history with the user: '+cf.g('HISTORY')},
+        self.memory = [
+            {"role": "system", "content": f"Your name is {cf.g('AINAME')}, and the user's name is {cf.g('USERNAME')}. {cf.g('BACKSTORY')}."},
+            {"role": "system", "content": cf.g('INSTRUCTION')},
+            {"role": "system", "content": f"You wrote this about your history with {cf.g('USERNAME')}: '{cf.g('HISTORY')}'"}
         ]
         LogInfo(f"AI {self.name}, ({self.model()}) loaded.")
         return
