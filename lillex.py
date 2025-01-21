@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+.#!/usr/bin/env python3
 import welcome
 import os
 import sys
@@ -124,9 +124,9 @@ class lill3x:
 
         if '--restart' in sys.argv:
             STATE.ChangeState('ActiveIdle')
-            try: self.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
+            try: self.ai.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
             except:  pass
-            LogInfo(f"Last Interaction:  {self.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
+            LogInfo(f"Last Interaction:  {self.ai.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
         else:
             STATE.ChangeState('Hello')
 
