@@ -154,7 +154,7 @@ class AI:
                 STATE.data = "El3ktra"
             else:
                 STATE.data = newState
-            return f"Sure, I'll switch to {newState}"  # have the AI say goodbye
+            return f"Sure, I'll switch to {STATE.data}"  # have the AI say goodbye
 
 #        if re.search(r"^(set|switch|change) (your |the )?(model)$", txt):
 #            self.say("Please type in the new model to use:")
@@ -367,7 +367,7 @@ class AI:
         return ""
 
     def LastInteraction(self):
-        if cf.g('IDLE_ON_CAMERA'): return self.eyes.LastSeen()
+        if cf.g('IDLE_ON_CAMERA'): return min(self.eyes.LastSeen(), self.LastUserInteraction())
         else: return self.LastUserInteraction()
 
     def LastUserInteraction(self):
@@ -463,6 +463,9 @@ class AI:
         newStr = str(newStr.encode('ascii', 'ignore').decode("utf-8"))
         newStr = newStr.replace(cf.g('AINAME'  ), cf.c('AINAMEP',   'AINAME'  ))
         newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
+        newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
+        newStr = newStr.replace('"', '')  # remove quotes
+        newStr = newStr.replace("'", '')
         return newStr
 
 if __name__ == '__main__':
