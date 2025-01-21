@@ -58,7 +58,7 @@ class pico_wake:
         try:
            if self.ww_listener: self.ww_listener.delete()
            self.ww_listener = pvporcupine.create(access_key=cf.g('PICOVOICE_KEY'), keyword_paths=self.keywords_path)
-        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid: path={=self.keywords_path}")
+        except pvporcupine.PorcupineInvalidArgumentError as e: LogError(f"One or more arguments provided to Porcupine is invalid: path={self.keywords_path}")
         except pvporcupine.PorcupineActivationError as e: LogError("AccessKey activation error")
         except pvporcupine.PorcupineActivationLimitError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has reached it's temporary device limit")
         except pvporcupine.PorcupineActivationRefusedError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' refused")
@@ -73,7 +73,7 @@ class pico_wake:
         recorder = 0
         # create a recorder
         LogInfo("WW Listen Thread started")
-        while not self.should_quit :
+        while not self.should_quit and self.ww_listener:
             if not STATE.IsInteractive():     #don't bother listening if in Active or Wake
                 if (MIC_STATE.CanUse()):
                     MIC_STATE.TakeMic()
