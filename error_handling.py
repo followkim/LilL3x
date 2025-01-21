@@ -30,7 +30,7 @@ def InitLogFile():
     try:
         log_file_name = f"./log/{GetHostname()}_{datetime.now().strftime('%Y%m%d')}.log"
         logFile = open(log_file_name, "a")
-        logFile.write(Color(f"\n\n\n\n********** LOG STARTED **********\n", 'cyan'))
+        logFile.write(Color(f"\n\n\n\n{'*' * 10} LOG STARTED {'*' * 10}\n", 'cyan'))
         logFile.write(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n", 'cyan'))
         logFile.close()
         print(f"Log File Created: " + log_file_name)
@@ -148,7 +148,7 @@ def DumpStack():
 
 def CloseLog():
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
-    Log(Color(f"********** LOG ENDED **********\n\n\n\n", 'cyan'))
+    Log(Color(f"{'*' * 10} LOG ENDED {'*' * 10}\n\n\n\n", 'cyan'))
 
 def CleanDirs(dir, hours=30*24):   # 30 days is the default
     time_in_secs = time.time() - (hours * 60 * 60) 
