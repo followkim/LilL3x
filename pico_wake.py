@@ -93,7 +93,7 @@ class pico_wake:
     def listen_loop(self):
         LogDebug("ww listen_loop started")
         avgDelta = 1
-        if not ww_listener:
+        if not self.ww_listener:
             LogWarn("Not starting Wake word: no listener")
             return 
 
