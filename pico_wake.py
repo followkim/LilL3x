@@ -37,7 +37,6 @@ class pico_wake:
         self.keywords_path = [cf.g('WAKE_WORD')]
         self.wake_mp3 = pygame.mixer.Sound(cf.g('WAKE_MP3'))
         self.SetWakeWord()
-        LogInfo('Porcupine version: %s' % self.ww_listener.version)
 
     def BuildPaths(self, path=cf.g('WAKE_WORD')):
         paths = []
@@ -59,11 +58,11 @@ class pico_wake:
         try:
            if self.ww_listener: self.ww_listener.delete()
            self.ww_listener = pvporcupine.create(access_key=cf.g('PICOVOICE_KEY'), keyword_paths=self.keywords_path)
-        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid: ", args)
+        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid")
         except pvporcupine.PorcupineActivationError as e: LogError("AccessKey activation error")
-        except pvporcupine.PorcupineActivationLimitError as e: LogError("AccessKey '%s' has reached it's temporary device limit" % args.cf.g('PICOVOICE_KEY'))
-        except pvporcupine.PorcupineActivationRefusedError as e: LogError("AccessKey '%s' refused" % args.cf.g('PICOVOICE_KEY'))
-        except pvporcupine.PorcupineActivationThrottledError as e: LogError("AccessKey '%s' has been throttled" % args.cf.g('PICOVOICE_KEY'))
+        except pvporcupine.PorcupineActivationLimitError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has reached it's temporary device limit")
+        except pvporcupine.PorcupineActivationRefusedError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' refused")
+        except pvporcupine.PorcupineActivationThrottledError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has been throttled")
         except pvporcupine.PorcupineError as e: LogError("Failed to initialize Porcupine")
         except Exception as e: LogError(f"Failed to initialize Porcupine {e.args}")
 
