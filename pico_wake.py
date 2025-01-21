@@ -58,7 +58,7 @@ class pico_wake:
         try:
            if self.ww_listener: self.ww_listener.delete()
            self.ww_listener = pvporcupine.create(access_key=cf.g('PICOVOICE_KEY'), keyword_paths=self.keywords_path)
-        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid")
+        except pvporcupine.PorcupineInvalidArgumentError as e: LogError("One or more arguments provided to Porcupine is invalid: path={=self.keywords_path}")
         except pvporcupine.PorcupineActivationError as e: LogError("AccessKey activation error")
         except pvporcupine.PorcupineActivationLimitError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has reached it's temporary device limit")
         except pvporcupine.PorcupineActivationRefusedError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' refused")
@@ -93,6 +93,10 @@ class pico_wake:
     def listen_loop(self):
         LogDebug("ww listen_loop started")
         avgDelta = 1
+        if not ww_listener:
+            LogWarn("Not starting Wake word: no listener")
+            return 
+
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
