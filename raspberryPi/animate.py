@@ -168,7 +168,7 @@ class Screen:
 #                                self.DrawText(draw, f"{last_fps}fps ({real_fps})", 'ul', font)
                                 self.DrawText(draw, f"{STATE.volume}", 'ul', font)
                     # end if state == 'Idle'
-                elif thisState == 'Listen':
+                elif thisState == 'Listen' and cf.g('SCREEN_DEBUG'):
                     self.DrawVolume(draw)
 
                 if self._message: # draw in any state - lower center
