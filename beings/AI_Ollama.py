@@ -120,7 +120,8 @@ class AI_ollama(AI_openAI):
         face = self.face
         response = self.client.chat(**args)
         
-        if args['model']==self.model(vision=True):
+#        if args['model']==self.model(vision=True):
+        if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
             face=None            # don't allow mouth to control the face
             self.face.looking()  # turn the screen
 
@@ -174,37 +175,49 @@ class AI_ollama(AI_openAI):
 
         #reply is a command 
         elif user_input[:1] == '!': #command
-             role = "user"
-#             arg['model'] = self.slow_model
-             arg['stream'] = False
-             user_input = user_input[1:]
-             self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
-             #max_tokens=100*self.token_mult  #75 words - keep it short for spontanous uttering
+            role = "user"
+#            arg['model'] = self.slow_model
+            arg['stream'] = False
+            user_input = user_input[1:]
+            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            #max_tokens=100*self.token_mult  #75 words - keep it short for spontanous uttering
 
         #reply is a memory request 
         elif user_input[:1] == '^': #write memories
-             role = "user"
-             arg['stream'] = False
-             user_input = user_input[1:]
-             self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
-             #max_tokens=1000*self.token_mult
+            role = "user"
+            arg['stream'] = False
+            user_input = user_input[1:]
+            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            #max_tokens=1000*self.token_mult
 
         #reply is a picture
         elif user_input[:1] == '#': #picture-- TODO!!!
-             if user_input[1] == "!":
-                 arg['stream'] = False
-                 user_input = user_input[2:]
-             else: user_input = user_input[1:]
-             LogDebug(f"Input is pict: {user_input}")
-             (user_input, path, url) = user_input.split('#')
-             arg['model']=self.model(vision=True)
-             self.memory.append({"role": role, "content": user_input,  "id": cf.g('CONVO_ID'), 'images':[path]})
+            LogDebug("Got pict string: " + user_input)
+            (user_input, path, url) = user_input[1:].split('#')
+
+            # get a description of the picture
+            arg['stream']=False
+            arg['model']=self.model(vision=True)
+            self.memory.append({"role": role, "content": cf.g('GET_PICT_DESC'),  "id": cf.g('CONVO_ID'), 'images':[path]})
+            arg['messages'] = self.memory
+            pictDesc = self.reply_sync(arg)
+            LogDebug(f"PictDesc: {pictDesc}")
+
+            arg['model']=self.model() #reset the model
+            if user_input[0] == "!":
+                arg['stream'] = False
+                user_input = user_input[2:]
+            else:
+                arg['stream'] = True
+                user_input = user_input[1:]
+
+            self.memory.append({"role": role, "content": f"{user_input}.  {cf.g('GIVE_PICT_DESC')} {pictDesc}", "id": cf.g('CONVO_ID')},)
 
         #reply is just text
         else:
-             self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
-             if self.tools:
-                 arg['tools'] = self.tools
+            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            if self.tools:
+                arg['tools'] = self.tools
 
         arg['messages'] = self.memory
         return (user_input, arg)
