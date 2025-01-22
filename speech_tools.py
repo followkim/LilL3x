@@ -246,17 +246,27 @@ class google_tts:
     client = 0
     config = 0
     voice = 0 
+    lang_code = ''
+    voice_name = ''
     def __init__(self):
         self.client = texttospeech.TextToSpeechClient(client_options={"api_key": cf.g('GOOGLE_CLOUD_API')})
 
         self.config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
-        self.voice = texttospeech.VoiceSelectionParams(
+        self.voice = self.init_voice()
+
+    def init_voice(self):
+        voice = texttospeech.VoiceSelectionParams(
             language_code=cf.g('GOOGLE_LANG_CODE'),
             name=cf.g('GOOGLE_VOICE_NAME'),
             ssml_gender=eval(f"texttospeech.SsmlVoiceGender.{cf.g('GOOGLE_GENDER').upper()}")
         )
+        self.lang_code = cf.g('GOOGLE_LANG_CODE')
+        self.voice_name = cf.g('GOOGLE_VOICE_NAME')
+        return voice
+
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+        if self.lang_code != cf.g('GOOGLE_LANG_CODE') or self.voice_name != cf.g('GOOGLE_VOICE_NAME'): self.voice = self.init_voice()
 
         try:
             sinput = texttospeech.SynthesisInput(text=txt)
@@ -275,6 +285,10 @@ class google_tts:
 
         return False
 
+    def Close(self):
+        return
+
+
 if __name__ == '__main__':
     class LEDS:
         def __init__(self):
@@ -290,6 +304,9 @@ if __name__ == '__main__':
     sr = speech_generator()
     sr.SwitchEngine("google")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
+    cf.s('GOOGLE_LANG_CODE', 'en-AU')
+    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
+
     sr.say("oh what a beautiful day!", asyn=True)
     sr.say("I have a wonderful feeling", asyn=False)
     print("done")
