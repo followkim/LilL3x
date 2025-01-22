@@ -216,15 +216,14 @@ class AI_openAI(AI):
         resp = "!{cf.g('WAKE_STR').format(cf.c('USERNAMEP', 'USERNAME'))}"
         return self.respond(resp)
 
-    # From Sleep State return greeting
+    # From Idle State return greeting when user seen
     def Greet(self):
+          if (self.LastAIInteraction() / 3600) > 6:  # haven't talked to the user in more then 6 hours
+              if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+              elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+              elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
-          if self.TimeOfDay() == "morning" and ((datetime.now() - self.last_ai_interaction).total_seconds() / 3600) > 6:
-              return self.respond(f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
-
-          elif self.eyes.IsUserMoving(3600*6):
-              return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_ai_interaction))}")
-
+          if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
           else: return self.InitiateConvo()
 
     def Think(self):
