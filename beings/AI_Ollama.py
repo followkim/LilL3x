@@ -191,27 +191,28 @@ class AI_ollama(AI_openAI):
             #max_tokens=1000*self.token_mult
 
         #reply is a picture
-        elif user_input[:1] == '#': #picture-- TODO!!!
-            LogDebug("Got pict string: " + user_input)
+        elif user_input[:1] == '#': #picture
+
             (user_input, path, url) = user_input[1:].split('#')
 
-            # get a description of the picture
-            arg['stream']=False
-            arg['model']=self.model(vision=True)
-            self.memory.append({"role": role, "content": cf.g('GET_PICT_DESC'),  "id": cf.g('CONVO_ID'), 'images':[path]})
-            arg['messages'] = self.memory
-            pictDesc = self.reply_sync(arg)
-            LogDebug(f"PictDesc: {pictDesc}")
-
-            arg['model']=self.model() #reset the model
             if user_input[0] == "!":
-                arg['stream'] = False
-                user_input = user_input[2:]
-            else:
-                arg['stream'] = True
+                shouldStream = False
                 user_input = user_input[1:]
+            else:
+                shouldStream = True
 
-            self.memory.append({"role": role, "content": f"{user_input}.  {cf.g('GIVE_PICT_DESC')} {pictDesc}", "id": cf.g('CONVO_ID')},)
+            if self.model() != self.model(vision=True):  # we have a vision model  and cf.g('USE_DESCRIPTION') TODO
+                # get a description of the picture
+                arg['stream']=False
+                arg['model']=self.model(vision=True)     # if revert, just add this outside if clause
+                self.memory.append({"role": role, "content": cf.g('GET_PICT_DESC'),  "id": cf.g('CONVO_ID'), 'images':[path]})
+                arg['messages'] = self.memory
+                pictDesc = self.reply_sync(arg)
+                arg['model']=self.model() #reset the model
+                user_input = f"{user_input}.  {cf.g('GIVE_PICT_DESC')}: {pictDesc}"
+
+            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            arg['stream'] = shouldStream
 
         #reply is just text
         else:
@@ -228,6 +229,7 @@ class AI_Local(AI_ollama):
     api_key = "unused"
     model_key = 'LOCAL_MODEL'
     slow_model_key=model_key
+    vision_model_key=model_key
 
 class AI_Corgi(AI_ollama):
     name = "Corgi"
@@ -235,6 +237,7 @@ class AI_Corgi(AI_ollama):
     api_key = cf.g('CORGI_API_KEY')
     model_key = 'CORGI_MODEL'
     slow_model_key=model_key
+    vision_model_key=model_key
 
 class AI_El3ktra(AI_ollama):
     name = "El3ktra"
