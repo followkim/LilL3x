@@ -4,6 +4,7 @@ from openai import OpenAI
 from time import sleep
 from boto3 import Session
 from botocore.exceptions import BotoCoreError, ClientError
+from google.cloud import texttospeech
 from contextlib import closing
 
 import pygame
@@ -69,7 +70,7 @@ class speech_generator:
             channel = s.play()
             while channel.get_busy() and not asyn:
                 if watchState and STATE.CheckState('Wake'): s.stop()
-                else: sleep(0.5)
+                else: sleep(0.5) #STATE.volume = channel.get_volume()
 
     def StopSound(self):
         if pygame.mixer.music.get_busy():
@@ -89,6 +90,8 @@ class speech_generator:
         if new_engine:
             self.engine.Close()
             self.engine = new_engine
+            self.engine_name = engine_name
+            cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
             return True
         else:
             LogWarn(f"SwitchEngine: Unable to switch to engine {engine_name}")
@@ -239,6 +242,39 @@ class amazon_tts:
     def Close(self):
        return
 
+class google_tts:
+    client = 0
+    config = 0
+    voice = 0 
+    def __init__(self):
+        self.client = texttospeech.TextToSpeechClient(client_options={"api_key": cf.g('GOOGLE_CLOUD_API')})
+
+        self.config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
+        self.voice = texttospeech.VoiceSelectionParams(
+            language_code=cf.g('GOOGLE_LANG_CODE'),
+            name=cf.g('GOOGLE_VOICE_NAME'),
+            ssml_gender=eval(f"texttospeech.SsmlVoiceGender.{cf.g('GOOGLE_GENDER').upper()}")
+        )
+
+    def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+
+        try:
+            sinput = texttospeech.SynthesisInput(text=txt)
+            response = self.client.synthesize_speech(input=sinput, voice=self.voice, audio_config=self.config)
+        except Exception as e:
+            LogError(f"Google_tts caught error synthesizing speech: {str(e)}")
+            return False
+
+        try:
+            with open(filename, 'wb') as out:
+                # Write the response to the output file.
+                out.write(response.audio_content)
+                return filename
+        except Exception as e:
+            LogError(f"Google_tts caught error writing to file: {str(e)}")
+
+        return False
+
 if __name__ == '__main__':
     class LEDS:
         def __init__(self):
@@ -252,6 +288,7 @@ if __name__ == '__main__':
     l = LEDS()
     
     sr = speech_generator()
+    sr.SwitchEngine("google")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
     sr.say("oh what a beautiful day!", asyn=True)
     sr.say("I have a wonderful feeling", asyn=False)
