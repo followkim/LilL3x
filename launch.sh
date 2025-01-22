@@ -1,7 +1,7 @@
 #!/bin/bash
 # launcher.sh
 # navigate to home directory, then to this directory, then execute python script, then back home
-source $HOME/.bash_profile
+. source $HOME/.bash_profile
 
 date
 
