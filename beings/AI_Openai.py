@@ -67,6 +67,8 @@ class AI_openAI(AI):
     name = ""
     token_mult = 1
     tools = False
+    model_key = ''
+    vision_model_key = ''
 
     def __init__(self):
         AI.__init__(self)
