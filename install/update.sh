@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt-get install -y espeak
-. bin/activate
+source /home/el3ktra/LilL3x/bin/activate
 
 pip install openai-whisper
 pip install google-cloud-texttospeech
