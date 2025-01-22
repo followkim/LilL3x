@@ -48,6 +48,7 @@ pip install llamaapi
 pip install ollama
 pip install langchain_ollama
 pip install google.generativeai
+pip install google-cloud-texttospeech
 pip install anthropic
 
 #Speech regognition
@@ -83,6 +84,9 @@ read passphrase
 sed -i "s/REPLACE_PASSWORD_HERE/$passphrase/g" ~/LilL3x/install/rclocal
 
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
+sudo chown root:root /etc/rc.local
+sudo chmod +x /etc/rc.local
+
 cp /etc/skel/.bashrc ~/.bashrc
 cat install/bashrc >> ~/.bashrc
 chmod +x ~/.bashrc
