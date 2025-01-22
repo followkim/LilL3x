@@ -85,7 +85,7 @@ class AI_openAI(AI):
         return
 
     def model(self, vision=False):
-        if vision: return cf.g(self.vision_model_key, self.model_key)
+        if vision: return cf.c(self.vision_model_key, self.model_key)
         else: return cf.g(self.model_key)
 
     def respond(self, user_input, canParaphrase=False):
