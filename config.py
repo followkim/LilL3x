@@ -297,7 +297,7 @@ class Config:
                     if file_updated: LogInfo(f"\t[{file.change_type}]:{file.a_path}")
                     else: LogError(f"File not updated:  [{file.change_type}]:{file.a_path}")
 
-                    if re.search(r"update.sh$",  file.a_path) and file_updated: os.system(f"sudo bash {file.a_path}")
+                    if re.search(r"update.sh$",  file.a_path) and file_updated: os.system(f"bash {file.a_path} &")
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart')
                     if file.a_path[-4:] == ".ppm" and file_updated:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine.  Changed will happen on restart
