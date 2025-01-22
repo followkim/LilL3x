@@ -87,7 +87,7 @@ class pico_wake:
             else:
                 # no wakeword on Wake/Active states
                 continue
-        self.ww_listener.delete()
+        if self.ww_listener: self.ww_listener.delete()
         LogInfo("WW Listen Thread ended")
 
     def listen_loop(self):
@@ -125,7 +125,7 @@ class pico_wake:
         return
     
     def GetVolume(self):
-        return self.volume
+        return STATE.volume
 
     def GetWakePhrase(self):
         return False
@@ -135,7 +135,7 @@ class pico_wake:
         self.should_quit = True
 
     def IsUserSpeaking(self, quiet=0):
-        return self.volume>quiet
+        return STATE.volume>quiet
 
 if __name__ == '__main__':
    import threading
