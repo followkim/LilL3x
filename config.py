@@ -300,10 +300,10 @@ class Config:
                     if re.search(r"update.sh$",  file.a_path) and file_updated: os.system(f"sudo bash {file.a_path}")
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart')
                     if file.a_path[-4:] == ".ppm" and file_updated:
-                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine
+                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine.  Changed will happen on restart
                         STATE.data = ["self.face.screen.LoadFrames()"]
 #                    if re.search(r"config.default$", file.a_path) and file_updated: self.CheckDefaults()
-                    if re.search(r"config.(vars|default)$",  file.a_path) and file_updated: self.LoadConfig()
+#                    if re.search(r"config.(vars|default)$",  file.a_path) and file_updated: self.LoadConfig()
 
             else: LogInfo(f"Local branch {repo.active_branch.name} up-do-date at {datetime.now().strftime('%H:%M')}")
         except Exception as e: LogError(f"Error Updating Git: {e.args}")
