@@ -8,3 +8,4 @@ pip install google-cloud-texttospeech
 cp /etc/skel/.bashrc ~/.bashrc
 cat install/bashrc >> ~/.bashrc
 chmod +x ~/.bashrc
+
