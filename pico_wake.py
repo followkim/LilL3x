@@ -33,6 +33,7 @@ class pico_wake:
     volume = 0
 #    keyword_paths = []
     keywords_path = 0
+
     def __init__(self, face=False):
         self.keywords_path = [cf.g('WAKE_WORD')]
         self.wake_mp3 = pygame.mixer.Sound(cf.g('WAKE_MP3'))
@@ -59,7 +60,7 @@ class pico_wake:
            if self.ww_listener: self.ww_listener.delete()
            self.ww_listener = pvporcupine.create(access_key=cf.g('PICOVOICE_KEY'), keyword_paths=self.keywords_path)
         except pvporcupine.PorcupineInvalidArgumentError as e: LogError(f"One or more arguments provided to Porcupine is invalid: path={self.keywords_path}")
-        except pvporcupine.PorcupineActivationError as e: LogError("AccessKey activation error")
+        except pvporcupine.PorcupineActivationError as e: LogError(f"AccessKey activation error: '{cf.g('PICOVOICE_KEY')}'")
         except pvporcupine.PorcupineActivationLimitError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has reached it's temporary device limit")
         except pvporcupine.PorcupineActivationRefusedError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' refused")
         except pvporcupine.PorcupineActivationThrottledError as e: LogError(f"AccessKey '{cf.g('PICOVOICE_KEY')}' has been throttled")
@@ -70,8 +71,7 @@ class pico_wake:
         LogInfo(f"Wake Word Set to: {str(self.keywords_path)}.")
 
     def ww_thread(self):
-        recorder = 0
-        # create a recorder
+
         LogInfo("WW Listen Thread started")
         while not self.should_quit and self.ww_listener:
             if not STATE.IsInteractive():     #don't bother listening if in Active or Wake
@@ -81,9 +81,7 @@ class pico_wake:
                     MIC_STATE.ReturnMic()
                     sleep(1) # sleep for a sec to give listen_tools a chance to grab the mic
                 else:
-                    while (not MIC_STATE.MicFree() or MIC_STATE.MicRequested()):
-                        sleep(1)
-                        
+                    while not self.should_quit and (not MIC_STATE.MicFree() or MIC_STATE.MicRequested()): sleep(1)
             else:
                 # no wakeword on Wake/Active states
                 continue
@@ -95,14 +93,16 @@ class pico_wake:
         avgDelta = 1
         if not self.ww_listener:
             LogWarn("Not starting Wake word: no listener")
-            return 
-
+            return
+        recorder = None
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
-            return RaiseError(f"Unable to create recorder: {e.args})")
+            return RaiseError(f"pico listen_loop: Exception when creating recorder: {str(e)})")
+        if not recorder: return RaiseError(f"pico listen_loop: Unable to create recorder.")
+
         recorder.start()
-        while not MIC_STATE.MicRequested() and not (self.should_quit or STATE.IsInteractive()):
+        while not (self.should_quit or STATE.IsInteractive()) and not MIC_STATE.MicRequested():
             try:
                 pcm = recorder.read()
                 STATE.volume = np.mean(np.abs(pcm))
@@ -115,7 +115,7 @@ class pico_wake:
                         self.wake_mp3.play()
                     else: LogInfo(f"Wake word ignored, audio playing")
             except Exception as e:
-                LogError(f"pico_wake loop encountered exception: {e.args})")
+                LogError(f"pico_wake listen_loop encountered exception: {e.args})")
                 
         #mic is requested
         recorder.stop()  # stop the recorder if requested to do so
