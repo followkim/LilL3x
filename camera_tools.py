@@ -109,7 +109,7 @@ class Camera:
                                 STATE.cx = int((w//2) + x)
                                 STATE.cy = int((h//2) + y)
                                 if cf.g('SCREEN_DEBUG') and self.show_view: cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
-                                #LogDebug(f"Tracking: x={round(STATE.cx)}, y={round(STATE.cy)}")
+
                                 if self.take_portrait:
                                     self._take_picture(image=img, filename=self.take_portrait, beQuiet=self.be_quiet, seeUser=True)
                                 success = True

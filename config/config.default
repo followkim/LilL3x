@@ -67,6 +67,7 @@ FPS|3|int|1
 MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|1
 SCREEN_DEBUG|0|bool|1
+SHOW_USER_CHECK|0|bool
 DEBUG|2|int|1
 WELCOME_IMAGE|./frames/el3ktra.ppm|path|1
 CHECK_GIT|30|int|1

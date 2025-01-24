@@ -282,18 +282,28 @@ class AI:
     def CanIHearYou(self, duration=cf.g('AMBIENT')):
         start = datetime.now()
         avg = [STATE.volume]
-        while (datetime.now()-start).seconds<duration:
-            avg.append(STATE.volume)
-            sleep(0.2)
+        quiet = self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100)
+        self.face.listening(cf.g('SHOW_USER_CHECK'))
+        newVol = STATE.volume - quiet
+        while (datetime.now()-start).seconds<duration:  # floor the volume for the meter
+            if STATE.volume != newVol:
+                avg.append(STATE.volume)  # don't accidently append the floored one
+                if cf.g('SHOW_USER_CHECK'):  
+                    newVol = STATE.volume-quiet
+                    STATE.volume = newVol
+
+        self.face.off(cf.g('SHOW_USER_CHECK'))
+
         vol = round(sum(avg) / len(avg))
-        LogDebug(f"CanIHearYou:vol={vol} > q={round(self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100))}: {vol > (self.ears.quiet * (1 + cf.g('QUIET_BOOST')/100))}")
-        return vol and vol > (self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100))
+        LogDebug(f"CanIHearYou:vol={vol} > q={round(quiet)}: {vol > quiet}")
+        return vol and vol > quiet
 
 
     def LookForUser(self, duration=0):
-        if duration:
+        if duration or cf.g('SHOW_USER_CHECK'):
+            if not duration: duration = cf.g('LOOK_SECS_TO_DEFAULT')
             self.face.looking()
-            if self.WaitWIS(duration): sleep(duration)  # WaitWIS blocks until wis fuke and sleep allows the user to admire the view
+            if self.WaitWIS(duration): sleep(cf.g('CAMERA_PICT_SEC'))  # WaitWIS blocks until wis fuke and sleep allows the user to admire the view
             self.face.off()
         return self.eyes.CanISeeYou()
 
@@ -349,22 +359,9 @@ class AI:
 
         # If we hit the jackpot, interact
         if dice == 1:
-            self.face.thinking()
             LogInfo(f"Performing Interaction after {round(self.LastUserInteraction()/60)} minutes.")
-            
-            #if self. the user is talking, evesdrop, otherwise try to start a convo
-            if not self.CanIHearYou():
-                return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
-#            if self.ears.PlayingMusic():
-#                self.messages.SetMessage("music", something, datetime.now())
-
-#            else:
-#                LogInfo("Can't Interact: Talking heard.  Evesdropping instead.")
-#                heard = self.ears.Evesdrop()
-#                if heard:
-#                    self.messages.SetMessage("evesdrop", heard, datetime.now())
-            self.face.off()
-        return ""
+            return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
+        else: return ""
 
     def LastInteraction(self):
         if cf.g('IDLE_ON_CAMERA'): return min(self.eyes.LastSeen(), self.LastUserInteraction())

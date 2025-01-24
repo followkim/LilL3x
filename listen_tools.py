@@ -81,10 +81,12 @@ class SpeechRecognition_listener:
     def listen_thread(self, source, timeout):
         try:
             self.audio = self.speech.listen(source, timeout)
+        except sr.exceptions.WaitTimeoutError:
+            pass
         except sr.exceptions.UnknownValueError:
             pass
         except Exception as e:
-            LogError(f"listen_thread error {e.args}")
+            LogError(f"listen_thread error {str(e)}")
 
 
         
@@ -93,8 +95,8 @@ class SpeechRecognition_listener:
         audio = False
         dt = datetime.now()
         self.speech.pause_threshold = cf.g('MIC_LIMIT')
-        start_et = self.speech.energy_threshold
         old_quiet = 0
+        start_et = self.speech.energy_threshold
         if MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
             #    self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
@@ -116,7 +118,7 @@ class SpeechRecognition_listener:
                     while listen_thread.is_alive():
                         x += 1
                         speaking_energy = round(self.speech.current_energy-self.speech.energy_threshold)
-                        STATE.volume = speaking_energy
+                        STATE.volume = speaking_energy   # self.speech.current_energy
                         run_avg.append(speaking_energy) # should be positive if user is speaking
                         if (x % 120) == 0: # print debug string every 1 secs
                             LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{speaking_energy}\t{round(sum(run_avg)/len(run_avg))}\t{(datetime.now()-dt).seconds}s")
@@ -136,9 +138,6 @@ class SpeechRecognition_listener:
                     LogError(f"speech_listener.listener() returned error: {e.args}")
                     self.audio = None  # don't try to use the mic again (was returned)
 
-                # reset the energy_thresh
-                self.speech.energy_threshold = start_et
-
                 if not beQuiet:
                     self.end_mp3.play()
                     if self.face: self.face.thinking()
@@ -155,6 +154,7 @@ class SpeechRecognition_listener:
                         RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
                     self.audio=False
                     while updt_thrd.is_alive(): sleep(0.25)
+
                 MIC_STATE.ReturnMic()
                 #imp = self.engines['google')(audio)  ## NEEED FIX
                 if imp: self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
@@ -175,7 +175,7 @@ class SpeechRecognition_listener:
         try:
             return self.speech.recognize_google(audio)
         except sr.RequestError as e:
-            LogError("SRL Default RequestError; {0}".format(e))
+            LogError("SR: Default RequestError; {0}".format(e))
         return ""
 
     def recognize_google(self, audio):
@@ -206,10 +206,7 @@ class SpeechRecognition_listener:
 
     def recognize_google_cloud(self, audio):
         try:
-            if cf.g('GOOGLE_CLOUD_SPEECH_CREDENTIALS'):
-                return self.speech.recognize_google_cloud(audio, credentials_json=cf.g('GOOGLE_CLOUD_SPEECH_CREDENTIALS'))
-            else:
-                self.speech.recognize_google(audio)
+            self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("Google Speech Cloud Recognition service RequestError; {0}".format(e))
             return self.speech.recognize_default(audio)

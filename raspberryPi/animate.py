@@ -168,8 +168,7 @@ class Screen:
 #                                self.DrawText(draw, f"{last_fps}fps ({real_fps})", 'ul', font)
                                 self.DrawText(draw, f"{STATE.volume}", 'ul', font)
                     # end if state == 'Idle'
-                elif thisState == 'Listen' and cf.g('SCREEN_DEBUG'):
-                    self.DrawVolume(draw)
+                elif self.state == 'Listen': self.DrawVolume(draw)  # don't draw if we switched states (will be too loud)
 
                 if self._message: # draw in any state - lower center
                     self.DrawText(draw, self._message, 'lc', font)
@@ -181,7 +180,7 @@ class Screen:
 
                 # sleep
                 if thisState == 'Look': SleepOn(varf=self.WakeWIS, wakeOn=True, step=0.1)
-                elif thisState != self.state: pass # state changed, don't sleep
+                elif thisState != self.state or thisState == 'Listen': pass # state changed, don't sleep
                 else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
 
             except Exception as e:
@@ -200,10 +199,22 @@ class Screen:
                 return True
         return False
 
-    def DrawVolume(self, draw, x=5, y=20, h=40, w=4):
+    def DrawVolume(self, draw, start=340, end=100, step=5, arcs=5):
+
+       vol = (max(STATE.volume,1)/10000) * step*(arcs+1)
+       if STATE.volume > 0: draw.ellipse((0, 0, step, step), fill=1, outline=1)
+       else: draw.ellipse((0, 0, int(step/2), int(step/2)), fill=1, outline=1)
+
+       i = 1                    # skip the first arc to leave some space (first arc is too small also)
+       while i <= arcs and vol > (i*step):
+           draw.arc((0, 0, step + (i*step), step + (i*step)), start=start, end=end, fill="white", width=1)
+           i = i + 1
+
+
+    def DrawVolumeBar(self, draw, x=5, y=20, h=40, w=4):
         xLen = 40
         width = 4
-        volume_scale = max(min(int((STATE.volume/15000) * xLen), xLen), 0)
+        volume_scale = max(min(int((STATE.volume/10000) * xLen), xLen), 0)
         draw.rectangle((x, y, x+w, y+h), fill=0, outline=1)
         draw.rectangle((x, y+h-volume_scale, x+w, y+h), fill=1, outline=1)
     
