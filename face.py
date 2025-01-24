@@ -31,37 +31,43 @@ class Face:
         self.view_start = showViewStartFunc
         self.view_end = showViewEndFunc
 
-    def Close(self):
-        self.screen.Close()
-        self.leds.Close()
+    def Close(self, run=True):
+        if run:
+            self.screen.Close()
+            self.leds.Close()
 
-    def talking(self):
-        self.view_end()
-        self.leds.talking()
-        self.screen.talking()
+    def talking(self, run=True):
+        if run:
+            self.view_end()
+            self.leds.talking()
+            self.screen.talking()
 
-    def listening(self):
-        self.view_end()
-        self.leds.listening()
-        self.screen.listening()
+    def listening(self, run=True):
+        if run:
+            self.view_end()
+            self.leds.listening()
+            self.screen.listening()
 
-    def thinking(self):
-        self.view_end()
-        self.leds.thinking()
-        self.screen.thinking()
+    def thinking(self, run=True):
+        if run:
+            self.view_end()
+            self.leds.thinking()
+            self.screen.thinking()
 
-    def looking(self):
-        self.leds.looking()
-        self.view_start()
-        self.screen.looking()
+    def looking(self, run=True):
+        if run:
+            self.leds.looking()
+            self.view_start()
+            self.screen.looking()
 
-    def idle(self):
-        self.view_end()
-        self.screen.off()
-        self.leds.off()
-
-    def off(self):
-        self.idle()
+    def idle(self, run=True):
+        if run:
+            self.view_end()
+            self.screen.off()
+            self.leds.off()
+ 
+    def off(self, run=True):
+        self.idle(run)
 
     def message(self, text):
         self.screen.message(text)
@@ -70,13 +76,13 @@ def dummy(): pass
 class DummyFace:
     def __init__(self): pass
     def SetViewControl(self, showViewStartFunc=dummy, showViewEndFunc=dummy): pass
-    def Close(self):pass
-    def talking(self):pass
-    def listening(self):pass
-    def thinking(self):pass
-    def looking(self):pass
-    def idle(self): pass
-    def off(self): pass
+    def Close(self, run=True):pass
+    def talking(self, run=True):pass
+    def listening(self, run=True):pass
+    def thinking(self, run=True):pass
+    def looking(self, run=True):pass
+    def idle(self, run=True): pass
+    def off(self, run=True): pass
     def message(self, text): pass
 
 if __name__ == '__main__':
