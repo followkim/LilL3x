@@ -4,12 +4,19 @@ import busio
 from PIL import Image, ImageDraw
 import adafruit_ssd1306
 from config import cf
+import os
 
-# Create the I2C interface.
-i2c = busio.I2C(SCL, SDA)
-disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
-image = Image.open(cf.g('WELCOME_IMAGE')).convert("1")
+try:
+    # Create the I2C interface.
+    i2c = busio.I2C(SCL, SDA)
+    disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+    if os.path.exists(cf.g('WELCOME_IMAGE')):
+        image = Image.open(cf.g('WELCOME_IMAGE')).convert("1")
+    else: image = Image.open(cf.d('WELCOME_IMAGE')).convert("1")
 
-draw = ImageDraw.Draw(image)
-disp.image(image)
-disp.show()
+    draw = ImageDraw.Draw(image)
+    disp.image(image)
+    disp.show()
+
+except:
+    print(f"Error loading {cf.g('WELCOME_IMAGE')}")
