@@ -1,0 +1,16 @@
+.gitignore
+wake/*raspberry-pi.ppn
+config/config.txt
+picts/*.jpg
+log
+temp
+config/*.bk
+LilL3x.log
+__pycache__
+bin
+lib
+lib64
+include
+pyvenv.cfg 
+sr.py
+/training/*.dat

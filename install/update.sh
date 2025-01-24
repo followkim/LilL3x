@@ -1,10 +1,9 @@
 #!/bin/bash
-sudo apt-get install -y espeak
-source /home/el3ktra/LilL3x/bin/activate
+#source /home/el3ktra/LilL3x/bin/activate
 
-pip install openai-whisper
-pip install google-cloud-texttospeech
+sudo rm /var/www/html/*
+sudo ln ~/LilL3x/config/html/* /var/www/html/
+sudo chmod a+x /var/www/html/*.sh
+sudo chown root:root /var/www/html/*.sh
 
-cp /etc/skel/.bashrc ~/.bashrc
-cat install/bashrc >> ~/.bashrc
-chmod +x ~/.bashrc
+
