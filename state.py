@@ -49,7 +49,9 @@ class State:
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
 
         elif not self.ShouldQuit():          # can't change out of quit state
-            LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
+            if self.StateDuration()<60: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
+            elif self.StateDuration()<60*60: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {round(self.StateDuration()/60)} minutes")
+            else: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {round(self.StateDuration()/3600)} hours")
             self.last_state = self.current
             self.current = new_state
             self.last_dt = datetime.now()
@@ -141,7 +143,6 @@ if __name__ == '__main__':
 
     s = State()
     s.ChangeState('Active')
-    print(s.GetHostname())
     print(s.GetIPAddress())
     s.ChangeState('Wake')
     s.RevertWake()
