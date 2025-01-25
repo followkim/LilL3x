@@ -1,16 +1,27 @@
-﻿
+﻿#intro {
+    font-size: 8px;
+}
+
 html, body {
     font-family: Verdana,sans-serif;
-    font-size: 15px;
+    font-size: 12px;
     background-color: #160026;
     color: #f4f7b4
 }
 
+table {
+    float: left;
+    border: 0px solid #a474e1;
+}
 .container .gallery a img {
     float: left;
-    width: 150px;
     height: auto;
-    border: 2px solid #a474e1;
+    width: auto;
+    max-height: 200px;
+    max-width: 300px;
+    height: auto;
+    width: auto;
+
     -webkit-transition: -webkit-transform .15s ease;
     -moz-transition: -moz-transform .15s ease;
     -o-transition: -o-transform .15s ease;
@@ -37,10 +48,9 @@ html, body {
 
 /* Style all font awesome icons */
 .fa {
-    padding: 2px;
-    font-size: 10px;
-    height: 15px;
-    width: 44px;
+    padding: 0px;
+    font-size: 30px;
+    width: 100%;
     text-align: center;
     text-decoration: none;
 }
@@ -51,7 +61,12 @@ html, body {
     }
 
 /* Set a specific color for each brand */
-
+.sm table {
+    display: table;
+    border-collapse: separate;
+    border-spacing: 0px;
+    border-color: gray;
+}
 /* Facebook */
 .fa-facebook {
     background: #3B5998;
@@ -63,9 +78,8 @@ html, body {
     background: #55ACEE;
     color: white;
 }
-
 /* Twitter */
 .fa-download {
-    background: #097969;
+    background: #808080;
     color: white;
 }
