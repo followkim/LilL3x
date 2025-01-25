@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
@@ -7,12 +8,13 @@
     <link href='simplelightbox/simplelightbox.min.css' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="simplelightbox/simple-lightbox.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<title>Rose City Dog Show</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>Picture Gallery</title>
 </head>
 
 <body>
     <div class="container">
+        <div class="oldgallery">
 
             <?php
             // Image extensions
@@ -59,9 +61,10 @@
 									</td></tr>	
 									<tr><td>
 										<table zheight="100%" width="100%" class="sm"><tr>
-											<td background="#3B5998" width="33%"><a href="#" class="fa fa-facebook" onclick="pop_up('<?php echo $fb_share_link; ?>');"></a></td>
-											<td background="#55ACEE" width="33%"><a href="#" class="fa fa-twitter"  onclick="pop_up('<?php echo $tw_share_link; ?>');"></a></td>
-											<td background="#808080" width="34%"><a href="<?php echo $dl_share_link; ?>" download class="fa fa-download"></a></td>										
+											<td background="#3B5998" width="25%"><a href="#" class="fa fa-facebook" onclick="pop_up('<?php echo $fb_share_link; ?>');"></a></td>
+											<td background="#55ACEE" width="25%"><a href="#" class="fa fa-twitter"  onclick="pop_up('<?php echo $tw_share_link; ?>');"></a></td>
+											<td background="#808080" width="25%"><a href="<?php echo $dl_share_link; ?>" download class="fa fa-download"></a></td>										
+											<td background="#FF0000" width="25%"><a href="<?php echo $dl_share_link; ?>" download class="fa fa-download"></a></td>										
 										</tr></table>
 									</td></tr>
 								</table>
@@ -82,7 +85,7 @@
 			 }
 			?>
 			</div>
-
+		</div>
 	</body>
 	</html>
 
