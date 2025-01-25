@@ -62,6 +62,6 @@
 		<input type="submit" value="Set"/>
 		</form>
                 <p>
-                <a href="index.php">Back to main page</a>
+                <a href="/LilL3x/index.php">Back to main page</a>
 	</body>
 </html>

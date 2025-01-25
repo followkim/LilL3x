@@ -8,4 +8,6 @@
 	HTMLHead();
 	PrintConfig();
         echo"</html>";
+        echo '<p><a href="/LilL3x/index.php">Back to main page</a></body>';
 ?>
+

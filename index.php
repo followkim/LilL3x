@@ -19,12 +19,14 @@
           echo "<body> <p>";
           echo '<h1>Welcome to '.gethostname().'</h1>';
           echo ' <a href="config/html/wifi.php">Set Wifi</a><br>';
-          echo ' <a href="config">configure</a><br>';
+          echo ' <a href="config">Configure</a><br>';
           echo ' <a href="picts">Image Gallery</a><br>';
+          echo ' <a href="training">Training</a><br>';
+          echo ' <a href="log">Logs</a><br>';
 //          echo ' <a href="LilL3x/">Browse directory</a><br>';
           echo ' <p><hr>';
-          echo ' <a href="config.php?txt">configure (Developer Version)</a><br>';
-          echo ' <a href="config.php?vars">configure variables (Developer Version)</a><br>';
+          echo ' <a href="config.php?txt">Configure (Developer Version)</a><br>';
+          echo ' <a href="config.php?vars">Configure variables (Developer Version)</a><br>';
           echo '</body></html>';
 
         }

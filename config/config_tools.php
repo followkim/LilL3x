@@ -52,7 +52,6 @@
 
 		echo "</table>";
                 echo '<input type="submit" value="Set"/></form>';
-                echo '<p><a href="index.php">Back to main page</a></body>';
 	}
 
 	function PrintConfigPretty($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
