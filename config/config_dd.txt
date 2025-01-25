@@ -46,6 +46,7 @@ CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before tak
 HEADER|Listening|2
 MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking
 ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.  
+MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)
 QUIET_BOOST|Quiet Volume|Adjust the calculated quiet level.  Set higher if AI is speaking when there is already talking.
 INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!
 ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.

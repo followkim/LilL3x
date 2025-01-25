@@ -43,6 +43,7 @@ ENERGY_THRESH|25|int|
 ENERGY_DYNAMIC|1|bool|
 DYNAMIC_RATIO|50|int|
 QUIET_BOOST|0|int
+MAX_VOLUME|10000|int
 WAKE_WORD|/home/el3ktra/LilL3x/wake/el3ktra_en_raspberry-pi_v3_0_0.ppn|path|1
 WAKE_WORD_ENGINE|pico|str|1
 WAKE_WORD_REGEX||regex

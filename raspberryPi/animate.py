@@ -201,9 +201,9 @@ class Screen:
 
     def DrawVolume(self, draw, start=340, end=100, step=5, arcs=5):
 
-       vol = (max(STATE.volume,1)/10000) * step*(arcs+1)
+       vol = (max(STATE.volume,1)/cf.g('MAX_VOLUME')) * step*(arcs+1)
        if STATE.volume > 0: draw.ellipse((0, 0, step, step), fill=1, outline=1)
-       else: draw.ellipse((0, 0, int(step/2), int(step/2)), fill=1, outline=1)
+       else: draw.ellipse((2, 2, 4, 4), fill=1, outline=1)
 
        i = 1                    # skip the first arc to leave some space (first arc is too small also)
        while i <= arcs and vol > (i*step):
@@ -214,7 +214,7 @@ class Screen:
     def DrawVolumeBar(self, draw, x=5, y=20, h=40, w=4):
         xLen = 40
         width = 4
-        volume_scale = max(min(int((STATE.volume/10000) * xLen), xLen), 0)
+        volume_scale = max(min(int((STATE.volume/cf.g('MAX_VOLUME')) * xLen), xLen), 0)
         draw.rectangle((x, y, x+w, y+h), fill=0, outline=1)
         draw.rectangle((x, y+h-volume_scale, x+w, y+h), fill=1, outline=1)
     
