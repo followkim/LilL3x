@@ -40,7 +40,7 @@ type_f = {
     'key' : to_str,
     'blob' :to_blob,
     'bool' : int,
-    'regex' :to_str,
+    'regex' : to_str,
     'dt' : to_dt
 }
 
@@ -190,8 +190,8 @@ class Config:
         req = False
         try:
             # Check for speacuial "REGEX entries"
-            m = re.search("^([A-Z|_]*)\|(.*)\|REGEX", line)
-            if m: return (m.group(1), m.group(2), "REGEX")
+            m = re.search("^([A-Z|_]*)\|(.*)\|regex", line)
+            if m: return (m.group(1), m.group(2), "regex", False)
             elif re.search("^[A-Z0-9_]*\|", line):
                 ret = (line.rstrip()).split('|')
                 if len(ret)>=3:
