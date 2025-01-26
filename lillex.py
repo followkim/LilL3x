@@ -98,6 +98,7 @@ class lill3x:
             RaiseError(f"Unable to create AI: {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
+
         if not self.ai:
             RaiseError("Unable to create AI: init failed")
             STATE.ChangeState('Quit')
@@ -208,6 +209,9 @@ class lill3x:
         return True
 
     def EvalCode(self):
+        '''EvalCode: Runs the commands stored in the STATE.data field.  
+                 Used to make changes such as chaning AI, wake work, or speech generator.
+                 Called from config thread.'''
         LogDebug(f"EvalCode: {STATE.data}")
         for cmd in STATE.data:
             try:
@@ -220,6 +224,7 @@ class lill3x:
 
     # Hello: Give a greeting to the user:
     def Hello(self):
+        '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
         self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
@@ -227,23 +232,26 @@ class lill3x:
 
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
+        '''Wake: called when the STATE is changed to Wake by wake_word or button threads'''
         wp = self.ww.GetWakePhrase()
         if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.c('AINAMEP', 'AINAME').lower()}$", wp.lower()):
             self.ai.say(self.ai.respond(wp))
         STATE.ChangeState('Active')
- 
-    # Active: User is present and activly talking to ai without need for wakeword
-    #          AI can: listen and respond to user
+
+
     def Active(self):
+        ''' Active: User is present and activly talking to ai without need for wakeword
+        ''          AI can: listen and respond to user'''
+
         user_input = self.ai.listen()
         if user_input:
             self.ai.say(self.ai.respond(user_input))
         else:
             STATE.ChangeState('ActiveIdle')
 
-    # ActiveIdle: User is present but not talking.   User needs to use wakeword or respond to an  inituation to activate ai
-    #             AI can: initiate convo (based on evesdrop and get mood)
     def ActiveIdle(self):
+        ''' ActiveIdle: User is present but not talking.   User needs to use wakeword or respond to an  inituation to activate ai
+        ''              AI can: initiate convo (based on evesdrop and get mood) '''
 
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
 #        if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
@@ -260,8 +268,8 @@ class lill3x:
             else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
         else: SleepOn(cf.g('ACTIVE_IDLE_SLEEP'))
 
-    # Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai
     def Idle(self):
+        ''' Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai'''
 
         if self.ai.LastAIInteraction() > ((cf.g('IDLE_WAIT_MIN')*60) & 0xffffffff): # force unsigned
             if not self.ai.IsIdle():
@@ -274,9 +282,9 @@ class lill3x:
         else:
             SleepOn((cf.g('IDLE_WAIT_MIN')*60) - self.ai.LastAIInteraction()) # may be negative, will sleep until state change (wake)
 
-    # Sleep: User is not present.   User needs to use wakeword or respond to "welcome back" to activate ai
-    #       AI can: machine learning, check lights/sound
     def SleepState(self):
+        ''' Sleep: Lights are off.  AI Hardware is turned off.
+        ''         AI can: machine learning, check lights/sound '''
 
         # user turned on the light-- goto acttive idle
         if not self.eyes.IsDark():
@@ -304,12 +312,12 @@ class lill3x:
         return
 
     def Quit(self):
-       self.ww.Close()
-       self.ai.Close()
-       self.mouth.Close()
-       self.ears.Close()
-       self.eyes.Close()
-       self.face.Close()
+       if self.ww: self.ww.Close()
+       if self.ai: self.ai.Close()
+       if self.mouth: self.mouth.Close()
+       if self.ears: self.ears.Close()
+       if self.eyes: self.eyes.Close()
+       if self.face: self.face.Close()
        cf.Close()
        self.WaitThreads()
        CloseLog()
