@@ -64,6 +64,7 @@
 					$user = explode("|", $myfile[$lineNum]);
 	                                $value = preg_replace('/\s+/', ' ', trim($value));
 	                                $myfile[$lineNum] = $user[0] . "|" . $value."\n";
+					echo "Set line " . $lineNum . "\n";
 				} else {
 					echo "ERR: line ".$lineNum." not set!";
 				}
@@ -71,6 +72,7 @@
 		  		$lineNum = (int)$matches[1][0];
 				if (isset($myfile[$lineNum])) {
 					unset($myfile[$lineNum]);
+					echo "Deleted line " . $lineNum . "\n";
 				} else {
 					echo "ERR: line ".$lineNum." not set!";
 				}
