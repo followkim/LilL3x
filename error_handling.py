@@ -155,10 +155,10 @@ def CleanDirs(dir, hours=30*24):   # 30 days is the default
     if os.path.exists(dir):
         for root_folder, folders, files in os.walk(dir):
             for file in files:
-                file_path = os.path.join(root_folder, file)
-                if os.path.getctime(file_path) < time_in_secs:
-                    os.remove(file_path)
-
+                if file[0] != '.':
+                    file_path = os.path.join(root_folder, file)
+                    if os.path.getctime(file_path) < time_in_secs:
+                       os.remove(file_path)
 CleanDirs("./log")
 
 if __name__ == '__main__':
