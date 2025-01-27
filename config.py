@@ -118,7 +118,7 @@ class Config:
             if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
             if currWW and currWW != self.g('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
             if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
-    #        if len(currWWe)>0 and currWWe != self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.ChangeWW('{self.g('WAKE_WORD_ENGINE')}')") TODO
+            if len(currWWe)>0 and currWWe!=self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
