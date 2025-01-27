@@ -110,7 +110,8 @@ class lill3x:
         cam_thread.start()
 
 #        self.ww = vosk_wake.vosk_wake(self.face)
-        self.ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
+        if cf.g('WAKE_WORD_ENGINE').split('_')[0].lower() == cf.g('LISTEN_ENGINE').split('_')[0].lower(): self.ww = self.ears
+        else: self.ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
         ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)
         ww_thread.name = f"{GetHostname()} WakeWordThread"
         ww_thread.start()
@@ -140,9 +141,9 @@ class lill3x:
                 if STATE.temp >= 80:
                     self.ai.say(f"I am {STATE.temp} degrees celcius, and that's too hot. Let me cool down and we'll try again.")
                     RaiseError(f"Heat error: {STATE.temp}.  Quitting.")
-                    STATE.ChangeState('Quit') 
+                    STATE.ChangeState('Quit')
                 else:
-                    RaiseError(f"Temp Warning: {STATE.temp}") 
+                    RaiseError(f"Temp Warning: {STATE.temp}")
                     sleep(2)
             try:
                 eval("self."+STATE.GetState()+"()")
@@ -192,21 +193,50 @@ class lill3x:
         if self.SwitchListener(STATE.data):
             cf.WriteConfig()
         STATE.RevertState()
-         
+
     def SwitchListener(self, newListener):
         ears = None
-        try:
-            ears = eval(f"{newListener}_listener(self.face)")
-        except Exception as e:
-            LogError("SwitchListener():Could not init listener. " + e.args)
-            return False
 
-        # were able to create the listner
-        self.ears.Close() # blocks, no threads
+        if cf.g('WAKE_WORD_ENGINE').split('_')[0] == newListener.split('_')[0]: 
+            ears = self.ww
+        else:
+            try:
+                ears = eval(f"{newListener}_listener(self.face)")
+            except Exception as e:
+                LogError("SwitchListener():Could not init listener. " + e.args)
+                return False
+
+            # were able to create the listner
+            self.ears.Close() # blocks, no threads
+
         self.ears = ears
         self.ai.ears = self.ears
         cf.s('LISTEN_ENGINE', newListener)
         return True
+
+    def SwitchWakeWord(self, newWake):
+        ww = None
+
+        if newWake.split('_')[0] == cf.g('LISTEN_ENGINE').split('_')[0]:
+            ww = self.ears
+        else:
+            try:
+                ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
+            except Exception as e:
+                LogError(f"SwitchWakeWord():Could not init wakeword. {e.args}")
+                return False
+
+            # were able to create the listner
+            self.ww.Close()
+
+        self.ww = ww
+        ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)
+        ww_thread.name = f"{GetHostname()} WakeWordThread"
+        ww_thread.start()
+
+        cf.s('WAKE_WORD_ENGINE', newWake)
+        return True
+
 
     def EvalCode(self):
         '''EvalCode: Runs the commands stored in the STATE.data field.  
@@ -343,7 +373,7 @@ class lill3x:
            for t in threads:
                if re.search(f"{GetHostname()}", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
                else: numThreads = numThreads - 1
-           sleep(2)
+           sleep(3)
 
      # A version of sleep that will break out if the state changes by WakeWord.   Avoids long period of uninterruptable sleep.
     def Sleep(self, secs):
