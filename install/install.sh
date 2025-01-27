@@ -50,7 +50,8 @@ pip install langchain_ollama
 pip install google.generativeai
 pip install google-cloud-texttospeech
 pip install anthropic
-
+pip install PyCharacterAI
+pip install characterai
 #Speech regognition
 ln -s lib/python3.11/site-packages/speech_recognition/__init__.py sr.py
 nano sr.py
