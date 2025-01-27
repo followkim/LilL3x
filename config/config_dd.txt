@@ -9,6 +9,7 @@ AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Tal
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 
 HEADER|Wake|2
+WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
 PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>
 WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>
 
@@ -44,6 +45,7 @@ IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep wh
 CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
 
 HEADER|Listening|2
+LISTEN_ENGINE|Listen Engine|The engine that controls the microphone.  Vosk is better at listening but bad at correctly interpreting speech.
 MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking
 ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.  
 MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)

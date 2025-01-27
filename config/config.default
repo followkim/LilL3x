@@ -46,7 +46,7 @@ QUIET_BOOST|0|int
 MAX_VOLUME|10000|int
 WAKE_WORD|/home/el3ktra/LilL3x/wake/el3ktra_en_raspberry-pi_v3_0_0.ppn|path|1
 WAKE_WORD_ENGINE|pico|str|1
-WAKE_WORD_REGEX||regex
+#WAKE_WORD_REGEX||regex
 WAKE_WORD_TRIES|0|int
 PICOVOICE_KEY||str|
 SPEECH_ENGINE|gTTS|str|1|
@@ -110,5 +110,9 @@ KINDRIOD_API|9FbIJZJOebNnTzMRCklI|str|
 KINDRIOD_GMPID||str|
 FIREBASE_WEB_API_KEY||str|
 BARD_API||str|
+CHARAI_TOKEN||str
+CHARAI_AUTH||str
+CHARAI_ID||str
+
 ##### Written by config_tools.php at 2025-01-17 06:19:41am
 
