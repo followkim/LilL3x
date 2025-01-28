@@ -8,3 +8,4 @@ sudo chown root:root /var/www/html/*.sh
 
 pip install characterai
 pip install PyCharacterAI
+pip install openai -U
