@@ -204,11 +204,10 @@ class Screen:
        vol = (max(STATE.volume,1)/cf.g('MAX_VOLUME')) * step*(arcs+1)
        if STATE.volume > 0: draw.ellipse((0, 0, step, step), fill=1, outline=1)
        else: draw.ellipse((2, 2, 4, 4), fill=1, outline=1)
-
-       i = 1                    # skip the first arc to leave some space (first arc is too small also)
-       while i <= arcs and vol > (i*step):
+       i = 0
+       while i < arcs and vol > (i*step):
+           i = i + 1                    # skip the first arc to leave some space (first arc is too small also)
            draw.arc((0, 0, step + (i*step), step + (i*step)), start=start, end=end, fill="white", width=1)
-           i = i + 1
 
 
     def DrawVolumeBar(self, draw, x=5, y=20, h=40, w=4):
@@ -276,7 +275,7 @@ class Screen:
         exprThread.start()
         
     def ExpiryThread(self):
-        sleep(cf.g('MESSAGE_SHOW_SECS'))
+        SleepOn(cf.g('MESSAGE_SHOW_SECS'), varf=STATE.ShouldQuit, wakeOn=True, watchState=False)
         self._message = False
         return
 
