@@ -29,7 +29,8 @@ class AI_Claude(AI):
     model = cf.g('CLAUDE_MODEL')
     model_slow = cf.g ('CLAUDE_MODEL_SLOW')
     name = "Claude"
-
+    training = True
+    has_vision = True
     def __init__(self):
         AI.__init__(self)
 
@@ -66,7 +67,7 @@ class AI_Claude(AI):
             else:
                 return class_resp
 
-#        self.leds.thinking()
+        self.face.thinking()
         try:
             message = self.claude.messages.create(
                 model=self.model,
@@ -75,53 +76,12 @@ class AI_Claude(AI):
                 system=f"You are a supportive friend to the user.  Your name is {cf.g('AINAMEP')}.  Provide converstaion and support.",
                 messages=[{"role": "user", "content": [{"type": "text","text": user_input}]}]
             )
-            reply = message.content
+            reply = message.content[0].text
         except Exception as e:
             reply = f"There was an error talking to Claude: {str(e)}"
 
- #       self.leds.off()
+        self.face.off()
         return reply
-
-    #ON Startup
-    def Hello(self):
-        return f"!The user's name is {cf.g('USERNAMEP')}, say hello."
-#             return cf.g('USERNAMEP')+" just arrivted after "+AI.PrettyDuration(self, datetime.now() - self.last_interaction) +", greet them."
-#        else:
-#              return self.respond("Hello!")
-
-    # On Wake State return greeting
-    def WakeMessage(self):
-        resp = "!The user just called to you."
-        return self.respond(resp)
-        
-    
-    # From Sleep State return greeting
-    def Greet(self):
-          resp = "!The user just returned just returned after "+AI.PrettyDuration(self, datetime.now() - self.last_user_interaction) +", greet them."
-
- #       resp = AI.Greet(self)
-             # and you haven't seen the user for  " + AI.PrettyDuration(datetime.now() - self.last_interaction) + ".  Greet them."
-          return self.respond(resp)
-    
-    def Think(self):      
-        return AI.Think(self)
-        
-    def InitiateConvo(self):
-        print("initialte convo")
-        ret = self.ProcessMessages()
-        if not ret:
-            ret = f"!Ask the user how thier {AI.TimeOfDay(self)} is going."
-#        return ret
-        return self.respond(ret)
-
-    # called from init convo -- do not process (InitCOnvo will process)
-    def ProcessMessages(self):
-       ret = ""
-       for m in  self.messages.GetMessages():
-            message = m[1]
-#            ret = responces_past[m[0]] % message
-       return ret
-
 
     def Close(self):
        AI.Close(self)  # prints memory
@@ -131,8 +91,10 @@ if __name__ == '__main__':
 
     global STATE
     STATE.ChangeState('Idle')
+    from face import DummyFace
     user_inp = ""    
     ai = AI_Claude()
+    ai.face = DummyFace()
 #    dtd = timedelta(seconds=65)
 #    ai.PrettyDuration(dtd)
 #    user_inp = "#Here is a picture of me#temp/capture_0_20240827201920388254.jpg"

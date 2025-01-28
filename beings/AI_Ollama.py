@@ -72,16 +72,10 @@ class AI_ollama(AI_openAI):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
 #        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
         self.client=ollama.Client(host=self.base_url)
-
-        self.memory = [
-            {"role": "system", "content": f"Your name is {cf.g('AINAME')}, and the user's name is {cf.g('USERNAME')}. {cf.g('BACKSTORY')}."},
-            {"role": "system", "content": cf.g('INSTRUCTION')},
-            {"role": "system", "content": f"You wrote this about your history with {cf.g('USERNAME')}: '{cf.g('HISTORY')}'"}
-        ]
-        LogInfo(f"AI {self.name}:{self.model()} loaded.")
+        self.memory = self.ReadConvo()
         return
 
-    def respond(self, user_input, canParaphrase=False):
+    def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
         self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
         args = {
@@ -96,8 +90,6 @@ class AI_ollama(AI_openAI):
             return class_resp #hacky - if the class doesn'tt return text then assume that they handled it.
 
         reply = ""
-        response = ""
-        
         LogDebug(str(args['messages'][-1]))
         try:
             if args['stream']: reply = self.reply_async(args) 
@@ -192,7 +184,7 @@ class AI_ollama(AI_openAI):
 
         #reply is a picture
         elif user_input[:1] == '#': #picture
-
+            role = "user"
             (user_input, path, url) = user_input[1:].split('#')
 
             if user_input[0] == "!":

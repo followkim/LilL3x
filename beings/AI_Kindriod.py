@@ -26,6 +26,7 @@ class AI_Kindriod(AI):
     has_auth = False
     name = "Kindriod"
     training = True
+
     def __init__(self):
         AI.__init__(self)
         self.Auth()
@@ -60,7 +61,7 @@ class AI_Kindriod(AI):
                     LogInfo(f"OOb Code Request Failed: {email_responce.json()}")
                     return False
 
-                RaiseError("Resent Oob code... check email and save in config file")
+                LogError("Resent Oob code... check email and save in config file")
                 Oob=input()
             else:
                 LogInfo(f"Using Oob codee {Oob}")
@@ -152,7 +153,7 @@ class AI_Kindriod(AI):
             'internet_response': None,'link_url': None,'link_description': None
         }
 
-        self.leds.thinking()
+        self.face.thinking()
 
         # do we have a bearer token?  If not, refresh it
         if self.bearer_token == '' and not self.AuthBearer():
@@ -160,7 +161,7 @@ class AI_Kindriod(AI):
             chat_headers['authorization'] = 'Bearer '+self.bearer_token
 
         # send the request
-        self.leds.thinking()
+        self.face.thinking()
         responce = requests.post(chat_url, headers=chat_headers, data=json.dumps(chat_data))
         if responce.status_code == 200:
             reply = responce.text
@@ -176,45 +177,8 @@ class AI_Kindriod(AI):
                 else:
                     reply=responce.text
         reply = str(responce.text.encode('ascii', 'ignore').decode("utf-8"))
-        self.leds.off()
+        self.face.off()
         return reply
-
-    #ON Startup
-    def Hello(self):
-        if cf.g('LAST_INTERACTION') > datetime(2024, 8, 8):
-             return self.respond(f"Hello {cf.g('AINAMEP')}")
-        else:
-             return self.respond(f"Its good to meet you {cf.g('AINAMEP')}")
-
-    def WakeMessage(self):
-        resp = f"Hey {cf.g('AINAME')}"
-        return self.respond(resp)
-        
-    
-    # From Sleep State return greeting
-    def Greet(self):
-          resp = "Hello"
-          return self.respond(resp)
-
-    def Think(self):
-        return AI.Think(self)
-
-    def InitiateConvo(self):
-        LogInfo("initialte convo")
-        ret = self.ProcessMessages()
-        if not ret:
-            ret = f"Hey there"
-#        return ret
-        return self.respond(ret)
-
-    # called from init convo -- do not process (InitCOnvo will process)
-    def ProcessMessages(self):
-       ret = ""
-       for m in  self.messages.GetMessages():
-            message = m[1]
-#            ret = responces_past[m[0]] % message
-       return ret
-
 
     def Close(self):
        AI.Close(self)
@@ -237,9 +201,9 @@ if __name__ == '__main__':
              return
         def off(self):
              return
-     
+    from face import DummyFace
     ai = AI_Kindriod()
-    ai.leds = LEDS()
+    ai.face = DummyFace()
 #    ai.Greet()
 #    ai.WakeMessage()
 #    ai.Interact()    

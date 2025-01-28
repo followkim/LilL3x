@@ -13,17 +13,6 @@ from error_handling import *
 from globals import STATE
 from config import cf
 
-
-responces_past = {
-    "mood": 'I thought earlier that you looked %s.  What''s happening? ',
-    "evesdrop": 'I heard you say "%s" earlier.  What were you talking about? '
-}
-  
-responces_now = {
-    "mood": 'You look %s.  What''s happening? ',
-    "evesdrop": 'Did you just say %s? '
-}
-
 class AI_Dude(AI):
 
     name = "D.U.D.E."
@@ -64,39 +53,8 @@ class AI_Dude(AI):
     def Hello(self):
         return f"CATCHPHRASE"
 
-    def GetString(self, key):
-        return self.respond(key)    
-
     def Intruder(self):
         return "INTRUDER!! Playtime's Over!  Intimidating flexing"
-
-    # On Wake State
-    def WakeMessage(self):
-        resp = f"You rang {cf.g('USERNAMEP')}?"
-        return resp
-    
-    # From Sleep State
-    def Greet(self):
-        resp = f"I just woke up! Good {AI.TimeOfDay(self)} {cf.g('USERNAMEP')}."
-        resp += f"It's been {AI.PrettyDuration(self, datetime.now() - self.last_user_interaction)} since we talked last."
-        return resp
-    
-    def Think(self):      
-        return AI.Think(self)
-        
-    def InitiateConvo(self):
-        print("initialte convo")
-        ret = self.ProcessMessages()
-        if not ret:
-            ret = "so whats new?"
-        return ret
-
-    def ProcessMessages(self):
-       ret = ""
-       for m in  self.messages.GetMessages():
-            message = m[1]
-            ret += responces_past[m[0]] % message
-       return ret
 
     def Close(self):
        AI.Close(self)

@@ -25,9 +25,9 @@ from config import cf
 class AI:
     last_user_interaction = datetime(2024, 8, 8)
     last_ai_interaction = datetime(2024, 8, 8)
+
     name = ""
     messages = Messages()
-    memory = 0
     ears = 0
     eyes =0
 
@@ -35,6 +35,7 @@ class AI:
     face = 0
     has_auth = False
     training = False
+    has_vision = False
 
     def __init__(self):
         self.last_ai_interaction = datetime.now()
@@ -117,7 +118,7 @@ class AI:
             return "Here is what I see"
 
         # TODO: parse out picture description
-        if (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", txt.lower()) or
+        if self.has_vision and (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", txt.lower()) or
                 re.search(r"^(hey )?look at (.*)$", txt.lower())):
 
             m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", txt.lower())
@@ -264,7 +265,6 @@ class AI:
         if resp and not beQuiet:
             self.last_user_interaction = datetime.now()
         return resp
-
     def TrainData(self, user_input, reply):
         if self.training:
             reply = self.StripActions(reply).strip('\n')+"\n"  # can't include '\n' in {}
@@ -327,13 +327,7 @@ class AI:
         return os.path.exists(cf.g('WIS_FILE'))
 
     def Think(self):
-#        self.face.thinking()
-#        if cf.IsConfigDirty():
-#            cf.LoadConfig()
-        # Process OpenFace
-        # get opinions on photos or messages
-        # machine learning
-#        self.face.off()
+
         return
 
     def IsIdle(self):
@@ -352,6 +346,7 @@ class AI:
         else: return False
 
     def Interact(self, dice=False):
+
         if not dice:
             if self.LastAIInteraction() > (cf.g('INTERACT_MAX')*60): dice = 1
         # if could interact: calculate random.  interactions per hour (ie 12) / initiate odds
@@ -383,6 +378,33 @@ class AI:
     def Close(self):
         cf.s('LAST_INTERACTION', self.last_ai_interaction.strftime(cf.g('CONFIG_DT_FORMAT')))
         return
+
+    # Default responses uses in AIs not designed to take demands. 
+
+    # From Idle State return greeting when user seen
+    def Greet(self):
+          if (self.LastAIInteraction() / 3600) > 6:  # haven't talked to the user in more then 6 hours
+              self.respond(f"Good {self.TimeOfDay()}!  It's been a few hours.")
+          else: return self.InitiateConvo()
+
+    def InitiateConvo(self, mood=""):
+        if mood: return self.respond(f"I feel {mood} right now.")
+        elif self.has_vision and random.randint(0, 4) == 1:
+            path = self.TakePicture(0)
+            if path:
+                url  = self.eyes.UploadPicture(path)
+                desc = f"Here is a picture of what you can see"
+                return self.respond(f'#!{desc}#{path}#{url}') # force async
+
+        return self.respond(f"Good {AI.TimeOfDay(self)}")
+
+
+    def Hello(self):
+        return self.respond(f"Hello {cf.g('AINAME')}")
+
+    def WakeMessage(self):
+        resp = f"Hey {cf.g('AINAME')}"
+        return self.respond(resp)
 
     # A few time utilities - might wnat to move these into a seperate file
     def TimeOfDay(self):
