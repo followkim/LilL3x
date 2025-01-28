@@ -79,9 +79,9 @@ class Config:
 
         # variables that would cause a hardware change
         currAI = self.g('AI_ENGINE')
-        currListen = self.g('LISTEN_ENGINE','')
+        currListen = self.g('LISTEN_ENGINE')
         currSpeech = self.g('SPEECH_ENGINE')
-        currWWe = self.g('WAKE_WORD_ENGINE','')
+        currWWe = self.g('WAKE_WORD_ENGINE')
         currWW = self.g('WAKE_WORD')
 #        currAudioProfile = self.g('AUDIO_PROFILE') TODO
 #        currFramesProfile = self.g('FRAMES_PROFILE')
@@ -114,11 +114,11 @@ class Config:
         # check for hardware updates.  Blanks indicate that this is first time loading dictionary
         if currAI:
             cmds = []
-            if currAI and currAI != self.g('AI_ENGINE'):   	 		cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
-            if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):		cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
-            if currWW and currWW != self.g('WAKE_WORD'):			cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
-            if len(currListen) >0 and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
-            if len(currWWe)>0 and currWWe!=self.config.get('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
+            if currAI and currAI != self.g('AI_ENGINE'):   	 	cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
+            if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):	cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
+            if currWW and currWW != self.g('WAKE_WORD'):		cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
+            if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
+            if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
