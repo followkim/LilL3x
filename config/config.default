@@ -80,18 +80,15 @@ GEMMA_MODEL|gemma2-27b|str|
 GEMMA_MODEL_SLOW|gemma2-9b|str|
 QWEN_MODEL|Qwen1.5-72B-Chat|str|
 QWEN_MODEL_SLOW|Qwen1.5-7B-Chat|str|
-LLAMA_BASE_URL|http://api.llama-api.com|str|1
 LLAMA_KEY||str|
 LLAMA_MODEL|llama3.1-8b|str|
 LLAMA_MODEL_SLOW|llama3.1-8b|str|
 ADHOC_URL|http://192.168.0.128:11434/v1|str|1
 ADHOC_MODEL|qwen2|str|
 ADHOC_MODEL_SLOW|qwen2|str|
-ADHOC_API_KEY|http://192.168.0.128:11434/v1|str|
-CORGI_URL|http://192.168.15.58:11434|str|1
+ADHOC_API_KEY||str|
 CORGI_API_KEY|na|str|
 CORGI_MODEL|llama3.1|str|
-EL3KTRA_URL|http://el3ktra.net:11434|str|1
 EL3KTRA_API_KEY|llama3.1:8b|str|1
 EL3KTRA_MODEL|llama3.1:8b|str|1
 EL3KTRA_VISION_MODEL|llama3.2-vision:latest|str|1
@@ -113,6 +110,6 @@ BARD_API||str|
 CHARAI_TOKEN||str
 CHARAI_AUTH||str
 CHARAI_ID||str
-
-##### Written by config_tools.php at 2025-01-17 06:19:41am
+DEEPSEEK_API||str
+DEEPSEEK_MODEL|deepseek-chat|str
 
