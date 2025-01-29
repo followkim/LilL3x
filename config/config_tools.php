@@ -294,7 +294,8 @@
 
 	function Print_LED($label, $name, $value, $desc="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
-		echo "<td id='rightHand' >";
+                echo "<td><input type='color' name = '".$name."' value=".$value." />";
+/*		echo "<td id='rightHand' >";
 		echo "<select color=\"".$value."\"name=\"".$name."\" value=".$value.">";
 		$pyfile = fopen('/home/el3ktra/LilL3x/raspberryPi/rasp_leds.py', "r");
 		while(!feof($pyfile)) {
@@ -306,6 +307,8 @@
 		}
 		fclose($pyfile);
                 echo "</select></td></tr>";
+*/
+                echo "</td></tr>";
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 

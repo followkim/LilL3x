@@ -39,14 +39,18 @@ class LEDS:
         self.driver = APA102(num_led=NUM_LEDS)
 
     def SetColor(self, inColor):
-        color = 0
+        color = None
         try:
             self.is_idle = False
             if isinstance(inColor, str):
-                color = COLORS_RGB[inColor].copy()
+                if inColor[0]=="#":
+                    int_value = int(inColor[1:], 16)
+                    color = [(int_value >> 16) & 0xFF, (int_value >> 8) & 0xFF, int_value & 0xFF, 100].copy()
+
+                else: color = COLORS_RGB[inColor].copy()
             else:
                 color = inColor.copy()
-        except Exception as e: 
+        except Exception as e:
             LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {e.args}")
         return color
 
@@ -83,7 +87,6 @@ class LEDS:
                         self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], self.color[3])
                     try:
                         self.driver.show()
-                        has_error = False
                     except Exception as e:
                         LogError(f"LEDS:LedThread: Exception on driver.show() {str(self.color)}: {e.args}")
                         if has_error: should_quit = True
@@ -91,7 +94,7 @@ class LEDS:
                         self.off()
                 sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
             except Exception as e:
-                LogError(f"LEDS:LedThread exception: {e.args}")
+                LogError(f"LEDS:LedThread exception: {str(e)}:{e.args}")
                 if has_error: should_quit = True
                 else: has_error = True
 
@@ -128,19 +131,19 @@ class LEDS:
         self.is_idle = True
 
     def talking(self):
-        self.color = self.SetColor(COLORS_RGB[cf.g('TALK_LED')])
+        self.color = self.SetColor(cf.g('TALK_LED'))
 
     def listening(self):
-        self.color = self.SetColor(COLORS_RGB[cf.g('LISTEN_LED')])
+        self.color = self.SetColor(cf.g('LISTEN_LED'))
 
     def thinking(self):
-        self.color = self.SetColor(COLORS_RGB[cf.g('THINK_LED')])
+        self.color = self.SetColor(cf.g('THINK_LED'))
 
     def looking(self):
-        self.color = self.SetColor(COLORS_RGB[cf.g('LOOK_LED')])
+        self.color = self.SetColor(cf.g('LOOK_LED'))
 
     def idle(self):
-        self.color = self.SetColor(COLORS_RGB['off'])
+        self.color = self.SetColor('off')
  
     def Close(self):
         self.should_quit = True
