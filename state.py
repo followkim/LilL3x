@@ -44,7 +44,7 @@ class State:
             LogInfo(f"State: tried to change from {self.current} to {new_state}, saving for later.")
             self.last_state = new_state
 
-        if self.current == 'Wake' and new_state != 'Active':
+        elif self.current == 'Wake' and new_state != 'Active':
             LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
 
