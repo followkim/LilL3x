@@ -65,6 +65,7 @@
 	                        $key= $atts[0];
 				$label = $atts[1];
 				$desc = $atts[2];
+				$id = sizeof($atts)>= 4? $atts[3]:"";
 	                        $val = array_key_exists($key, $value_dict)?$value_dict[$key][0]:'';
 	                        $type= array_key_exists($key, $value_dict)?trim($value_dict[$key][1]):'str';
 
@@ -189,10 +190,10 @@
 	}
 
 
-	function Print_AI_ENGINE($label, $name, $value, $desc="") {
+	function Print_AI_ENGINE($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
-		echo "<select name=\"".$name."\" value=".$value.">\n";
+		echo "<select id='".$name."' class=\"".$name."\" name=\"".$name."\" value=".$value.">\n";
 	
 		foreach (scandir('/home/el3ktra/LilL3x/beings') as $file) {
 			if (preg_match("/^AI_[A-Z]/", $file)) {
@@ -212,7 +213,7 @@
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
-	function Print_INTERPRET_ENGINE($label, $name, $value, $desc="") {
+	function Print_INTERPRET_ENGINE($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<select name=\"".$name."\" value=".$value.">";
@@ -237,7 +238,7 @@
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
-	function Print_SPEECH_ENGINE($label, $name, $value, $desc="") {
+	function Print_SPEECH_ENGINE($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<select name=\"".$name."\" value=".$value.">";
@@ -255,7 +256,7 @@
 
 	}
 
-        function Print_LISTEN_ENGINE($label, $name, $value, $desc="") {
+        function Print_LISTEN_ENGINE($label, $name, $value, $desc="", $id="") {
                 echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
                 echo "<td id='rightHand' >";
                 echo "<select name=\"".$name."\" value=".$value.">";
@@ -274,7 +275,7 @@
         }
 
 
-	function Print_DEBUG($label, $name, $value, $desc="") {
+	function Print_DEBUG($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<select name=\"".$name."\" value=".$value.">";
@@ -292,7 +293,12 @@
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
-	function Print_LED($label, $name, $value, $desc="") {
+	function Print_LED($label, $name, $value, $desc="", $id="") {
+
+                $colors = ['blue' => '#0002FF', 'green' => '#00FF00', 'orange' => '#FF8000', 'pink' => '#FF3399', 'purple' => '#800080', 'red' => '#FF0000', 'white' => '#FFFFFF', 'yellow' => '#FFFF33'];
+                if ($value[0] != "#") {
+                	$value=$colors[$value];
+                }
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
                 echo "<td><input type='color' name = '".$name."' value=".$value." />";
 /*		echo "<td id='rightHand' >";
@@ -313,7 +319,7 @@
 	}
 
 
-	function Print_WAKE_WORD($label, $name, $value, $desc="") {
+	function Print_WAKE_WORD($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<select name=\"".$name."\" value=".$value.">\n";
@@ -327,7 +333,7 @@
                 echo "</select></td></tr>";
   		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
-	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="") {
+	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="", $id="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<select name=\"".$name."\" value=".$value.">\n";
@@ -343,29 +349,31 @@
 	}
 
         function PrintHEADER($label, $ht="2") {
+                echo '<tr><td><input type="submit" value="Set"/></td><td></td></tr>';
 		echo "<tr><td colspan='2'><br><hr><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
 	}
 
-        function Print_blob($label, $key, $val, $desc="") {
+        function Print_blob($label, $key, $val, $desc="", $id="") {
 		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><textarea cols="40" rows="5" name="'.$key.'" />'.$val.'</textarea></td></tr>';
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
-        function Print_int($label, $key, $val, $desc="") {
+        function Print_int($label, $key, $val, $desc="", $id="") {
                 echo trd_labelData($label, $val, $key, 0, "number");
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 	}
 
-        function Print_bool($label, $key, $val, $desc="") {
+        function Print_bool($label, $key, $val, $desc="", $id="") {
 		echo "<tr><td id=\"leftHand\"><b>" . $label . ":</b></td>";
 		echo '<td id="rightHand"><input type="checkbox" value="'.$val.'" name="'.$key.'" '.($val=="1"?'checked':'').'></td></tr>';
 		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
 
 	}
-        function Print_other($label, $key, $val, $desc="") {
+        function Print_other($label, $key, $val, $desc="", $id="") {
+                echo "<div  id='".$id."'>";
                 echo trd_labelData($label, $val, $key);
-		echo "<tr><td></td><td><i>".$desc."</i></td></tr>";
+		echo "<tr><td></td><td><i><div u".$desc."</i></td></tr></div>";
 	}
 
 
