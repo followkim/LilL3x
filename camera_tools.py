@@ -101,7 +101,7 @@ class Camera:
                      # Handle Tracker
                     if tracker:
                         success,bbox=tracker.update(img)
-                        if success:
+                        if success and min(bbox[2], bbox[3]) > cf.g('MIN_FACE_SIZE'):
                             (x, y, w, h) = bbox
                             eyes = self.eye_cascade.detectMultiScale(gray[int(y):int(y+h), int(x):int(x+w)])
                             if len(eyes) > 0:
