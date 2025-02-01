@@ -1,3 +1,4 @@
+
 <?php
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
@@ -11,3 +12,4 @@
         echo '<p><a href="/LilL3x/index.php">Back to main page</a></body>';
 ?>
 
+<script type="text/javascript" src="config_tools.js"></script>

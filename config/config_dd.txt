@@ -1,4 +1,4 @@
-USERNAME|Name|Your own name
+USERNAME|Name|Your own nameInter
 USERNAMEP|Pronunciation|How you pronounce your name (if different)
 USEREMAIL|Email|Your email
 
@@ -6,12 +6,44 @@ HEADER|AI Information|2
 AINAME|AI Name|Your AI's name
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
+OPEN_AI_API_KEY|OpenAI Key|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
+CHATGPT_MODELChat|GPT Model|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
+CHATGPT_MODEL_SLOW|ChatGPT Slow|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
+GEMMA_MODEL|Gemma Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemma
+GEMMA_MODEL_SLOW|Gemma Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemma
+QWEN_MODEL|Qwen Model|Get from <a>OpenAI</a>|AI_ENGINE_Qwen
+QWEN_MODEL_SLOW|Qwen Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Qwen
+LLAMA_KEY|Llama API Key|Get from <a>OpenAI</a>|AI_ENGINE_Llama
+LLAMA_MODEL|Llama Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
+LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
+ADHOC_URL|Adhoc URL|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
+ADHOC_MODEL|Adhoc Model|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
+ADHOC_MODEL_SLOW|Adhoc Model Slow|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
+ADHOC_API_KEY|Adhoc API Key|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
+CORGI_API_KEY|Corgi API Key|Get from <a>OpenAI</a>|AI_ENGINE_Corgi
+CORGI_MODEL|Corgi Model|Get from <a>OpenAI</a>|AI_ENGINE_Corgi
+EL3KTRA_API_KEY|El3ktra API Key|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
+EL3KTRA_MODEL|El3ktra Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
+EL3KTRA_VISION_MODEL|El3ktra Vision Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
+LOCAL_MODEL|Local Model|Get from <a>OpenAI</a>|AI_ENGINE_Local
+GEMINI_API_KEY|Gemini API Key|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
+GEMINI_MODEL|Gemini Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
+GEMINI_MODEL_SLOW|Gemini Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
+CLAUDE_API_KEY|Claude API Key|Get from <a>OpenAI</a>|AI_ENGINE_Claude
+CLAUDE_MODEL|Claude Model|Get from <a>OpenAI</a>|AI_ENGINE_Claude
+CLAUDE_MODEL_SLOW|Claude Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Claude
+KINDRIOD_OOB|Kindriod OOB|Get from <a>OpenAI</a>|AI_ENGINE_|Kindriod
+KINDRIOD_GMPID|Kindriod Character ID|Get from <a>OpenAI</a>|AI_ENGINE_Kindriod
+DEEPSEEK_API|Deepseek API Key|Get from <a>OpenAI</a>|AI_ENGINE_Deepseek
+DEEPSEEK_MODEL|Deepseek Model|Get from <a>OpenAI</a>|AI_ENGINE_Deepseek
+
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 
 HEADER|Wake|2
 WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
-PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>
-WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>
+PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>|WAKE_WORD_ENGINE_pico
+WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
+
 
 HEADER|Behaviors|2
 VOLUME|Volume|Should be 1-10
@@ -46,30 +78,36 @@ CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before tak
 
 HEADER|Listening|2
 LISTEN_ENGINE|Listen Engine|The engine that controls the microphone.  Vosk is better at listening but bad at correctly interpreting speech.
-MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking
-ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.  
-MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)
-QUIET_BOOST|Quiet Volume|Adjust the calculated quiet level.  Set higher if AI is speaking when there is already talking.
-INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!
-ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.
-DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.
+MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking|LISTEN_ENGINE_SpeechRecognition
+ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.|LISTEN_ENGINE_SpeechRecognition
+MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)|LISTEN_ENGINE_SpeechRecognition
+QUIET_BOOST|Quiet Volume|Adjust the calculated quiet level.  Set higher if AI is speaking when there is already talking.|LISTEN_ENGINE_SpeechRecognition
+INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Note that only "google" is tested!|LISTEN_ENGINE_SpeechRecognition
+ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.|LISTEN_ENGINE_SpeechRecognition
+DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.|LISTEN_ENGINE_SpeechRecognition
 
 HEADER|Speech Tools|2
 SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
-AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>
-AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>
-AWS_ACCESS_KEY|Access Key For Amazon|See <a href="https://us-west-1.console.aws.amazon.com/" target="_blank">Amazon Web Services</a>
-AWS_ACCESS_KEY_SECRET|AWS Secret|See link above.
-CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech" target="_blank">Open AIs Text to Speech</a>
-ELEVENLABS_API_KEY|ElevenLabs API|See <a href="https://elevenlabs.io/app/sign-up" target="blank">ElevenLabs.io Sign Up</a> to get an API key.
-ELEVENLABS_VOICE_ID|ElevenLabs Voice|If speech engine is ElevenLabs, indicate the voice to use.  See <a href="https://elevenlabs.io/app/voice-lab" target="_blank">ElevenLabs Voice Lab</a>
-GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Credentials</a>
-GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>
-GOOGLE_VOICE_NAME|Google Voice|See above
-GOOGLE_GENDER|Google Gender|Female or male -- see above
+AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>|SPEECH_ENGINE_amazon
+AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>|SPEECH_ENGINE_amazon
+AWS_ACCESS_KEY|Amazon Access Key|See <a href="https://us-west-1.console.aws.amazon.com/" target="_blank">Amazon Web Services</a>|SPEECH_ENGINE_amazon
+AWS_ACCESS_KEY_SECRET|AWS Secret|See link above.|SPEECH_ENGINE_amazon
+CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech" target="_blank">Open AIs Text to Speech</a>|SPEECH_ENGINE_ChatGPT
+ELEVENLABS_API_KEY|ElevenLabs API|See <a href="https://elevenlabs.io/app/sign-up" target="blank">ElevenLabs.io Sign Up</a> to get an API key.|SPEECH_ENGINE_elevenLabs
+ELEVENLABS_VOICE_ID|ElevenLabs Voice|If speech engine is ElevenLabs, indicate the voice to use.  See <a href="https://elevenlabs.io/app/voice-lab" target="_blank">ElevenLabs Voice Lab</a>|SPEECH_ENGINE_elevenLabs
+GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Credentials</a>|SPEECH_ENGINE_google
+GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>|SPEECH_ENGINE_google
+GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
+GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
 
 
 HEADER|Other Tools|2
 DEBUG|Logging Level|Set debug level messages
+SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees)
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 WELCOME_IMAGE|Welcome Image|Image shown on startup
+
+#HEADER|Keys and Models|2
+
+
+
