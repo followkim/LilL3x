@@ -309,19 +309,20 @@
 	}
 
 
-	function Print_WAKE_WORD($label, $name, $value, $desc="", $class="") {
-		echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
-		echo "<td id='rightHand' >\n";
-		echo "<table><tr><td><select  value=".$value.">\n";
-		foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
-			if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
-				$wake_word = ucwords($matches[1][0]);
-				$filepath = '/home/el3ktra/LilL3x/wake/'.$file;
-				echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
-			}
-		}
+       function Print_WAKE_WORD($label, $name, $value, $desc="", $class="") {
+                echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
+                echo "<td id='rightHand' >\n";
+                echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
+                foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
+                        if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
+                                $wake_word = ucwords($matches[1][0]);
+                                $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
+                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
+                        }
+                }
                 echo "</select></td></tr>";
-  		echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+
 	}
 	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="", $class="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";

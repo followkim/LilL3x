@@ -11,6 +11,10 @@ const le = document.getElementById("LISTEN_ENGINE");
 showhide("LISTEN_ENGINE");
 le.addEventListener("change", (evt) => showhide("LISTEN_ENGINE", evt));
 
+const ie = document.getElementById("INTERPRET_ENGINE");
+showhide("INTERPRET_ENGINE");
+ie.addEventListener("change", (evt) => showhide("INTERPRET_ENGINE", evt));
+
 const pico = document.getElementById("WAKE_WORD_ENGINE");
 showhide("WAKE_WORD_ENGINE");
 pico.addEventListener("change", (evt) => showhide("WAKE_WORD_ENGINE", evt));
@@ -24,6 +28,7 @@ function showhide(name, evt) {
        	const hide = document.querySelectorAll("[class^='"+name+"_']"); // Replace '.className' with the actual class name
 	for (var i=0;i<hide.length;i+=1){
 		hide[i].style.display = 'none';
+		// TODO : search the children of this element to close all dependants
 	}
        	const show = document.querySelectorAll("[class='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
 	for (var i=0;i<show.length;i+=1){
