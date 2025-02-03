@@ -53,40 +53,41 @@ class AI:
         if not txt:
             return False
 
-        if re.search(r"^(what is|what(')?s) your temp(erature)?", txt.lower()):
+        search_txt = txt.lower().replace(".", "").strip()
+        if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
 
-        if re.search(r"^what time is it$", txt.lower()):
+        if re.search(r"^what time is it$", search_txt.lower()):
             return "It's " + datetime.now().strftime("%l %M %p")
 
 #        if re.search("^(simon says)* (say|repeat (after me|this))* (.*)$"):
-#            (a, c, b, ret) = re.compile("^(simon says)* (say|repeat (after me|this))* (.*)$").match(txt).groups()
+#            (a, c, b, ret) = re.compile("^(simon says)* (say|repeat (after me|this))* (.*)$").match(txt.lower()).groups()
 #            return ret
 
-        if re.search(r"^say (.*)$", txt):
-            (ret) = re.compile("^say (.*)$").match(txt).groups()
+        if re.search(r"^say (.*)$", search_txt):
+            (ret) = re.compile("^say (.*)$").match(search_txt).groups()
             return ret[0]
 
-        if re.search(r"^who (are you|is this)$", txt):
+        if re.search(r"^who (are you|is this)$", search_txt):
             return f"I am {self.name}."
 
-        if re.search(r"^what (day|date) is it\s*", txt.lower()):
+        if re.search(r"^what (day|date) is it\s*", search_txt):
             return "It's " + datetime.now().strftime("%A, %B %d")
 
-        if re.search(r"^what('s| is) (my|our|your|the) ip( address)?$", txt.lower()):
+        if re.search(r"^what('s| is) (my|our|your|the) ip( address)?$", search_txt):
             ips = check_output(['hostname', '--all-ip-addresses'])
             self.face.message(ips.split()[0].decode())
             return "My IP address is " + ips.split()[0].decode()
 
-        if re.search(r"^(quit|exit|goodbye)$", txt.lower()): 
+        if re.search(r"^(quit|exit|shutdown)$", search_txt): 
             STATE.ChangeState('Quit')
-            return False
+            return False # allow AI to respond
 
-        if re.search(r"^(reboot|restart|reset)$", txt.lower()): 
+        if re.search(r"^(reboot|restart|reset)(.)?$", search_txt): 
             STATE.ChangeState('Restart')
             return "see you soon"
 
-        if re.search(r"^update( yourself| your code| git)?$", txt.lower()):
+        if re.search(r"^update( yourself| your code| git)?$", search_txt):
             retStr = "I had an error trying to update.  Check my logs."
             f = cf.CheckGit()
             if f>0:
@@ -96,33 +97,33 @@ class AI:
             return retStr
 
 
-        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", txt.lower()):
+        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
             STATE.ChangeState('Surveil')
             return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
 
-        if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", txt.lower()):
+        if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", search_txt):
             return f"I have {ShowThreads()} running, check the logs for a list."
 
-        if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", txt.lower()):
+        if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", search_txt):
             self.LookForUser(cf.g('CAMERA_PICT_SEC'))
             return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
 
-        if re.search(r"^can you see me$", txt.lower()):
+        if re.search(r"^can you see me$", search_txt):
             return self.YesNo(self.LookForUser(cf.g('CAMERA_PICT_SEC')), "Yes",  "No, I can't")
 
-        if re.search(r"^is (the room|it) dark( in here)?$", txt.lower()):
+        if re.search(r"^is (the room|it) dark( in here)?$", search_txt):
             return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
 
-        if re.search(r"^show (me|us) what you see$", txt.lower()):
+        if re.search(r"^show (me|us) what you see$", search_txt):
             self.LookForUser(10)
             return "Here is what I see"
 
         # TODO: parse out picture description
-        if self.has_vision and (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", txt.lower()) or
-                re.search(r"^(hey )?look at (.*)$", txt.lower())):
+        if self.has_vision and (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", search_txt) or
+                re.search(r"^(hey )?look at (.*)$", search_txt)):
 
-            m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", txt.lower())
-            if not m: m2 = re.search(r"^(hey )?look at (.*)$", txt.lower())
+            m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", search_txt)
+            if not m: m2 = re.search(r"^(hey )?look at (.*)$", search_txt)
 
             selfie=False
             if m:
@@ -139,7 +140,7 @@ class AI:
             else:
                 return "Sorry, I couldn't take a picture"
 
-        if re.search(r"^((can i )?talk|switch|let me (talk|speak)) to (.*)*$", txt.lower()):    # , flags-re.IGNORECASE):
+        if re.search(r"^((can i )?talk|switch|let me (talk|speak)) to (.*)*$", search_txt):    # , flags-re.IGNORECASE):
             AI = txt.split()[-1]
             STATE.ChangeState('ChangeAI')
             newState = AI[0].upper() + AI[1:].lower()
@@ -151,6 +152,8 @@ class AI:
                 STATE.data = "Kindriod"
             elif re.search(r"(gwen|quinn)", newState.lower()):
                 STATE.data = "Qwen"
+            elif re.search(r"(deep seek)", newState.lower()):
+                STATE.data = "Deepseek"
             elif re.search(r"(ele(k|c)tra|alexa)", newState.lower()):
                 STATE.data = "El3ktra"
             else:
@@ -162,20 +165,20 @@ class AI:
 #            self.model = input()
 #            return f"Switched model to {self.model}."
 
-        if re.search(r"^(set|switch|change) (your |the )?(voice|speech engine) to (.*)$", txt):
-            (ret) = re.compile("^.* to (.*)$").match(txt).groups()
+        if re.search(r"^(set|switch|change) (your |the )?(voice|speech engine) to (.*)$", search_txt):
+            (ret) = re.compile("^.* to (.*)$").match(search_txt).groups()
 
             # NEED FIX
             new_engine = ret[0]
-            if re.search(r"(pie|pi) tts$", txt.lower()):
+            if re.search(r"(pie|pi) tts$", search_txt):
                 new_engine = "pytts"
-            elif re.search(r"g( )?tts$", txt.lower()):
+            elif re.search(r"g( )?tts$", search_txt):
                 new_engine = "gTTS"
-            elif re.search(r".*gpt$", txt.lower()):
+            elif re.search(r".*gpt$", search_txt):
                 new_engine = "ChatGPT"
-            elif re.search(r"(11|eleven) labs$", txt.lower()):
+            elif re.search(r"(11|eleven) labs$", search_txt):
                 new_engine = "elevenLabs"
-            elif re.search(r"amazon$", txt.lower()):
+            elif re.search(r"amazon$", search_txt):
                 new_engine = "amazon"
             else:
                 new_engine = ret[0]
@@ -186,12 +189,12 @@ class AI:
             else:
                 return (f"Couldn't switch to {new_engine}")
 
-        if re.search(r"^(set|switch|change) (your |the )?listen(ing|er)?( engine)? to (.*)$", txt):
+        if re.search(r"^(set|switch|change) (your |the )?listen(ing|er)?( engine)? to (.*)$", search_txt):
             engine  = False
 
-            if re.search(r"speech( )?recogni(tion|ize)$", txt.lower()):
+            if re.search(r"speech( )?recogni(tion|ize)$", search_txt):
                 engine = "SpeechRecognition"
-            elif re.search(r"vos(c|k|t)$", txt.lower()):
+            elif re.search(r"vos(c|k|t)$", search_txt):
                 engine = 'Vosk'
             if engine:
                 STATE.ChangeState('ChangeListener')
@@ -199,18 +202,18 @@ class AI:
                 return f"Sure, I'll switch the listener to {engine}."
             else: return f"I can't seen to find a listening engine called {txt.split()[-1]}"
 
-#        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", txt.lower()):
-#            g = re.compile("^turn( off| down)? the (light|led)(s?)( down| off)?").match(txt.lower())
+#        if re.search(r"^turn( off| down |up)? the (light|led)(s?)( down| off|up)?$", search_txt):
+#            g = re.compile("^turn( off| down)? the (light|led)(s?)( down| off)?").match(search_txt)
 #            return "Here is what I see"
 
-        if re.search(r"^((re)?load|import) (the |your )?config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+        if re.search(r"^((re)?load|import) (the |your )?config( file)?$", search_txt): # , flags-re.IGNORECASE):
             return(self.YesNo(cf.LoadConfig(), "Configuration variables updated.", "I couldn't load the config file"))
 
-        if re.search(r"^(save|write|export) (the |your )?config( file)?$", txt.lower()): # , flags-re.IGNORECASE):
+        if re.search(r"^(save|write|export) (the |your )?config( file)?$", search_txt): # , flags-re.IGNORECASE):
             return(self.YesNo(cf.WriteConfig(), "Configuration variables saved.", "I couldn't write the config file"))
 
-        if re.search(r"^what is ((the|your) )?(.+) set to$", txt.lower()):
-            (x, y, key) = re.compile("^what is( (the|your))? (.+) set to$").match(txt).groups()
+        if re.search(r"^what is ((the|your) )?(.+) set to$", search_txt):
+            (x, y, key) = re.compile("^what is( (the|your))? (.+) set to$").match(search_txt).groups()
             key = key.upper().replace(' ', '_') 
             val = cf.g(key)
             if val == False:
@@ -219,8 +222,8 @@ class AI:
                 return f"{key} is set to {val}."
 
         #TODO cuases error, needs fix
-        if re.search(r"^(set|change|update) (the |your )?(.+) to (.+)$", txt.lower()):
-            (x, xx, key, val) = re.compile("^(set|change|update) (the |your )?(.+) to (.+)$").match(txt).groups()
+        if re.search(r"^(set|change|update) (the |your )?(.+) to (.+)$", search_txt):
+            (x, xx, key, val) = re.compile("^(set|change|update) (the |your )?(.+) to (.+)$").match(search_txt).groups()
             key = key.upper().replace(' ', '_') 
             # check that key exsosts:
             if not cf.g(key):
@@ -229,7 +232,7 @@ class AI:
                 cf.s(key, val)
                 return f"{key} is set to {cf.g(key)}."
 #
-#        if re.search(r"^set (.*) to (.*)$", txt.lower()):
+#        if re.search(r"^set (.*) to (.*)$", search_txt):
 #             return self.SetKey(txt)
         # perform Interactions (belo)
         # switch speech/listening enginespicture
@@ -483,8 +486,8 @@ class AI:
         newStr = newStr.replace(cf.g('AINAME'  ), cf.c('AINAMEP',   'AINAME'  ))
         newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
         newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
-        newStr = newStr.replace('"', '')  # remove quotes
-        newStr = newStr.replace("'", '')
+#        newStr = newStr.replace('"', '')  # remove quotes
+#        newStr = newStr.replace("'", '')
         return newStr
 
 if __name__ == '__main__':
