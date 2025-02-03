@@ -196,7 +196,7 @@ class SpeechRecognition_listener:
             LogError("Sphinx RequestError; {0}".format(e))
             return self.speech.recognize_default(audio)
 
-    def recognize_google_api(self, audio):
+    def recognizex_google_api(self, audio):
         try:
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
             if cf.g('GOOGLE_API'):
@@ -208,7 +208,7 @@ class SpeechRecognition_listener:
             return self.speech.recognize_default(audio)
 
 
-    def recognize_google_cloud(self, audio):
+    def recognizex_google_cloud(self, audio):
         try:
             self.speech.recognize_google(audio)
         except sr.RequestError as e:

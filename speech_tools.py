@@ -36,8 +36,6 @@ class speech_generator:
         self.PlaySound(cf.g('STARTUP_MP3'))
 
     def say(self, txt, face=False, asyn=False):
-#        if self.volume != config["VOLUME"]
-#            set volume
         filename = False
         if txt:
             try:
