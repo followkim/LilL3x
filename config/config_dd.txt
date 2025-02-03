@@ -56,26 +56,6 @@ IDLE_WAIT_MIN|Inactive Quiet|When inactive, minutes to wait before interacting a
 SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes)
 SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in minutes)
 
-HEADER|LEDs|2
-BRIGHTNESS|Brightness|The brightness of the LEDs
-LIGHT_SPEED|LED Speed|How fast the LEDs will animate.  Should be 1-100
-LISTEN_LED|Listening Color|What color the LEDS will show when the AI is Listening.
-THINK_LED|Thinking Color|What color the LEDS will show when the AI is thinking.
-TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to you.
-LOOK_LED|Looking Color|What color the LEDS will show when the AI is looking at you.
-
-HEADER|Screen|2
-FPS|Frames Per Second|Frames per second for display.
-MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
-SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
-SCREEN_DEBUG|Screen Info|Show debugging information on the screen
-
-HEADER|Camera|2
-MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
-CAMERA_SLEEP_SEC|Camera Wait|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
-IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
-CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
-
 HEADER|Listening|2
 LISTEN_ENGINE|Listen Engine|The engine that controls the microphone.  Vosk is better at listening but bad at correctly interpreting speech.
 MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking|LISTEN_ENGINE_SpeechRecognition
@@ -101,11 +81,32 @@ GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google
 GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>|SPEECH_ENGINE_google
 GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
 GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
+OPEN_AI_API_KEY|OpenAI Key|Get from <a>OpenAI</a>|SPEECH_ENGINE_ChatGPT
+
+HEADER|Camera|2
+MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
+CAMERA_SLEEP_SEC|Camera Wait|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
+IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
+CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
 
 
-HEADER|Other Tools|2
+HEADER|LEDs|2
+BRIGHTNESS|Brightness|The brightness of the LEDs
+LIGHT_SPEED|LED Speed|How fast the LEDs will animate.  Should be 1-100
+LISTEN_LED|Listening Color|What color the LEDS will show when the AI is Listening.
+THINK_LED|Thinking Color|What color the LEDS will show when the AI is thinking.
+TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to you.
+LOOK_LED|Looking Color|What color the LEDS will show when the AI is looking at you.
+
+HEADER|Screen|2
+FPS|Frames Per Second|Frames per second for display.
+MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
+SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
+SCREEN_DEBUG|Screen Info|Show debugging information on the screen
+
+HEADER|Developer Tools|2
 DEBUG|Logging Level|Set debug level messages
-SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees)
+SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees and indicate if sounds can be heard)
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 WELCOME_IMAGE|Welcome Image|Image shown on startup
 

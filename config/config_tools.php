@@ -313,17 +313,18 @@
                 echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
                 echo "<td id='rightHand' >\n";
                 echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
-                foreach (scandir('/home/el3ktra/LilL3x/wake') as $file) {
+                foreach (scandir('/home/el3ktra/LilL3x/wake/') as $file) {
                         if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
-                                $wake_word = ucwords($matches[1][0]);
+                                $filename = ucwords($matches[1][0]);
                                 $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $wake_word . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";
                 echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
 
 	}
+
 	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="", $class="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
@@ -336,6 +337,21 @@
 		}
                 echo "</select></td></tr>";
   		echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+	}
+
+       function Print_WELCOME_IMAGE($label, $name, $value, $desc="", $class="") {
+                echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
+                echo "<td id='rightHand' >\n";
+                echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
+                foreach (scandir('/home/el3ktra/LilL3x/frames/welcome/') as $file) {
+                        if (preg_match_all("/^([A-Za-z1-9_]*).ppm$/", $file, $matches)) {
+                                $filename = str_replace("_", " ", ucwords($matches[1][0]));
+                                $filepath = './frames/welcome/'.$file;
+                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                        }
+                }
+                echo "</select></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
 	}
 
         function PrintHEADER($label, $ht="2") {
