@@ -161,9 +161,7 @@ class ChatGPT_tts:
 
 class elevenLabs_tts:
     client = 0
-
     CHUNK_SIZE = 1024
-    url = "https://api.elevenlabs.io/v1/text-to-speech/" + cf.g('ELEVENLABS_VOICE_ID')
 
     headers = {
       "Accept": "audio/mpeg",
@@ -178,13 +176,15 @@ class elevenLabs_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+        url = "https://api.elevenlabs.io/v1/text-to-speech/" + cf.g('ELEVENLABS_VOICE_ID')
+
         data = {
             "text": txt,
-            "model_id": "eleven_monolingual_v1",
+            "model_id": cf.g('ELEVENLABS_MODEL_ID'),
             "voice_settings": {"stability": 0.5, "similarity_boost": 0.5}
         }
 
-        response = requests.post(self.url, json=data, headers=self.headers)
+        response = requests.post(url, json=data, headers=self.headers)
         if response.status_code != 200:
             raise Exception(f"elevenLabs_tts returned error {response.status_code}")
         else:

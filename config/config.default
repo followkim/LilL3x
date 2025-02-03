@@ -17,6 +17,7 @@ SURVEIL_LOOK|120|int|
 ACTIVE_IDLE_TO|30|int|
 IDLE_WAIT_MIN|30|int
 IDLE_ON_CAMERA|0|bool
+AWAY_HOURS|6|int
 BRIGHTNESS|50|int|
 BRIGHT_SPEED|2|int|1
 LIGHT_SPEED|75|int|1
@@ -36,7 +37,7 @@ FLICKR_API||str|
 FLICKR_SECRET||str|
 LISTEN_ENGINE|SpeechRecognition|str|1
 INTERPRET_ENGINE|google|str|1
-WHISPER_URL|http://el3ktra.net:5000/inference|str
+WHISPER_URL|http://el3ktra.net:5000/inference|str|1
 MIC_TO|5|int|1
 MIC_LIMIT|0.8|float|1
 AMBIENT|1|int|1
@@ -65,6 +66,7 @@ GOOGLE_GENDER|FEMALE|str|1
 CHATGPT_VOICE|nova|str|
 ELEVENLABS_API_KEY||str|
 ELEVENLABS_VOICE_ID||str|
+ELEVENLABS_MODEL_ID|eleven_multilingual_v2|str|1
 FPS|3|int|1
 MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|1
