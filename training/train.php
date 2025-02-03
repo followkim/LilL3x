@@ -14,17 +14,42 @@
 	}
 
 	function PrintTraining() {
-		$trainingFile =sizeof(array_keys($_GET))>0?"AI_".array_keys($_GET)[0]."_convo.dat":"AI_El3ktra_convo.dat";
+
+//                $trainingFile = (isset($_POST) and array_key_exists($_POST["train_file"]))? $_POST["train_file"]: TRAINING_PATH . "AI_El3ktra_convo.dat";
+                $trainingFile = TRAINING_PATH . "AI_El3ktra_convo.dat";
 
 		if (isset($_POST)) {
-			WriteTrainingData($_POST, TRAINING_PATH . $trainingFile);
+//                        if (array_key_exists("train_file", $_POST)) {
+//				$trainingFile = $_POST["train_file"];
+//			} else {
+				WriteTrainingData($_POST, $trainingFile);
+//			}
 		}
 
-		echo "<body><table >";
+		echo "<body>";
 		echo "<center><b><h1>Train ".gethostname()."</b></h1></center>";
 		echo '<form action="" method="POST">';
-		echo "<tr><td width='50%'><center><b>User Input</b></center></td><td width='50%'><center><b>AI Response</b></center></td><td><center><b>Delete?</b></center></td></tr>";
-		PrintTrainingData(TRAINING_PATH . $trainingFile);
+
+                echo "<table><tr><td><b>Conversation File: </b></td>";
+                echo "<td><select name='training_file'>";
+                foreach (scandir(TRAINING_PATH) as $file) {
+                        if (preg_match_all("/^AI_([A-Za-z1-9 ]*)_convo.dat$/", $file, $matches)) {
+                                $ai_name = $matches[1][0];
+                                $filepath = TRAINING_PATH.$file;
+                                echo "<option value='" . $filepath  . "' >" . $ai_name . "</option>";
+                        }
+                }
+                echo "</select></td></tr>";
+                echo "<tr><td><i>Current File:</i></td><td>" . $trainingFile . "</td></tr></table>";
+		echo '<input type="submit" value="Set"/><p></form>';
+
+
+		echo '<form action="" method="POST">';
+		echo "<table><tr><td width='50%'><center><b>User Input</b></center></td><td width='50%'><center><b>AI Response</b></center></td><td><center><b>Delete?</b></center></td></tr>";
+
+
+
+		PrintTrainingData($trainingFile);
 
 		echo "</table>";
 		echo '<input type="submit" value="Set"/></form>';
@@ -32,24 +57,21 @@
 	}
 
 	function PrintTrainingData($trainingPath) {
-		$myfile = fopen($trainingPath, "r") or die("Unable to open file!");
-		$lineNum = 0;
-		while(!feof($myfile)) {
-			$line = fgets($myfile);
+		$myfile = file($trainingPath) ;
+		for ($linenum = count($myfile) - 1; $linenum >= 0; $linenum--) {
+			$line = $myfile[$linenum];
+			//$line = fgets($myfile);
 			$atts = explode('|', $line);
 			if (sizeof($atts)>=2) {
 				$prompt= $atts[0];
 				$resp = $atts[1];
-				
-//				$dt = $atts[2];
 				echo '<td word-break: break-all  >'.$prompt.'</td>';
-				echo '<td ><textarea cols="100" rows="5" name="Line'.$lineNum.'" />'.$resp.'</textarea></td>';
-				echo '<td align="center" ><input type="checkbox" id="vehicle1" name="Del'.$lineNum.'" ></td></tr>';
+				echo '<td ><textarea cols="100" rows="5" name="Line'.$linenum.'" />'.$resp.'</textarea></td>';
+				echo '<td align="center" ><input type="checkbox" id="vehicle1" name="Del'.$linenum.'" ></td></tr>';
 			}
-			$lineNum = $lineNum + 1;
 
 		}
-		fclose($myfile);
+//		fclose($myfile);
 	}
 
 	function WriteTrainingData($post, $trainingPath) {
@@ -64,7 +86,6 @@
 					$user = explode("|", $myfile[$lineNum]);
 	                                $value = preg_replace('/\s+/', ' ', trim($value));
 	                                $myfile[$lineNum] = $user[0] . "|" . $value."\n";
-					echo "Set line " . $lineNum . "\n";
 				} else {
 					echo "ERR: line ".$lineNum." not set!";
 				}
@@ -72,7 +93,6 @@
 		  		$lineNum = (int)$matches[1][0];
 				if (isset($myfile[$lineNum])) {
 					unset($myfile[$lineNum]);
-					echo "Deleted line " . $lineNum . "\n";
 				} else {
 					echo "ERR: line ".$lineNum." not set!";
 				}
