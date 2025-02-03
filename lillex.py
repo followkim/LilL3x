@@ -256,6 +256,7 @@ class lill3x:
     def Hello(self):
         '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
         self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
+        self.ai.mouth.Hello()
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
         return
