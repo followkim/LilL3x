@@ -1,3 +1,4 @@
+import os
 import speech_recognition as sr
 import warnings
 import sounddevice
@@ -11,7 +12,10 @@ from globals import MIC_STATE, STATE
 from config import cf
 from error_handling import *
 import threading
- 
+from openai import OpenAI
+import requests
+import json
+
 def dummy():
     return
 LogInfo("Listen Engine Loading...")
@@ -147,7 +151,7 @@ class SpeechRecognition_listener:
                     updt_thrd = self.update(asyn=True, needMic=False)
                     try:
 #                        imp = self.speech.recognize_google(audio)
-                        imp = eval(f"self.speech.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
+                        imp = eval(f"self.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
                     except sr.exceptions.UnknownValueError:
                         pass
                     except Exception as e:
@@ -211,64 +215,50 @@ class SpeechRecognition_listener:
             LogError("Google Speech Cloud Recognition service RequestError; {0}".format(e))
             return self.speech.recognize_default(audio)
 
-    def recognizex_whisper(self, audio):
+    def recognize_whisper(self, audio):
+        resp = ""
+        file_path = cf.g('WHISPER_WAV')
+        with open(file_path, "wb") as file:
+            file.write(audio.get_wav_data(convert_rate=16000, convert_width=2))
+
         try:
-            return self.speech.recognize_whisper_api(audio)
+            ul_url = cf.g('WHISPER_URL')
+            with open(file_path, 'rb') as f:
+                files = {'file': f}
+                data = {'response_format': 'json'}
+
+                # Make the POST request
+                response = requests.post(ul_url, files=files, data=data)
+
+                # Print the response
+                d = json.loads(response.text)
+                resp = d['text'].replace("\n", " ")
+            try: os.remove(filename)  # leave the file so it can be seen in logdebug
+            except: pass
+
+            # whisper will return sounds heard in ().  Exclaude these, but log them.
+            newStr = ""
+            action_str = ""
+            exclude = False
+            for s in resp:
+                if not exclude and s == '(':
+                    exclude = True
+                    continue
+                elif exclude and s == ')':
+                    exclude = False
+                    action_str  += ''
+                    continue
+                if not exclude:
+                    newStr += s
+                elif exclude: action_str += s
+
+            if action_str: LogInfo(f"Heard action {action_str}")
+            newStr = " ".join(newStr.split())
+            return newStr.replace("  ", ' ') # join above did work for some reason?
+
         except sr.RequestError as e:
             LogError(f"Could not request results from Whisper API; {e}")
             return self.speech.recognize_default(audio)
-
-    '''
-# recognize speech using Wit.ai
-WIT_AI_KEY = "INSERT WIT.AI API KEY HERE"  # Wit.ai keys are 32-character uppercase alphanumeric strings
-try:
-    print("Wit.ai thinks you said " + r.recognize_wit(audio, key=WIT_AI_KEY))
-except sr.UnknownValueError:
-    print("Wit.ai could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Wit.ai service; {0}".format(e))
-
-# recognize speech using Microsoft Bing Voice Recognition
-BING_KEY = "INSERT BING API KEY HERE"  # Microsoft Bing Voice Recognition API keys 32-character lowercase hexadecimal strings
-try:
-    print("Microsoft Bing Voice Recognition thinks you said " + r.recognize_bing(audio, key=BING_KEY))
-except sr.UnknownValueError:
-    print("Microsoft Bing Voice Recognition could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Microsoft Bing Voice Recognition service; {0}".format(e))
-
-# recognize speech using Microsoft Azure Speech
-AZURE_SPEECH_KEY = "INSERT AZURE SPEECH API KEY HERE"  # Microsoft Speech API keys 32-character lowercase hexadecimal strings
-try:
-    print("Microsoft Azure Speech thinks you said " + r.recognize_azure(audio, key=AZURE_SPEECH_KEY))
-except sr.UnknownValueError:
-    print("Microsoft Azure Speech could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Microsoft Azure Speech service; {0}".format(e))
-
-# recognize speech using Houndify
-HOUNDIFY_CLIENT_ID = "INSERT HOUNDIFY CLIENT ID HERE"  # Houndify client IDs are Base64-encoded strings
-HOUNDIFY_CLIENT_KEY = "INSERT HOUNDIFY CLIENT KEY HERE"  # Houndify client keys are Base64-encoded strings
-try:
-    print("Houndify thinks you said " + r.recognize_houndify(audio, client_id=HOUNDIFY_CLIENT_ID, client_key=HOUNDIFY_CLIENT_KEY))
-except sr.UnknownValueError:
-    print("Houndify could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from Houndify service; {0}".format(e))
-
-# recognize speech using IBM Speech to Text
-IBM_USERNAME = "INSERT IBM SPEECH TO TEXT USERNAME HERE"  # IBM Speech to Text usernames are strings of the form XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-IBM_PASSWORD = "INSERT IBM SPEECH TO TEXT PASSWORD HERE"  # IBM Speech to Text passwords are mixed-case alphanumeric strings
-try:
-    print("IBM Speech to Text thinks you said " + r.recognize_ibm(audio, username=IBM_USERNAME, password=IBM_PASSWORD))
-except sr.UnknownValueError:
-    print("IBM Speech to Text could not understand audio")
-except sr.RequestError as e:
-    print("Could not request results from IBM Speech to Text service; {0}".format(e))
-
-
-'''
-
 
 if __name__ == '__main__':
     pygame.mixer.init()
@@ -279,12 +269,13 @@ if __name__ == '__main__':
 #        print("Can I hear you?", end="")
 #        print(sg.CanIHearYou())
     txt = ""
-    while txt != 'quit':
+    while txt.lower().replace(".", '') != 'quit':
         dt  = datetime.now()
 #        print("Timeout: ", end="")
 #        to = input()
 #        print("Phrase Limit: ", end="")
 #        pl = input()
+        cf.s('INTERPRET_ENGINE', 'whisper')
         print("Speak")
         txt = sg.listen()
         print(txt)
