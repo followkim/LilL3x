@@ -72,7 +72,7 @@ class AI_ollama(AI_openAI):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
 #        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
         self.client=ollama.Client(host=self.base_url)
-        self.memory = self.ReadConvo()
+        self.memory = self.LoadConvo()
         return
 
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
@@ -81,9 +81,9 @@ class AI_ollama(AI_openAI):
         args = {
             'model': self.model(),
             'messages': self.memory,
-            'stream': True
-         #   'temperature': cf.g('TEMPERATURE')
+            'stream': True,
             }
+
         (user_input, args) = self.HandleResponse(class_resp, user_input, args)
         if not user_input:
             self.face.off()
@@ -92,10 +92,9 @@ class AI_ollama(AI_openAI):
         reply = ""
         LogDebug(str(args['messages'][-1]))
         try:
-            if args['stream']: reply = self.reply_async(args) 
+            if args['stream']: reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
             self.memory.append({"role": "assistant", "content": reply, "id": cf.g('CONVO_ID')},) # overwrite reply
-            self.TrainData(user_input, reply)
 
         except Exception as e:
             reply = f"There was an error talking to Ollama. {str(e)}"
@@ -105,13 +104,13 @@ class AI_ollama(AI_openAI):
         self.face.off()
         if args['stream']: return "" # don't return the reply if streaming, it's already been spoken
         else: return reply
-     
+
     def reply_async(self, args):
         reply = ""
         full_reply = ""
         face = self.face
         response = self.client.chat(**args)
-        
+
 #        if args['model']==self.model(vision=True):
         if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
             face=None            # don't allow mouth to control the face
@@ -132,7 +131,7 @@ class AI_ollama(AI_openAI):
         return self.StripActions(full_reply)
 
 
-    def reply_sync(self, args):
+    def reply_sync(self, args, shouldStrip=False):
 #        ai_msg = self.client.invoke(input=args['messages'], kwargs=args)
 #        reply = ai_msg.content
         reply = ""
@@ -140,7 +139,8 @@ class AI_ollama(AI_openAI):
         if response['message']['content']:
             reply = response['message']['content']
         LogDebug("Sync: " + str(response))
-        return self.StripActions(reply)
+        if shouldStrip: return self.StripActions(reply)
+        else: return reply
 
     #NOte: this function alters the memory
     def HandleResponse(self, class_resp, user_input, arg, canParaphrase=False):
@@ -242,28 +242,13 @@ class AI_El3ktra(AI_ollama):
 #    tools = function_tools
 
 if __name__ == '__main__':
-    from camera_tools import Camera
+    from face import DummyFace
     global STATE
     STATE.ChangeState('Idle')
 
-    class LEDS:
-        def __init__(self):
-             return
-        def thinking(self):
-             return
-        def talking(self):
-             return
-        def off(self):
-             return
-        def say(self, txt, face=False, asyn=False):
-             print(txt)
-        def IsBusy(self):
-             return False
     ai = AI_El3ktra()
-    ai.leds = LEDS()
-    ai.face = LEDS()
+    ai.face = DummyFace()
 #    ai.eyes = Camera()
-    ai.mouth = LEDS()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()
 #    ai.WakeMessage()
@@ -271,17 +256,17 @@ if __name__ == '__main__':
 #    dtd = timedelta(seconds=65)
 #    ai.PrettyDuration(dtd)
     user_inp  = "hello"
-    print(ai.Hello())
-
+#    print(ai.Hello())
+#    print(ai.SumMemory())
 #    user_inp = "#this is a picture of me, waht do you think?#temp/capture_0_20240912133342132801.jpg#htttp://http://el3ktra.el3ktra.net/uploads/capture_0_20240911223907988147.jpg"
 #    out = ai.respond(user_inp)
 #    print(f'AI: {out}')
 
-    while user_inp != "quit":
+    while user_inp.lower() not in ("quit", "quit."):
 
         print(f"{cf.g('USERNAME')}: ", end="")
-        user_inp = input()
-        out = ai.respond(user_inp)
+        user_inp = input(f"{cf.g('USERNAME')}: ")
+        out = ai.respond("^" + user_inp)
         print(f'AI: {out}')
-
+        print(ai.memory)
 #    ai.Close()
