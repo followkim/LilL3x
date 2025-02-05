@@ -144,10 +144,12 @@ class Camera:
                     prev = self._detect_motion(img, prev)
 
                     # perform camera requests
+                    '''  This code doesn't seem to work  - always thinks I'm pissed
                     if tracker and not mood_thrd.is_alive():  # get the mood
                         mood_thrd = threading.Thread(target=self._get_emotion_thread, args=(img,), daemon=True)
                         mood_thrd.name = f"{GetHostname()} GetEmotionThread"
                         mood_thrd.start()
+                    '''
                     if self.show_view: self._whatISee(img)
                     if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
                 # END if should_wake or not.STATEIsInteractive()
@@ -235,10 +237,10 @@ class Camera:
         cv2.imwrite(temp, ig)
         os.rename(temp, filename)
 
-    def TakePortrait(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=True):
-        return self.TakePicture(fname, beQuiet, seeUser)
+    def TakePortrait(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=True, timeout=cf.g('CAMERA_PICT_SEC')*2):
+        return self.TakePicture(fname, beQuiet, seeUser, timeout)
 
-    def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False):
+    def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False, timeout=cf.g('CAMERA_PICT_SEC')):
         if is_dir(fname):
             filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
@@ -248,9 +250,9 @@ class Camera:
 
         self.be_quiet = beQuiet
         cnt = 0
-        while (not os.path.isfile(filename)) and (cnt<20 or seeUser): # 2 sec
-            sleep(0.1)
-            cnt = cnt+1   # just in case the file never materializes
+        start_dt = datetime.now()
+        target_time = datetime.now() + timedelta(seconds=timeout)
+        while (not os.path.isfile(filename)) and (datetime.now() < target_time): sleep(0.25)
         if os.path.isfile(filename): return filename
         else: return False
 
