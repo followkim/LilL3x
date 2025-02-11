@@ -99,6 +99,7 @@
 			}
 		}
                 file_put_contents($trainingPath, $myfile);
+		chmod($trainingPath, 0664);
 	}
 
 
