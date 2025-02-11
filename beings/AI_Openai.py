@@ -11,56 +11,11 @@ import llamaapi
 import random
 from AI_class import AI
 from error_handling import *
-
+from function_tools import function_tools
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
 from config import cf
-
-function_tools =  [
-#    {
-#    "type":"function",
-#    "function": {
-#        "name": "SetEvent",
-#        "description": "Return the date and time for an upcoming event.  Call when a user describes a future event, for example when the user says 'Have have a doctors appoint tomarrow'",
-#        "parameters": {
-#            "type": "object",
-#            "properties": {
-#                "event_name": {
-#                    "type": "string",
-#                    "description": "The description of the event.",
-#                },
-#                "event_date": {
-#                    "type": "string",
-#                    "description": "The date and (if applicable) the time",
-#                },
-#            },
-#            "required": ["event_name", "event_date"],
-#            "additionalProperties": False,
-#        }
-#     }
-#  },
-  {
-    "type":"function",
-    "function": {
-        "name": "TakePictureToolCall",
-        "description": "Take a picture with the attached camera.  Call when the user indicates they want you to look at something or see where they are.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "picture_context": {
-                    "type": "string",
-                    "description": "The description and context of the picture subject.",
-                },
-            },
-            "required": ["picture_subject"],
-            "additionalProperties": False,
-        }
-     }
-  }
-]
-
-
 
 class AI_openAI(AI):
     base_url = ""
@@ -93,7 +48,7 @@ class AI_openAI(AI):
         else: return cf.g(self.model_key)
 
     def respond(self, user_input):
-#        if self.IsConvoDirty(): self.memory = self.LoadConvo()
+        if self.IsConvoDirty(): self.memory = self.LoadConvo()
         
         ret = self.ai_respond(user_input)
 
@@ -114,40 +69,63 @@ class AI_openAI(AI):
             return class_resp #hacky
 
         reply = ""
-
         try:
+
             args = {
                 'model': self.model(),
-                'messages': self.memory,
+                'messages': self.GetMemory()
             }
 
             if max_tokens: args['max_tokens'] = max_tokens
             if tools: args['tools'] = tools
             if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
-            if stream: args['stream'] = True
+            if stream and not self.tools: args['stream'] = True  # could set to false if tools are used
+            
+            if stream: reply, response = self.reply_async(args)
+            else: reply, response = self.reply_sync(args)
 
-            if stream: reply, response, finish = self.reply_async(args)
-            else: reply, response, finish = self.reply_sync(args)
-
+            LogDebug(response)
             if response:
+                self.memory.append({"role": "assistant", "content": reply}) # save reply
                 self.TrainData(user_input, reply)
 
-                if (response.choices[0].finish_reason) == "tool_calls":
+                if response.choices[0].finish_reason == "tool_calls":
+
+                     # append the tool call reply
                     tool_call =  response.choices[0].message.tool_calls[0]
-                    self.memory.append(response.choices[0].message)
-
-                    call ='self.'+ tool_call.function.name +"(" + tool_call.function.arguments+ ")"
-
-                    reply = eval(call)
+                    self.memory.append(response.choices[0].message)    # from https://platform.openai.com/docs/guides/function-calling
                     self.memory.append({"role": "tool", "tool_call_id": tool_call.id, "content": "success"},)
-                    (user_input, max_tokens, tools, ) = self.HandleResponse(False, reply)
-                    response = self.client.chat.completions.create(cf.g(self.model()), messages=self.memory, max_tokens=max_tokens)
-                    if response.choices[0].message.content:
-                        reply = response.choices[0].message.content
-                        self.memory.append({"role": "assistant", "content": reply},) # overwrite reply
+
+                    # get tool call data
+                    reply = eval('self.'+ tool_call.function.name +"(" + tool_call.function.arguments+ ")")
+                    LogDebug(f"Tool call result: {reply}")
+
+                    # append the message
+                    (user_input, max_tokens, tools, streamx) = self.HandleResponse(False, reply) # reply contains result of ttol call
+                    LogDebug(f"Sending image: {self.memory[-1]}")
+                    args = {'model': self.model(), 'messages':self.GetMemory()}
+                    if max_tokens:    args['max_tokens']  = max_tokens
+                    if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
+
+                    try:
+                        response = self.client.chat.completions.create(**args)
+                        LogDebug(f"Response from tool call: {response}")
+                        if response.choices[0].message.content:
+                            reply = self.StripActions(response.choices[0].message.content)
+                            self.memory.append({"role": "assistant", "content": reply},)
+                            stream=False # force return of data
+                        else: LogWarn("No mesage in responce!")
+                    except Exception as e:
+                        LogError(f"There was an error sending the Tool Call result. {str(e.args)}")
+                        reply = f"There was an error handling an OpenAI Tool Call. Check the logs."
+                        self.memory.pop()  # get rid of tool call
+                        self.memory.pop()  # get rid of the memory that called the tool call!
+
+
             else: LogWarn(f"AI_Openai: Didn't get response")
         except Exception as e:
-            reply = f"There was an error talking to OpenAI. {str(e)}:{str(e.args)}"
+            LogError(f"There was an error talking to OpenAI. {str(e.args)}")
+            reply = f"There was an error talking to OpenAI. Check the logs."
             self.memory.pop()  #get rid of that bad membry!
             stream=False
         self.face.off()
@@ -168,10 +146,12 @@ class AI_openAI(AI):
             face=None            # don't allow mouth to control the face
             self.face.looking()  # turn the screen
 
+        resp = False
         for chunk in response:
+            if not resp: resp = chunk
+            LogDebug(f"Async: {chunk}")
             m = chunk.choices[0].delta.content
             finish = chunk.choices[0].finish_reason
-            resp = chunk
             if m:
                 full_reply = full_reply + m
                 eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
@@ -183,7 +163,8 @@ class AI_openAI(AI):
                 else: reply = reply + m
         self.mouth.say(self.StripActions(reply), face=face, asyn=False)
         if face: face.off()
-        return self.StripActions(full_reply), resp, finish
+        resp.choices[0].finish_reason = finish
+        return self.StripActions(full_reply), resp # always strip reply when async
 
 
     def reply_sync(self, args, should_strip=True):
@@ -194,9 +175,10 @@ class AI_openAI(AI):
         response = self.client.chat.completions.create(**args)
         if response.choices:
             reply =  response.choices[0].message.content
+            if not reply: reply = ""
         LogDebug("Sync: " + str(response))
-        if should_strip: return self.StripActions(reply), response, response.choices[0].finish_reason
-        else: return self.StripActions(reply), response, response.choices[0].finish_reason
+        if should_strip: return self.StripActions(reply), response
+        else: return reply, response
 
 
     #NOte: this function alters the memory
@@ -219,6 +201,7 @@ class AI_openAI(AI):
         ret_tools = {}
         if user_input[:1] == '>': #text
             user_input = user_input[1:]
+            self.memory.append({"role": role, "content": user_input},)
 
         #reply is a command 
         elif user_input[:1] == '!': #command
@@ -244,7 +227,7 @@ class AI_openAI(AI):
                               {"type": "image_url", "image_url": {"url": url,}, },],
                   })
 
-        #reply is jusst text
+        #reply is just text
         else:
              self.memory.append({"role": role, "content": user_input})
              ret_tools = self.tools
@@ -254,6 +237,10 @@ class AI_openAI(AI):
     def GetString(self, key):
         return cf.g(key)
 
+    def GetMemory(self):
+         return self.memory
+#        slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
+#        return self.memory[3:] + self.memory[slice:]
 
     def TakePictureToolCall(self, context):
         LogInfo("Calling Taking Picture from ChatGPT")
@@ -261,10 +248,12 @@ class AI_openAI(AI):
         url = self.eyes.UploadPicture(file)
         LogInfo(f"URL: {url}")
         try:
-            return f"#{eval(str(context['picture_context']))}#{file}#{url}"
+            d =  json.loads(str(context).replace("'", '"'))
+            LogDebug(f"Pict context: {d['picture_context']}")
+            context = d['picture_context']
         except Exception as e:
-            LogWarn("eval() Didn't work: " + str(e))
-            LogDebug(str(context))
+            LogWarn(f"json.loads Didn't work: {e.args}")
+            context = str(context)
         self.face.off()
         return f"#{context}#{file}#{url}"
 
@@ -275,38 +264,37 @@ class AI_openAI(AI):
 
     # On Wake State return greeting
     def WakeMessage(self):
-        resp = "!{cf.g('WAKE_STR').format(cf.c('USERNAMEP', 'USERNAME'))}"
+        resp = "!{cf.g('WAKE_STR')}"
         return self.respond(resp)
 
     # From Idle State return greeting when user seen
     def Greet(self):
-          self.WriteConvo()
-          self.LoadConvo()  # reset the conversation 
           if (self.LastAIInteraction() / 3600) > cf.g('AWAY_HOURS'):  # haven't talked to the user in more then 6 hours
-              if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
-              elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
-              elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+              if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR')}")
+              elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR')}")
+              elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR')}")
 
-          if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
+          if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR')}")
           else: return self.InitiateConvo()
 
     def Think(self):
         # when the memory gets too full, reset it.
-        if len(self.memory)>5:
-            self.face.thinking()
-            self.memory = self.LoadConvo(read=False)
-            self.face.off()
+#        if len(self.memory)>cf.g('HISTORY_LOOKBACK'):
+#            self.memory = self.GetMemory()
+#            self.face.thinking()
+#            self.memory = self.LoadConvo(read=False)
+#            self.face.off()
         return AI.Think(self)
 
     def InitiateConvo(self, mood=""):
-        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(cf.c('USERNAMEP', 'USERNAME'), mood)}")
+        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
         elif random.randint(0, 5) == 1:
             path = self.TakePicture(0, selfie=True)
             if path:
                 url  = self.eyes.UploadPicture(path)
-                desc = f"{self.GetString('CAMERA_CONVO_STR').format(cf.g('USERNAME'))}"
+                desc = f"{cf.g('CAMERA_CONVO_STR')}"
                 return self.respond(f'#!{desc}#{path}#{url}') # force async
-        return self.respond(f"!{cf.g('CONVO_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.TimeOfDay(self))}")
+        return self.respond(f"!{cf.g('CONVO_STR').format(self.TimeOfDay())}")
 
 
     def IsConvoDirty(self):
@@ -321,7 +309,7 @@ class AI_openAI(AI):
     def WriteConvo(self):
         filename = "training/AI_"+self.name + "_convo.dat"
         try:
-            f = open(filename, 'a')
+            f = open(filename, 'w')
         except Exception as e:
            LogError(f"WriteConvo exception opening file for writing: {str(e)}")
            return False
@@ -332,14 +320,17 @@ class AI_openAI(AI):
                 if i < (len(self.memory)-1): next = self.memory[i+1]
                 else: next = None
 
-                if m['role']=='assistant': f.write(f"|{m['content']}\n")
-                elif m['role']=='user' and next and next['role']=='assistant':
-                    f.write(f"{m['content']}|{next['content']}\n")
-                    i = i+1
-
+                try:
+                    if m['role']=='assistant': f.write(f"|{m['content']}\n")
+                    elif m['role']=='user' and next and next['role']=='assistant':
+                        f.write(f"{m['content']}|{next['content']}\n")
+                        i = i+1
+                except:
+                    LogWarn(f"WriteConvo: item not indexable: {m}")
+                    pass  # not indexable
                 i = i+1
             f.close()
-            os.system(f"sudo chown el3ktra:www-data {filename} training ; sudo chmod ug+rw {filename}; sudo chmod ug+rwx training")
+            os.system(f"sudo chown www-data:www-data {filename} training ; sudo chmod ug+rw {filename}; sudo chmod ug+rwx training")
             self.last_convo_load = datetime.now()
             LogDebug(f"Conversation Appended to '{filename}'.")
             return True
@@ -347,22 +338,18 @@ class AI_openAI(AI):
             LogError(f"WriteConvo exception opening file for writing: {str(e)}")
             return False
 
-    def LoadConvo(self, init=True, read=True):
+    def LoadConvo(self, init=True):
         LogInfo(f"Loading conversation...")
-        if init: memory = self.InitMemory()
-        else: memory = []
+        convo = self.ReadConvo()
+        if init: memory = self.InitMemory() + convo
+        else: memory = convo
+#        if read: history = self.ReadConvo()
+#        else: history = self.memory[3:]  # use own history, skip first three system commands
 
-        if read: history = self.ReadConvo()
-        else: history = self.memory[3:]  # use own history, skip first three system commands
-
-        history = self.SumMemory(history)
-
-        LogDebug(f"History: {history}")
-
-        memory.append({"role": "system", "content": "You wrote this history with the user:" +  history})
-
-        return memory #+ history
-
+#        history = self.SumMemory(convo)
+#        LogDebug(f"History: {history}")
+#        memory.append({"role": "system", "content": "You wrote this history with the user:" +  history})
+        return memory
 
     def ReadConvo(self):
         memory = []
@@ -372,7 +359,7 @@ class AI_openAI(AI):
             try:
                 f = open(filename, 'r')
 
-                for line in f:
+                for line in f: 
                     if "|" in line:
                         (user, system) = line.split("|")
                         if user:
@@ -388,11 +375,8 @@ class AI_openAI(AI):
             LogWarn(f"No ConvoFile {filename}.")
         return memory
 
-    def InitMemory(self, includeHistory=False):
-        memory = [
-            {"role": "system", "content": f"Your name is {cf.g('AINAME')}, and the user's name is {cf.g('USERNAME')}. {cf.g('BACKSTORY')}."},
-            {"role": "system", "content": cf.g('INSTRUCTION')}
-        ]
+    def InitMemory(self, includeHistory=True):
+        memory = [{"role": "system", "content": cf.g('BACKSTORY')}, {"role": "system", "content": cf.g('INSTRUCTION')}]
         if includeHistory: memory.append({"role": "system", "content": f"You wrote this about your history with {cf.g('USERNAME')}: '{cf.g('HISTORY')}'"})
         return memory
 
@@ -404,17 +388,16 @@ class AI_openAI(AI):
         return self.respond(f"!{cf.g('INTRUDER_STR')}")
         #email URL
 
-    def SaveMemories(self):
+    def SaveMemories(self, memory=False):  # called on close
+        if not memory:
+            self.memory = self.memory[3:]
+        else: self.memory = memory
         memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
         memStr = ''.join(memStr.splitlines())
-        self.memory = [
-            {"role": "system", "content": cf.g('BACKSTORY')}, 
-            {"role": "system", "content": memStr},
-        ]
-        cf.s('HISTORY', memStr)
+        cf.w('HISTORY', memStr)
         return memStr
 
-    def SumMemory(self, memory=False):
+    def SumMemory(self, memory=False): # unused
         if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
 
         memory.append({"role": "user", "content": f"Summarize the above {len(memory)} items, focusing on facts (namely about the user), upcoming events, current and future projects, and frequent topics.  Be detailed and comprehensive.  This will be saved to reshresh your memory the next time you talk."})
@@ -422,13 +405,15 @@ class AI_openAI(AI):
             'model': self.model(),
             'messages': memory,
         }
-        sum = self.reply_sync(args, False) # don't strip response
-        return sum
+#        sum = self.reply_sync(args, False) # don't strip response
+        response = self.client.chat.completions.create(**args)
+        if response.choices:
+            return response.choices[0].message.content
 
     def Close(self):
        AI.Close(self)
-       self.WriteConvo()
-#       self.SaveMemories()  # don't save into converstaion file
+#       self.WriteConvo()
+       self.SaveMemories()  # don't save into converstaion file
        return
 
 class AI_ChatGPT(AI_openAI):
@@ -437,7 +422,7 @@ class AI_ChatGPT(AI_openAI):
     model_key = 'CHATGPT_MODEL'
     slow_model_key = 'CHATGPT_MODEL_SLOW'
     name = "ChatGPT"
-    tools = function_tools # False # turn this on if asked
+    tools = False # function_tools # False # turn this on if asked
     token_mult = 1
     training = True
 
@@ -452,8 +437,7 @@ class AI_Deepseek(AI_openAI):
     name = "Deepseek"
 
     def __init__(self):
-        AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
-#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
+        AI.__init__(self) 
         self.client=openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.memory = self.LoadConvo()
         return
@@ -469,16 +453,6 @@ class AI_Llama(AI_openAI):
     token_mult = 0.5
     use_temp = False
 
-class AI_Gemma(AI_Llama):
-    model_key = 'GEMMA_MODEL'
-    slow_model_key = 'GEMMA_MODEL_SLOW'
-    name = "Gemma"
-
-class AI_Qwen(AI_Llama):
-    model_key = 'QWEN_MODEL'
-    slow_model_key = 'QWEN_MODEL_SLOW'
-    name = "Qwen"
-
 if __name__ == '__main__':
 #    from camera_tools import Camera
 #    eyes = Camera()
@@ -486,12 +460,12 @@ if __name__ == '__main__':
     global STATE
     from face import DummyFace
     STATE.ChangeState('Idle')
-    ai = AI_ChatGPT()
+    ai = AI_Llama()
     ai.face = DummyFace()
 
     user_inp = ""
     while not STATE.ShouldQuit():
-        user_inp = input(f"{cf.g('USERNAME')}: ")
+        user_inp = "^" + input(f"{cf.g('USERNAME')}: ")
         print(f'{cf.g("AINAME")}: {ai.respond(user_inp)}')
 
 #    ai.Close()

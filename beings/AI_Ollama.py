@@ -18,51 +18,6 @@ from globals import STATE
 from config import cf
 from error_handling import *
 
-function_tools =  [
-#    {
-#    "type":"function",
-#    "function": {
-#        "name": "SetEvent",
-#        "description": "Return the date and time for an upcoming event.  Call when a user describes a future event, for example when the user says 'Have have a doctors appoint tomarrow'",
-#        "parameters": {
-#            "type": "object",
-#            "properties": {
-#                "event_name": {
-#                    "type": "string",
-#                    "description": "The description of the event.",
-#                },
-#                "event_date": {
-#                    "type": "string",
-#                    "description": "The date and (if applicable) the time",
-#                },
-#            },
-#            "required": ["event_name", "event_date"],
-#            "additionalProperties": False,
-#        }
-#     }
-#  },
-  {
-    "type":"function",
-    "function": {
-        "name": "TakePicture",
-        "description": "Take a picture with the attached camera.  Only call when the user indicates they want you to look at something or see where they are.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "picture_context": {
-                    "type": "string",
-                    "description": "The description of the picture subject.",
-                },
-            },
-            "required": ["picture_subject"],
-            "additionalProperties": False,
-        }
-     }
-  }
-]
-
-
-
 class AI_ollama(AI_openAI):
 
     tools = False
@@ -73,16 +28,13 @@ class AI_ollama(AI_openAI):
 #        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
         self.client=ollama.Client(host=self.base_url)
         self.memory = self.LoadConvo()
+        LogDebug(self.memory)
         return
 
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
         self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
-        args = {
-            'model': self.model(),
-            'messages': self.memory,
-            'stream': True,
-            }
+        args = {'model': self.model(), 'stream': True}
 
         (user_input, args) = self.HandleResponse(class_resp, user_input, args)
         if not user_input:
@@ -94,7 +46,7 @@ class AI_ollama(AI_openAI):
         try:
             if args['stream']: reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
-            self.memory.append({"role": "assistant", "content": reply, "id": cf.g('CONVO_ID')},) # overwrite reply
+            self.memory.append({"role": "assistant", "content": reply}) # overwrite reply
 
         except Exception as e:
             reply = f"There was an error talking to Ollama. {str(e)}"
@@ -149,11 +101,7 @@ class AI_ollama(AI_openAI):
 #        max_tokens = 500*self.token_mult
         local_tools = {}
         if class_resp:
-            if class_resp == "goodbye": # allow the AI to say goodbye
-                user_input =  "I have to go now, goodbye"
-            elif canParaphrase and not cf.g('SAVE_TOKENS'):  # something to paraphrase
-                user_input = "Paraphrase '"+class_resp+"'"
-            elif not class_resp[0].isalpha(): # contains instructions (!, #, @)
+            if not class_resp[0].isalpha(): # contains instructions (!, #, @)
                 user_input = class_resp
             else:
                 return (False, False) ## go with the class responce
@@ -163,15 +111,19 @@ class AI_ollama(AI_openAI):
         ret_tools = {}
         if user_input[:1] == '>': #text
             user_input = user_input[1:]
-            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            self.memory.append({"role": role, "content": user_input})
 
-        #reply is a command 
+        elif user_input[:1] == '~': #paraphrase
+            user_input = user_input[1:]
+            self.memory.append({"role": role, "content": f"Paraphrase this: {user_input}"})
+
+        #reply is a command
         elif user_input[:1] == '!': #command
             role = "user"
 #            arg['model'] = self.slow_model
             arg['stream'] = False
             user_input = user_input[1:]
-            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            self.memory.append({"role": role, "content": user_input})
             #max_tokens=100*self.token_mult  #75 words - keep it short for spontanous uttering
 
         #reply is a memory request 
@@ -179,7 +131,7 @@ class AI_ollama(AI_openAI):
             role = "user"
             arg['stream'] = False
             user_input = user_input[1:]
-            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            self.memory.append({"role": role, "content": user_input})
             #max_tokens=1000*self.token_mult
 
         #reply is a picture
@@ -203,25 +155,37 @@ class AI_ollama(AI_openAI):
                 arg['model']=self.model() #reset the model
                 user_input = f"{user_input}.  {cf.g('GIVE_PICT_DESC')}: {pictDesc}"
 
-            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            self.memory.append({"role": role, "content": user_input})
             arg['stream'] = shouldStream
 
         #reply is just text
         else:
-            self.memory.append({"role": role, "content": user_input, "id": cf.g('CONVO_ID')},)
+            self.memory.append({"role": role, "content": user_input})
             if self.tools:
                 arg['tools'] = self.tools
 
-        arg['messages'] = self.memory
+        arg['messages'] = self.GetMemory()
         return (user_input, arg)
 
-class AI_Local(AI_ollama):
-    name = "Local"
-    base_url = "http://localhost:11434"
-    api_key = "unused"
-    model_key = 'LOCAL_MODEL'
-    slow_model_key=model_key
-    vision_model_key=model_key
+    def SumMemory(self, memory=False):
+        if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
+
+        memory.append({"role": "user", "content": "Summarize the above {len(memory)} items, focusing on facts (namely about the user), upcoming events, current and future projects, and frequent topics.  Be detailed and comprhensive.  This will be saved to reshresh memory later."})
+
+        args = {
+            'model': self.model(),
+            'messages': memory
+        }
+        sum = self.reply_sync(args, False) # don't strip response
+        return sum
+
+class AI_Adhoc(AI_ollama):
+    name = "AdHoc"
+    base_url = cf.g('ADHOC_URL')
+    api_key = cf.g('ADHOC_API_KEY')
+    model_key = 'ADHOC_MODEL'
+    slow_model_key='ADHOC_MODEL_SLOW'
+    vision_model_key='ADHOC_VISION_MODEL'
 
 class AI_Corgi(AI_ollama):
     name = "Corgi"

@@ -27,11 +27,11 @@ class AI_Gemini(AI):
     def __init__(self):
         AI.__init__(self)
         genai.configure(api_key=cf.g('GEMINI_API_KEY'))
-        app_desc = cf.g('BACKSTORY')
-        self.gemini = genai.GenerativeModel(model_name=self.model,system_instruction=app_desc)
+        system = f"{cf.g('BACKSTORY')}  {cf.g('INSTRUCTION')}"
+        self.gemini = genai.GenerativeModel(model_name=self.model,system_instruction=[cf.g('BACKSTORY'), cf.g('INSTRUCTION')])
         self.config = genai.types.GenerationConfig(
-            max_output_tokens = 50,
-            temperature = 1.0  # higher numbers for more creative responces
+#            max_output_tokens = 50,
+            temperature = cf.g('TEMPERATURE')
         )
         return
 
