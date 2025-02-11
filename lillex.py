@@ -4,6 +4,7 @@ import os
 import sys
 import re
 import subprocess
+import pygame
 
 os.chdir(f"{os.getenv('HOME')}/LilL3x/")
 sys.path.append(f"{os.getenv('HOME')}/LilL3x/")
@@ -42,6 +43,7 @@ from AI_Ollama import *
 from AI_Kindriod import AI_Kindriod
 from AI_Gemini import AI_Gemini
 from AI_Claude import AI_Claude
+from AI_Nomi import AI_Nomi
 
 sys.path.insert(0, currentdir+'/raspberryPi/')
 from button import Button
@@ -52,12 +54,25 @@ sys.path.insert(0, currentdir)
 class lill3x:
 
     ai = False
-    ww = 0
-    def __init__(self):
+    ww = False
+    ears = False
+    eyes = False
+    mouth = False
+    face = False
 
+    def __init__(self):
+        isRestart = '--restart' in sys.argv
+        pygame.mixer.init()
 #        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo(f"Starting {GetHostname()}")
         # create the hardware objects
+        try:
+            self.eyes = Camera()
+            cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
+            cam_thread.name = f"{GetHostname()} CameraLoopThread"
+            cam_thread.start()
+        except Exception as e:
+            RaiseError(f"Init():Could not init camera. {e.args}")
 
         try:
             self.mouth = speech_generator()
@@ -67,12 +82,7 @@ class lill3x:
             return # fatal
 
         try:
-            self.eyes = Camera()
-        except Exception as e:
-            RaiseError(f"Init():Could not init camera. {e.args}")
-
-        try:
-            self.face = Face() # note this spawns two threads: animate and led threads
+            self.face = Face() # note this spawns two threads: animate and led threads.  The face will appear here.
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
             RaiseError(f"Init():Could not init Display. {e.args}")
@@ -85,12 +95,16 @@ class lill3x:
             STATE.ChangeState('Quit')
             return # fatal
 
+        if not isRestart: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
         try:
             self.button = Button()
+            button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
+            button_thread.name = f"{GetHostname()} ButtonThread"
+            button_thread.start()
         except Exception as e:
             RaiseError(f"Init():Could not init Button. {e.args}")
 
-        # get AI (depending on config)
+        # get AI
         try:
             self.ai = eval(f"AI_{cf.g('AI_ENGINE')}()")
             self.ai.SetBody(self.ears, self.eyes, self.mouth, self.face)
@@ -103,11 +117,11 @@ class lill3x:
             RaiseError("Unable to create AI: init failed")
             STATE.ChangeState('Quit')
             return
+
+
+
         
-        # THREADS
-        cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
-        cam_thread.name = f"{GetHostname()} CameraLoopThread"
-        cam_thread.start()
+        # THREADS : WW and config
 
 #        self.ww = vosk_wake.vosk_wake(self.face)
         if cf.g('WAKE_WORD_ENGINE').split('_')[0].lower() == cf.g('LISTEN_ENGINE').split('_')[0].lower(): self.ww = self.ears
@@ -116,15 +130,12 @@ class lill3x:
         ww_thread.name = f"{GetHostname()} WakeWordThread"
         ww_thread.start()
         
-        button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
-        button_thread.name = f"{GetHostname()} ButtonThread"
-        button_thread.start()
 
         config_thread = threading.Thread(target=cf.config_thread, daemon=True)
         config_thread.name = f"{GetHostname()} ConfigThread"
         config_thread.start()
 
-        if '--restart' in sys.argv:
+        if isRestart:
             STATE.ChangeState('ActiveIdle')
             try: self.ai.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
             except:  pass
@@ -172,7 +183,7 @@ class lill3x:
             new_ai = eval(f"AI_{newAI}()")
 
         except Exception as e:
-            LogError("Unable to create AI: {e.args}")
+            LogError(f"Unable to create AI: {e.args}")
             self.ai.say(f"I wasn't able to switch to {newAI}.  {e.args}")
             return False
 
@@ -256,7 +267,6 @@ class lill3x:
     def Hello(self):
         '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
         self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
-        self.ai.mouth.Hello()
         self.ai.say(self.ai.Hello())
         STATE.ChangeState('Active')
         return
@@ -286,6 +296,7 @@ class lill3x:
 
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
 #        if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
+        self.ai.Think()   # give AI time
 
         if self.ai.IsIdle():
             STATE.ChangeState('Idle')

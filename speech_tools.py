@@ -27,13 +27,9 @@ class speech_generator:
     volume = 0
 
     def __init__(self):
-        pygame.mixer.init()
         self.engine_name = cf.g('SPEECH_ENGINE')
         self.engine = eval(self.engine_name+'_tts()')
         return
-
-    def Hello(self):
-        self.PlaySound(cf.g('STARTUP_MP3'))
 
     def say(self, txt, face=False, asyn=False):
         filename = False
