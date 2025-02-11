@@ -77,7 +77,7 @@ class State:
         return self.last_dt
 
     def ShouldWake(self):
-        return self.current == "Wake" or self.ShouldQuit()
+        return self.current in ("Wake", "EvalCode") or self.ShouldQuit()
 
     def ShouldQuit(self):
         return self.current in ('Quit', 'Reboot', 'Restart')
