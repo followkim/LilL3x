@@ -182,6 +182,17 @@ class SpeechRecognition_listener:
             LogError("SR: Default RequestError; {0}".format(e))
         return ""
 
+    def recognize_vosk(self, audio):
+        try:
+            response =  self.speech.recognize_vosk(audio)
+            d = json.loads(response)
+            return d['text']
+
+        except sr.RequestError as e:
+            LogError("SR: google RequestError; {0}".format(e))
+            return self.speech.recognize_default(audio)
+
+
     def recognize_google(self, audio):
         try:
             return self.speech.recognize_google(audio)
@@ -240,6 +251,7 @@ class SpeechRecognition_listener:
             newStr = ""
             action_str = ""
             exclude = False
+            resp = resp.replace('[', '(')
             for s in resp:
                 if not exclude and s == '(':
                     exclude = True
@@ -275,7 +287,7 @@ if __name__ == '__main__':
 #        to = input()
 #        print("Phrase Limit: ", end="")
 #        pl = input()
-        cf.s('INTERPRET_ENGINE', 'whisper')
+        cf.s('INTERPRET_ENGINE', 'vosk')
         print("Speak")
         txt = sg.listen()
         print(txt)
