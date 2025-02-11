@@ -53,7 +53,9 @@ class AI:
         if not txt:
             return False
 
-        search_txt = txt.lower().replace(".", "").strip()
+        search_txt_p = txt.lower().strip()
+        search_txt = re.sub(r'[^\w\s]', '', search_txt_p)
+
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
 
@@ -74,18 +76,24 @@ class AI:
         if re.search(r"^what (day|date) is it\s*", search_txt):
             return "It's " + datetime.now().strftime("%A, %B %d")
 
-        if re.search(r"^what('s| is) (my|our|your|the) ip( address)?$", search_txt):
+        if re.search(r"^what((')?s| is) (my|our|your|the) ip( address)?$", search_txt):
             ips = check_output(['hostname', '--all-ip-addresses'])
             self.face.message(ips.split()[0].decode())
             return "My IP address is " + ips.split()[0].decode()
 
-        if re.search(r"^(quit|exit|shutdown)$", search_txt): 
+        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
+            STATE.ChangeState('Surveil')
+#            return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
+            return False # let AI handle user_input
+
+
+        if re.search(r"^(quit|exit|shut( )?down)$", search_txt): 
             STATE.ChangeState('Quit')
-            return False # allow AI to respond
+            return "~see you later"
 
         if re.search(r"^(reboot|restart|reset)(.)?$", search_txt): 
             STATE.ChangeState('Restart')
-            return "see you soon"
+            return "~see you soon"
 
         if re.search(r"^update( yourself| your code| git)?$", search_txt):
             retStr = "I had an error trying to update.  Check my logs."
@@ -97,31 +105,27 @@ class AI:
             return retStr
 
 
-        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
-            STATE.ChangeState('Surveil')
-            return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
-
         if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", search_txt):
             return f"I have {ShowThreads()} running, check the logs for a list."
 
         if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", search_txt):
             self.LookForUser(cf.g('CAMERA_PICT_SEC'))
-            return self.YesNo(self.eyes.IsUserMoving(), "Yes",  "No, not that I can see")
+            return self.YesNo(self.eyes.IsUserMoving(), "Yes, I see movement",  "No, I can't see any movement")
 
         if re.search(r"^can you see me$", search_txt):
-            return self.YesNo(self.LookForUser(cf.g('CAMERA_PICT_SEC')), "Yes",  "No, I can't")
+            return self.YesNo(self.LookForUser(cf.g('CAMERA_PICT_SEC')), "Yes, I can see you!",  "No, I can't see you")
 
         if re.search(r"^is (the room|it) dark( in here)?$", search_txt):
-            return self.YesNo(self.eyes.IsDark(), "Yes it is",  "No it isn't")
+            return self.YesNo(self.eyes.IsDark(), "~Yes it is dark in here",  "~No it isn't dark in here")
 
         if re.search(r"^show (me|us) what you see$", search_txt):
             self.LookForUser(10)
-            return "Here is what I see"
+            return "~Here is what I see through my camera"
 
         # TODO: parse out picture description
-        if self.has_vision and (re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))$", search_txt) or
+        if self.has_vision and not self.tools and (re.search(r"(^|, |. |so |and )(get|take|snap) (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?", search_txt_p) or
                 re.search(r"^(hey )?look at (.*)$", search_txt)):
-
+            '''
             m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", search_txt)
             if not m: m2 = re.search(r"^(hey )?look at (.*)$", search_txt)
 
@@ -131,7 +135,9 @@ class AI:
                 if m[1] in ('my', 'our') or m[5] in ('me', 'us'): selfie = True
             elif m2: desc = f"{self.GetString('CAMERA_STR').format('and '+str(m2[2]))}"
             else: desc = f"{self.GetString('CAMERA_STR').format(cf.g('USERNAME'))}"
-
+            '''
+            desc = cf.g('CAMERA_STR')
+            selfie = False
             path = self.TakePicture(cf.g('CAMERA_PICT_SEC'), selfie=selfie)
 
             if path:
@@ -170,7 +176,7 @@ class AI:
 
             # NEED FIX
             new_engine = ret[0]
-            if re.search(r"(pie|pi) tts$", search_txt):
+            if re.search(r"(pie|pi)( )?tts$", search_txt):
                 new_engine = "pytts"
             elif re.search(r"g( )?tts$", search_txt):
                 new_engine = "gTTS"
@@ -399,7 +405,7 @@ class AI:
                 desc = f"Here is a picture of what you can see"
                 return self.respond(f'#!{desc}#{path}#{url}') # force async
 
-        return self.respond(f"Good {AI.TimeOfDay(self)}")
+        return self.respond(f"Good {self.TimeOfDay()}")
 
 
     def Hello(self):
