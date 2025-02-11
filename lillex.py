@@ -61,7 +61,7 @@ class lill3x:
     face = False
 
     def __init__(self):
-        isRestart = '--restart' in sys.argv
+        isRestart = '--restart' in sys.argv # if restart, don't say hello or play the welcome bell
         pygame.mixer.init()
 #        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo(f"Starting {GetHostname()}")
