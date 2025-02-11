@@ -145,8 +145,9 @@
 					$val =  isset($post[$att[0]]) ? "1" : "0";
 				} else {
 	                                $val =  isset($post[$att[0]]) ? $post[$att[0]] : $att[1];
-				}
-     				$config_new = $config_new . $att[0] . '|' . preg_replace("~[\r]~", "", trim($val));
+				} $string = trim(preg_replace('/\s\s+/', ' ', $val));
+//     				$config_new = $config_new . $att[0] . '|' . preg_replace("~[\r]~", "", trim($val));
+     				$config_new = $config_new . $att[0] . '|' . trim(preg_replace('/\s\s+/', ' ', $string));;
 				for($i=2; $i < count($att); $i++) {
 					$config_new = $config_new . '|' . $att[$i] ;
 				}

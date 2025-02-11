@@ -1,43 +1,40 @@
-USERNAME|Name|Your own nameInter
+USERNAME|Name|Your own name
 USERNAMEP|Pronunciation|How you pronounce your name (if different)
 USEREMAIL|Email|Your email
 
 HEADER|AI Information|2
 AINAME|AI Name|Your AI's name
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
+BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 OPEN_AI_API_KEY|OpenAI Key|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
-CHATGPT_MODELChat|GPT Model|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
+CHATGPT_MODEL|GPT Model|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
 CHATGPT_MODEL_SLOW|ChatGPT Slow|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
-GEMMA_MODEL|Gemma Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemma
-GEMMA_MODEL_SLOW|Gemma Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemma
-QWEN_MODEL|Qwen Model|Get from <a>OpenAI</a>|AI_ENGINE_Qwen
-QWEN_MODEL_SLOW|Qwen Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Qwen
-LLAMA_KEY|Llama API Key|Get from <a>OpenAI</a>|AI_ENGINE_Llama
-LLAMA_MODEL|Llama Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
+LLAMA_KEY|Llama API Key|Get from <a>Llama</a>|AI_ENGINE_Llama
+LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
-ADHOC_URL|Adhoc URL|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
-ADHOC_MODEL|Adhoc Model|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
-ADHOC_MODEL_SLOW|Adhoc Model Slow|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
-ADHOC_API_KEY|Adhoc API Key|Get from <a>OpenAI</a>|AI_ENGINE_Adhoc
-CORGI_API_KEY|Corgi API Key|Get from <a>OpenAI</a>|AI_ENGINE_Corgi
-CORGI_MODEL|Corgi Model|Get from <a>OpenAI</a>|AI_ENGINE_Corgi
+ADHOC_URL|Adhoc URL|Must be running Ollama on a local server (listening on port 0.0.0.0)</a>|AI_ENGINE_Adhoc
+ADHOC_MODEL|Adhoc Model|Model on your local Ollama server|AI_ENGINE_Adhoc
+ADHOC_MODEL_SLOW|Adhoc Model Slow|For non-convversational requests</a>|AI_ENGINE_Adhoc
+ADHOC_API_KEY|Adhoc API Key|If needed|AI_ENGINE_Adhoc
+CORGI_API_KEY|Corgi API Key||AI_ENGINE_Corgi
+CORGI_MODEL|Corgi Model||AI_ENGINE_Corgi
 EL3KTRA_API_KEY|El3ktra API Key|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
 EL3KTRA_MODEL|El3ktra Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
 EL3KTRA_VISION_MODEL|El3ktra Vision Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
-LOCAL_MODEL|Local Model|Get from <a>OpenAI</a>|AI_ENGINE_Local
 GEMINI_API_KEY|Gemini API Key|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
-GEMINI_MODEL|Gemini Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
-GEMINI_MODEL_SLOW|Gemini Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
-CLAUDE_API_KEY|Claude API Key|Get from <a>OpenAI</a>|AI_ENGINE_Claude
-CLAUDE_MODEL|Claude Model|Get from <a>OpenAI</a>|AI_ENGINE_Claude
-CLAUDE_MODEL_SLOW|Claude Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Claude
-KINDRIOD_OOB|Kindriod OOB|Get from <a>OpenAI</a>|AI_ENGINE_|Kindriod
-KINDRIOD_GMPID|Kindriod Character ID|Get from <a>OpenAI</a>|AI_ENGINE_Kindriod
-DEEPSEEK_API|Deepseek API Key|Get from <a>OpenAI</a>|AI_ENGINE_Deepseek
-DEEPSEEK_MODEL|Deepseek Model|Get from <a>OpenAI</a>|AI_ENGINE_Deepseek
+GEMINI_MODEL|Gemini Model|Get from <a href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">Gemini Models</a>|AI_ENGINE_Gemini
+GEMINI_MODEL_SLOW|Gemini Model Slow|Save tokens with a slower model for non-conversational replies.  Get from link above.|AI_ENGINE_Gemini
+CLAUDE_API_KEY|Claude API Key|Get from <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic API Keys (need Anthropic account)</a>|AI_ENGINE_Claude
+CLAUDE_MODEL|Claude Model|Get from <a href="https://docs.anthropic.com/en/docs/about-claude/models" target="_blank">Claude Models</a>|AI_ENGINE_Claude
+CLAUDE_MODEL_SLOW|Claude Model Slow|A slower version for non-conversational requests.  Get from above.|AI_ENGINE_Claude
+KINDRIOD_OOB|Kindriod OOB|The first time you switch to Kindiod, it will send you an email.<br>Enter the code that was emailed to you, then switch to Kindriod again.|AI_ENGINE_Kindriod
+KINDRIOD_GMPID|Kindriod AI ID|Get from "API & advanced integration" at <a href="https://kindroid.ai/home/" target="_blank">Kindriod</a>|AI_ENGINE_Kindriod
+NOMI_API|Nomi API||AI_ENGINE_Nomi
+NOMI_ID|Nomi ID||AI_ENGINE_Nomi
+DEEPSEEK_API|Deepseek API Key|Get from <a href="https://platform.deepseek.com/api_keys" target="_blank">Deepseek API Keys</a>|AI_ENGINE_Deepseek
+DEEPSEEK_MODEL|Deepseek Model|Get from <a href="https://api-docs.deepseek.com/quick_start/pricing" target="_blank">Deepseek Models</a>|AI_ENGINE_Deepseek
 
-BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 
 HEADER|Wake|2
 WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
