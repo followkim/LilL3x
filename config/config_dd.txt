@@ -60,7 +60,8 @@ ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase i
 MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)|LISTEN_ENGINE_SpeechRecognition
 QUIET_BOOST|Quiet Volume|Adjust the calculated quiet level.  Set higher if AI is speaking when there is already talking.|LISTEN_ENGINE_SpeechRecognition
 INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Whisper is recommended.|LISTEN_ENGINE_SpeechRecognition
-WHISPER_URL|URL For Whisper|The URL that can accept POST requests.|INTERPRET_ENGINE_whisper
+WHISPER_URL|Whisper URL|The URL that can accept POST requests.|INTERPRET_ENGINE_whisper
+WHISPER_API_KEY|Whisper API Key|Get from your Whisper admin.|INTERPRET_ENGINE_whisper
 ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.|LISTEN_ENGINE_SpeechRecognition
 DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.|LISTEN_ENGINE_SpeechRecognition
 

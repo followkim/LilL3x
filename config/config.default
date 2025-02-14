@@ -37,7 +37,8 @@ FLICKR_API||str|
 FLICKR_SECRET||str|
 LISTEN_ENGINE|SpeechRecognition|str|1
 INTERPRET_ENGINE|google|str|1
-WHISPER_URL||str|1
+WHISPER_URL||str
+WHISPER_API_KEY||str
 MIC_TO|5|int|1
 MIC_LIMIT|0.8|float|1
 AMBIENT|1|int|1
