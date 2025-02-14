@@ -228,6 +228,7 @@ class SpeechRecognition_listener:
 
     def recognize_whisper(self, audio):
         resp = ""
+
         file_path = cf.g('WHISPER_WAV')
         with open(file_path, "wb") as file:
             file.write(audio.get_wav_data(convert_rate=16000, convert_width=2))
@@ -236,10 +237,11 @@ class SpeechRecognition_listener:
             ul_url = cf.g('WHISPER_URL')
             with open(file_path, 'rb') as f:
                 files = {'file': f}
+
                 data = {'response_format': 'json'}
 
                 # Make the POST request
-                response = requests.post(ul_url, files=files, data=data)
+                response = requests.post(ul_url, files=files, data=data, auth=(cf.g('USEREMAIL'), cf.g("WHISPER_API_KEY")))
 
                 # Print the response
                 d = json.loads(response.text)
