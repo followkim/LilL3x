@@ -17,7 +17,7 @@ import threading
 from globals import STATE, SleepOn, GetIP
 from config import cf
 #from speech_tools import PlaySound
-from deepface import DeepFace
+#from deepface import DeepFace
 import re
 
 LogInfo("Camera Loading...")
@@ -59,7 +59,7 @@ class Camera:
         tracker = None
         prev = None
         dt=datetime.now()
-        mood_thrd = threading.Thread(target=self._get_emotion_thread)  # need to init here to call "is_alive" later
+#        mood_thrd = threading.Thread(target=self._get_emotion_thread)  # need to init here to call "is_alive" later
 
         # open the camera
         try: 
@@ -312,7 +312,7 @@ class Camera:
         if isinstance(image, bool): imagePath = self.TakePicture(filename, beQuiet=True)
         else: cv2.imwrite(filename, image)
         try:
-            objs = DeepFace.analyze(img_path=filename,  actions = ['emotion'])
+            objs = False # DeepFace.analyze(img_path=filename,  actions = ['emotion'])
             if objs: self.mood = objs[0]['dominant_emotion']
         except:
             pass
@@ -330,7 +330,7 @@ class Camera:
         user_img = self.TakePicture(seeUser=True, beQuiet=True)
         if user_img:
            try:
-               dfs = DeepFace.find(img_path=user_img, db_path="people/")
+               dfs = False # DeepFace.find(img_path=user_img, db_path="people/")
                LogDebug(str(dfs))
            except: 
                pass
