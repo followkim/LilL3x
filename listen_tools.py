@@ -46,7 +46,7 @@ class SpeechRecognition_listener:
         return
 
     def GetQuiet(self):
-        return self.quiet
+        return self.quiet * (1 + (cf.g('QUIET_BOOST') / -100))
 
     def update(self, asyn=False, needMic=True):
         if asyn:
@@ -175,11 +175,11 @@ class SpeechRecognition_listener:
  
     ####### Engines in here
 
-    def recognize_default(self, audio):
+    def _recognize_default(self, audio):
         try:
             return self.speech.recognize_google(audio)
         except sr.RequestError as e:
-            LogError("SR: Default RequestError; {0}".format(e))
+            LogError("SR: Default (google) RequestError; {0}".format(e))
         return ""
 
     def recognize_vosk(self, audio):
@@ -190,7 +190,7 @@ class SpeechRecognition_listener:
 
         except sr.RequestError as e:
             LogError("SR: google RequestError; {0}".format(e))
-            return self.speech.recognize_default(audio)
+            return self._recognize_default(audio)
 
 
     def recognize_google(self, audio):
@@ -198,14 +198,14 @@ class SpeechRecognition_listener:
             return self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("SR: google RequestError; {0}".format(e))
-            return self.speech.recognize_default(audio)
+            return self._recognize_default(audio)
 
     def recognizex_sphinx(self, audio):
         try:
             return self.speech.recognize_sphinx(audio)
         except sr.RequestError as e:
             LogError("Sphinx RequestError; {0}".format(e))
-            return self.speech.recognize_default(audio)
+            return self._recognize_default(audio)
 
     def recognizex_google_api(self, audio):
         try:
@@ -216,7 +216,7 @@ class SpeechRecognition_listener:
                 self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("Google Speech Recognition service RequestError; {0}".format(e))
-            return self.speech.recognize_default(audio)
+            return self._recognize_default(audio)
 
 
     def recognizex_google_cloud(self, audio):
@@ -224,7 +224,7 @@ class SpeechRecognition_listener:
             self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("Google Speech Cloud Recognition service RequestError; {0}".format(e))
-            return self.speech.recognize_default(audio)
+            return self._recognize_default(audio)
 
     def recognize_whisper(self, audio):
         resp = ""
@@ -241,7 +241,11 @@ class SpeechRecognition_listener:
                 data = {'response_format': 'json'}
 
                 # Make the POST request
-                response = requests.post(ul_url, files=files, data=data, auth=(cf.g('USEREMAIL'), cf.g("WHISPER_API_KEY")))
+                try:
+                    response = requests.post(ul_url, files=files, data=data, auth=(cf.g('USEREMAIL'), cf.g("WHISPER_API_KEY")))
+                except sr.RequestError as e:
+                    LogError(f"Whisper API Reqeust Error: {e}")
+                    return self.speech.recognize_default(audio)
 
                 # Print the response
                 d = json.loads(response.text)
@@ -270,9 +274,9 @@ class SpeechRecognition_listener:
             newStr = " ".join(newStr.split())
             return newStr.replace("  ", ' ') # join above did work for some reason?
 
-        except sr.RequestError as e:
-            LogError(f"Could not request results from Whisper API; {e}")
-            return self.speech.recognize_default(audio)
+        except Exception as e:
+            LogError(f"Whisper API exception: {e}")
+            return self._recognize_default(audio)
 
 if __name__ == '__main__':
     pygame.mixer.init()
