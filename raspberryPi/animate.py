@@ -165,8 +165,8 @@ class Screen:
                             # debug messages: CPU and fps
                             if not self._message and cf.g('SCREEN_DEBUG'):  # show debug messages
                                 if STATE.cpu: self.DrawText(draw, f"{STATE.cpu}%", 'ur', font)
-#                                self.DrawText(draw, f"{last_fps}fps ({real_fps})", 'ul', font)
-                                self.DrawText(draw, f"{STATE.volume}", 'ul', font)
+                                self.DrawText(draw, f"{last_fps}fps ({real_fps})", 'ul', font)
+#                                self.DrawText(draw, f"{round(STATE.volume)}", 'ul', font)
                     # end if state == 'Idle'
                 elif self.state == 'Listen': self.DrawVolume(draw)  # don't draw if we switched states (will be too loud)
 
