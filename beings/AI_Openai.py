@@ -50,8 +50,9 @@ class AI_openAI(AI):
     def respond(self, user_input):
         if self.IsConvoDirty(): self.memory = self.LoadConvo()
         
+        start = datetime.now()
         ret = self.ai_respond(user_input)
-
+        LogInfo(f"Completed request in {(datetime.now()-start).total_seconds()}s")
         # start the write config thread (while we are listening)
         write_convo_thread = threading.Thread(target=self.WriteConvo, daemon=True)
         write_convo_thread.name = f"{GetHostname()} WriteConvoThread"
