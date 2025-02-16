@@ -382,6 +382,7 @@ class Config:
                 if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                    if self.config_changed: self.WriteConfig() # periodically write just in case
                    self.CheckGit() # will update then change state to restart!!
+                   UploadLog()
                    CleanDirs(cf.g('TEMP_PATH'), 12)
                 if self.IsConfigDirty(): self.LoadConfig()
 

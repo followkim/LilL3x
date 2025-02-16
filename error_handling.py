@@ -6,6 +6,7 @@ from datetime import datetime
 import time
 import threading
 import socket
+import requests
 
 err_level = {
     0: "Errors Only",
@@ -149,6 +150,22 @@ def DumpStack():
 def CloseLog():
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
     Log(Color(f"{'*' * 10} LOG ENDED {'*' * 10}\n\n\n\n", 'cyan'))
+    UploadLog()
+
+def UploadLog():
+    global log_file_name
+    try:
+        url = False
+        ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
+        files={'fileToUpload': open(log_file_name,'rb')}
+        payload = {'submit': 'Upload File'}
+        r = requests.post(ul_url, data=payload, files=files)
+        url = r.text
+        LogInfo(f"Uploaded log: URL: {url}")
+        return url
+    except Exception as e:
+        LogError(f"Unable to upload logFile {e.args}")
+        return False
 
 def CleanDirs(dir, hours=30*24):   # 30 days is the default
     time_in_secs = time.time() - (hours * 60 * 60) 
