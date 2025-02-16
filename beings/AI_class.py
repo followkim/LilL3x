@@ -53,8 +53,13 @@ class AI:
         if not txt:
             return False
 
+        
         search_txt_p = txt.lower().strip()
         search_txt = re.sub(r'[^\w\s]', '', search_txt_p)
+
+        if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
+            STATE.ChangeState('ActiveIdle')
+            return f"ok"
 
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
@@ -94,6 +99,9 @@ class AI:
         if re.search(r"^(reboot|restart|reset)(.)?$", search_txt): 
             STATE.ChangeState('Restart')
             return "~see you soon"
+
+        if re.search(r"^upload (a| the |your )?log( )?(file)?(s)?$", search_txt): 
+            return self.YesNo(UploadLog(), "I uploaded my log file", "I couldn't upload my log file")
 
         if re.search(r"^update( yourself| your code| git)?$", search_txt):
             retStr = "I had an error trying to update.  Check my logs."
@@ -291,13 +299,13 @@ class AI:
     def CanIHearYou(self, duration=cf.g('AMBIENT')):
         start = datetime.now()
         avg = [STATE.volume]
-        quiet = self.ears.GetQuiet() * (1 + cf.g('QUIET_BOOST')/100)
+        quiet = self.ears.GetQuiet()
         self.face.listening(cf.g('SHOW_USER_CHECK'))
         newVol = STATE.volume - quiet
         while (datetime.now()-start).seconds<duration:  # floor the volume for the meter
             if STATE.volume != newVol:
                 avg.append(STATE.volume)  # don't accidently append the floored one
-                if cf.g('SHOW_USER_CHECK'):  
+                if cf.g('SHOW_USER_CHECK'):
                     newVol = STATE.volume-quiet
                     STATE.volume = newVol
 
