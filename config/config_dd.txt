@@ -7,9 +7,9 @@ AINAME|AI Name|Your AI's name
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
-OPEN_AI_API_KEY|OpenAI Key|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
-CHATGPT_MODEL|GPT Model|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
-CHATGPT_MODEL_SLOW|ChatGPT Slow|Get from <a>OpenAI</a>|AI_ENGINE_ChatGPT
+OPEN_AI_API_KEY|GPT Model|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
+CHATGPT_MODEL|GPT Model|Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
+CHATGPT_MODEL_SLOW|GPT Model|For longer prompts.  Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
 LLAMA_KEY|Llama API Key|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
@@ -19,17 +19,17 @@ ADHOC_MODEL_SLOW|Adhoc Model Slow|For non-convversational requests</a>|AI_ENGINE
 ADHOC_API_KEY|Adhoc API Key|If needed|AI_ENGINE_Adhoc
 CORGI_API_KEY|Corgi API Key||AI_ENGINE_Corgi
 CORGI_MODEL|Corgi Model||AI_ENGINE_Corgi
-EL3KTRA_API_KEY|El3ktra API Key|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
-EL3KTRA_MODEL|El3ktra Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
-EL3KTRA_VISION_MODEL|El3ktra Vision Model|Get from <a>OpenAI</a>|AI_ENGINE_El3ktra
-GEMINI_API_KEY|Gemini API Key|Get from <a>OpenAI</a>|AI_ENGINE_Gemini
+EL3KTRA_API_KEY|El3ktra API Key|Get from El3ktra|AI_ENGINE_El3ktra
+EL3KTRA_MODEL|El3ktra Model||AI_ENGINE_El3ktra
+EL3KTRA_VISION_MODEL|El3ktra Vision Model||AI_ENGINE_El3ktra
+GEMINI_API_KEY|Gemini API Key||AI_ENGINE_Gemini
 GEMINI_MODEL|Gemini Model|Get from <a href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">Gemini Models</a>|AI_ENGINE_Gemini
 GEMINI_MODEL_SLOW|Gemini Model Slow|Save tokens with a slower model for non-conversational replies.  Get from link above.|AI_ENGINE_Gemini
 CLAUDE_API_KEY|Claude API Key|Get from <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic API Keys (need Anthropic account)</a>|AI_ENGINE_Claude
 CLAUDE_MODEL|Claude Model|Get from <a href="https://docs.anthropic.com/en/docs/about-claude/models" target="_blank">Claude Models</a>|AI_ENGINE_Claude
 CLAUDE_MODEL_SLOW|Claude Model Slow|A slower version for non-conversational requests.  Get from above.|AI_ENGINE_Claude
-KINDRIOD_OOB|Kindriod OOB|The first time you switch to Kindiod, it will send you an email.<br>Enter the code that was emailed to you, then switch to Kindriod again.|AI_ENGINE_Kindriod
-KINDRIOD_GMPID|Kindriod AI ID|Get from "API & advanced integration" at <a href="https://kindroid.ai/home/" target="_blank">Kindriod</a>|AI_ENGINE_Kindriod
+KINDROID_API|Kindroid API|Get from "General":"API & advanced integration at <a href="https://kindroid.ai/home/" target="_blank">Kindroid</a>|AI_ENGINE_Kindroid
+KINDROID_GMPID|Kindriod AI ID|Your character's AI ID.  See above.|AI_ENGINE_Kindroid
 NOMI_API|Nomi API||AI_ENGINE_Nomi
 NOMI_ID|Nomi ID||AI_ENGINE_Nomi
 GROK_API|Grok API Key|Get from <a href="https://console.x.ai/team/default/api-keys" target="_blank">Grok API Key</a>|AI_ENGINE_Grok
@@ -60,10 +60,10 @@ ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase i
 MAX_VOLUME|Max Volume|Maximum value for talking volume.  (Adjusts the listening volume indicator)|LISTEN_ENGINE_SpeechRecognition
 QUIET_BOOST|Quiet Volume|Adjust the calculated quiet level.  Set higher if AI is speaking when there is already talking.|LISTEN_ENGINE_SpeechRecognition
 INTERPRET_ENGINE|Interpreter|The name of the engine that will translate audio to text.  Whisper is recommended.|LISTEN_ENGINE_SpeechRecognition
-WHISPER_URL|Whisper URL|The URL that can accept POST requests.|INTERPRET_ENGINE_whisper
-WHISPER_API_KEY|Whisper API Key|Get from your Whisper admin.|INTERPRET_ENGINE_whisper
+WHISPER_URL|Whisper URL|The URL that can accept POST requests.|INTERPRET_ENGINE_whisper LISTEN_ENGINE_SpeechRecognition
+WHISPER_API_KEY|Whisper API Key|Get from your Whisper admin.|INTERPRET_ENGINE_whisper LISTEN_ENGINE_SpeechRecognition
 ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.|LISTEN_ENGINE_SpeechRecognition
-DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.|LISTEN_ENGINE_SpeechRecognition
+DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.|LISTEN_ENGINE_SpeechRecognition ENERGY_DYNAMIC_true
 
 HEADER|Speech Tools|2
 SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
@@ -71,7 +71,8 @@ AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  Se
 AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>|SPEECH_ENGINE_amazon
 AWS_ACCESS_KEY|Amazon Access Key|See <a href="https://us-west-1.console.aws.amazon.com/" target="_blank">Amazon Web Services</a>|SPEECH_ENGINE_amazon
 AWS_ACCESS_KEY_SECRET|AWS Secret|See link above.|SPEECH_ENGINE_amazon
-CHATGPT_VOICE|Chat GPT Voice|If speech engine is ChatGPT, indicate the voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech" target="_blank">Open AIs Text to Speech</a>|SPEECH_ENGINE_ChatGPT
+CHATGPT_VOICE|Chat GPT Voice|ChatGPT/OpenAI voice to use.  See <a href="https://platform.openai.com/docs/guides/text-to-speech" target="_blank">Open AIs Text to Speech</a>|SPEECH_ENGINE_ChatGPT
+OPEN_AI_API_VOICE_KEY|OpenAI Voice Key|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|SPEECH_ENGINE_ChatGPT
 ELEVENLABS_API_KEY|ElevenLabs API|See <a href="https://elevenlabs.io/app/sign-up" target="blank">ElevenLabs.io Sign Up</a> to get an API key.|SPEECH_ENGINE_elevenLabs
 ELEVENLABS_VOICE_ID|ElevenLabs Voice|Indicate the voice to use.  See <a href="https://elevenlabs.io/app/voice-lab" target="_blank">ElevenLabs Voice Lab</a>|SPEECH_ENGINE_elevenLabs
 ELEVENLABS_MODEL_ID|ElevenLabs Model ID|If speech engine is ElevenLabs, indicate the model to use.  See <a href="https://help.elevenlabs.io/hc/en-us/articles/21811236079505-How-do-I-find-the-model-ID" target="_blank">ElevenLabs Voice Lab</a>|SPEECH_ENGINE_elevenLabs
@@ -79,7 +80,6 @@ GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google
 GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>|SPEECH_ENGINE_google
 GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
 GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
-OPEN_AI_API_KEY|OpenAI Key|Get from <a>OpenAI</a>|SPEECH_ENGINE_ChatGPT
 
 HEADER|Camera|2
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.

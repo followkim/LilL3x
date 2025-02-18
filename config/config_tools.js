@@ -19,20 +19,44 @@ const pico = document.getElementById("WAKE_WORD_ENGINE");
 showhide("WAKE_WORD_ENGINE");
 pico.addEventListener("change", (evt) => showhide("WAKE_WORD_ENGINE", evt));
 
+const dym = document.getElementById("ENERGY_DYNAMIC");
+showhideChk("ENERGY_DYNAMIC");
+dym.addEventListener("change", (evt) => showhideChk("ENERGY_DYNAMIC", evt));
+
 
 
 function showhide(name, evt) {
 	const selectElement = document.getElementById(name);
        	const selectedValue = selectElement.value;
-     	console.log("function called for "+ name);
-       	const hide = document.querySelectorAll("[class^='"+name+"_']"); // Replace '.className' with the actual class name
+     	console.log("function called for "+ name + ", val=" + selectedValue);
+       	const hide = document.querySelectorAll("[class*='"+name+"_']"); // Replace '.className' with the actual class name
 	for (var i=0;i<hide.length;i+=1){
 		hide[i].style.display = 'none';
+//                 console.log(i + "Hiding " + hide[i].name)
 		// TODO : search the children of this element to close all dependants
 	}
-       	const show = document.querySelectorAll("[class='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
+       	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
 	for (var i=0;i<show.length;i+=1){
 		show[i].style.display = '';
+//                 console.log(i + "Showing " + show[i].name)
+	}
+	console.log("curr: " + selectedValue);
+}
+
+function showhideChk(name, evt) {
+	const selectElement = document.getElementById(name);
+       	const selectedValue = selectElement.checked;
+     	console.log("function called for "+ name + ", val=" + selectedValue);
+       	const hide = document.querySelectorAll("[class*='"+name+"_']"); // Replace '.className' with the actual class name
+	for (var i=0;i<hide.length;i+=1){
+		hide[i].style.display = 'none';
+//                 console.log(i + "Hiding " + hide[i].name)
+		// TODO : search the children of this element to close all dependants
+	}
+       	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
+	for (var i=0;i<show.length;i+=1){
+		show[i].style.display = '';
+//                 console.log(i + "Showing " + show[i].name)
 	}
 	console.log("curr: " + selectedValue);
 }
