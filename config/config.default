@@ -114,4 +114,5 @@ CHARAI_AUTH||str
 CHARAI_ID||str
 DEEPSEEK_API||str
 DEEPSEEK_MODEL|deepseek-chat|str
-
+GROK_API||str
+GROK_MODEL|grok-2-latest|str
