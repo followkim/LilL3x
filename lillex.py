@@ -40,7 +40,7 @@ sys.path.insert(0, currentdir+'/beings/')
 from AI_Dude import AI_Dude
 from AI_Openai import *
 from AI_Ollama import *
-from AI_Kindriod import AI_Kindriod
+from AI_Kindroid import AI_Kindroid
 from AI_Gemini import AI_Gemini
 from AI_Claude import AI_Claude
 from AI_Nomi import AI_Nomi
