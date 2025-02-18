@@ -59,7 +59,7 @@ class AI:
 
         if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
             STATE.ChangeState('ActiveIdle')
-            return f"ok"
+            return f"!"
 
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
@@ -155,7 +155,7 @@ class AI:
                 return "Sorry, I couldn't take a picture"
 
         if re.search(r"^((can i )?talk|switch|let me (talk|speak)) to (.*)*$", search_txt):    # , flags-re.IGNORECASE):
-            AI = txt.split()[-1]
+            AI = search_txt.split()[-1]
             STATE.ChangeState('ChangeAI')
             newState = AI[0].upper() + AI[1:].lower()
 
@@ -163,7 +163,7 @@ class AI:
             if re.search(r".*gpt$", newState.lower()):
                 STATE.data = "ChatGPT"
             elif re.search(r"^kind", newState.lower()):
-                STATE.data = "Kindriod"
+                STATE.data = "Kindroid"
             elif re.search(r"(gwen|quinn)", newState.lower()):
                 STATE.data = "Qwen"
             elif re.search(r"(deep seek)", newState.lower()):
