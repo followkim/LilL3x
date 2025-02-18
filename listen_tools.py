@@ -161,7 +161,9 @@ class SpeechRecognition_listener:
 
                 MIC_STATE.ReturnMic()
                 #imp = self.engines['google')(audio)  ## NEEED FIX
-                if imp: self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
+                if imp:
+                    self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
+                    LogInfo(f"Set Quiet to {self.quiet}.")
                 LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
                 #self.speech.energy_threshold = start_et
                 if self.face: self.face.off()
