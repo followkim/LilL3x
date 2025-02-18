@@ -443,6 +443,15 @@ class AI_Deepseek(AI_openAI):
         self.memory = self.LoadConvo()
         return
 
+class AI_Grok(AI_openAI):
+
+    tools = False
+    token_mult = 1
+    base_url = cf.g('GROK_URL')
+    api_key = cf.g('GROK_API')
+    model_key = 'GROK_MODEL'
+    slow_model_key = model_key
+    name = "Grok"
 
 class AI_Llama(AI_openAI):
     base_url = cf.g('LLAMA_BASE_URL')

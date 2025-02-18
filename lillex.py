@@ -61,8 +61,16 @@ class lill3x:
     face = False
 
     def __init__(self):
-        isRestart = '--restart' in sys.argv # if restart, don't say hello or play the welcome bell
+        if '--restart' in sys.argv:       # if restart, don't say hello or play the welcome bell
+            isRestart = True
+            LogInfo("Resuming after restart")
+            STATE.ChangeState('ActiveIdle')
+        else:
+            isRestart = False
+            STATE.ChangeState('Hello')
+
         pygame.mixer.init()
+
 #        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo(f"Starting {GetHostname()}")
         # create the hardware objects
@@ -136,7 +144,6 @@ class lill3x:
         config_thread.start()
 
         if isRestart:
-            STATE.ChangeState('ActiveIdle')
             try: self.ai.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
             except:  pass
             LogInfo(f"Last Interaction:  {self.ai.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")

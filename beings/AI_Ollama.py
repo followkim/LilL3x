@@ -19,16 +19,17 @@ from config import cf
 from error_handling import *
 
 class AI_ollama(AI_openAI):
-
+    api_key = ""
     tools = False
     token_mult = 1
+    auth_header = None
 
     def __init__(self):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
-#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'))
-        self.client=ollama.Client(host=self.base_url)
+
+#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'), auth=(cf.g('USEREMAIL'), self.api_key))
+        self.client=ollama.Client(host=self.base_url, auth=(cf.g('USEREMAIL'), self.api_key))
         self.memory = self.LoadConvo()
-        LogDebug(self.memory)
         return
 
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
@@ -49,7 +50,8 @@ class AI_ollama(AI_openAI):
             self.memory.append({"role": "assistant", "content": reply}) # overwrite reply
 
         except Exception as e:
-            reply = f"There was an error talking to Ollama. {str(e)}"
+            LogError(f"There was an error talking to Ollama. {str(e)}")
+            reply = f"I had a slight glitch, give it a second and try again."
             args['stream'] = False
             self.memory.pop()  #get rid of that bad membry!
 
@@ -65,11 +67,12 @@ class AI_ollama(AI_openAI):
 
 #        if args['model']==self.model(vision=True):
         if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
-            face=None            # don't allow mouth to control the face
+            face=False       # don't allow mouth to control the face
             self.face.looking()  # turn the screen
 
-        for chunk in response:
+        for chunk in response: #self.client.stream(self.GetMemory()):
             m = chunk['message']['content']
+#            m = chunk.content LC
             full_reply = full_reply + m
             eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
             if eos:
@@ -87,9 +90,14 @@ class AI_ollama(AI_openAI):
 #        ai_msg = self.client.invoke(input=args['messages'], kwargs=args)
 #        reply = ai_msg.content
         reply = ""
+        
         response = self.client.chat(**args)
+#        response = self.client.invoke(self.GetMemory())
+#        if response.content: LC
+#            reply = response.content
         if response['message']['content']:
             reply = response['message']['content']
+
         LogDebug("Sync: " + str(response))
         if shouldStrip: return self.StripActions(reply)
         else: return reply
@@ -149,9 +157,9 @@ class AI_ollama(AI_openAI):
                 # get a description of the picture
                 arg['stream']=False
                 arg['model']=self.model(vision=True)     # if revert, just add this outside if clause
-                self.memory.append({"role": role, "content": cf.g('GET_PICT_DESC'),  "id": cf.g('CONVO_ID'), 'images':[path]})
-                arg['messages'] = self.memory
+                arg['messages'] = [{"role": role, "content": cf.g('GET_PICT_DESC'),  'images':[path]}]
                 pictDesc = self.reply_sync(arg)
+
                 arg['model']=self.model() #reset the model
                 user_input = f"{user_input}.  {cf.g('GIVE_PICT_DESC')}: {pictDesc}"
 
@@ -209,9 +217,13 @@ if __name__ == '__main__':
     from face import DummyFace
     global STATE
     STATE.ChangeState('Idle')
+    class mouth:
+        def say(self, txt, face=None, asyn=False):
+            print(txt)
 
     ai = AI_El3ktra()
     ai.face = DummyFace()
+    ai.mouth = mouth()
 #    ai.eyes = Camera()
 #    print(ai.respond("lets take my picture?"))
 #     ai.Greet()
@@ -230,7 +242,6 @@ if __name__ == '__main__':
 
         print(f"{cf.g('USERNAME')}: ", end="")
         user_inp = input(f"{cf.g('USERNAME')}: ")
-        out = ai.respond("^" + user_inp)
+        out = ai.respond(user_inp)
         print(f'AI: {out}')
-        print(ai.memory)
 #    ai.Close()
