@@ -76,9 +76,6 @@ class lill3x:
         # create the hardware objects
         try:
             self.eyes = Camera()
-            cam_thread = threading.Thread(target=self.eyes.CameraLoopThread, daemon=True)
-            cam_thread.name = f"{GetHostname()} CameraLoopThread"
-            cam_thread.start()
         except Exception as e:
             RaiseError(f"Init():Could not init camera. {e.args}")
 

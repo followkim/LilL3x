@@ -36,6 +36,7 @@ class Camera:
     be_quiet = False
     mood=""
     should_quit = False
+    cam_thread = False
     def __init__(self):
         try:
 
@@ -47,13 +48,21 @@ class Camera:
             self.face_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_frontalface_default.xml') 
             self.eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml') 
 
+            self.CheckCameraThread()
+
         except Exception as e:
-            RaiseError(f"Camera exception in __int__: {e.args}")
+            RaiseError(f"Camera() exception in __init__: {e.args}")
             self.cam = False
         return
 
-    def CameraLoopThread(self):
-        self._camera_loop_thread()
+    def CheckCameraThread(self):
+        if not self.CameraAlive():
+            self.cam_thread = threading.Thread(target=self._camera_loop_thread, daemon=True)
+            self.cam_thread.name = f"{GetHostname()} CameraLoopThread"
+            self.cam_thread.start()
+
+    def CameraAlive(self):
+        return self.cam_thread and self.cam_thread.is_alive()
 
     def _camera_loop_thread(self):
         tracker = None
@@ -162,6 +171,8 @@ class Camera:
                   LogError(f"CameraLoop Uncaught Exception {e.args}")
         if self.cam: self.cam.stop()
         LogInfo("Camera thread exiting.")
+        STATE.cx=0
+        STATE.cy=0
 
     def should_wake(self):
           return self.show_view or self.take_picture or self.take_portrait
@@ -195,14 +206,17 @@ class Camera:
         return self.is_dark
 
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
+        self.CheckCameraThread()
         return self.last_seen > (datetime.now() - timedelta(seconds=secs))
 
     def LastSeen(self):
+        self.CheckCameraThread()
         return (datetime.now()-self.last_seen).total_seconds()
 
     # Note: _look_for_user assumes OPEN cameara instance.
     #https://github.com/raspberrypi/picamera2/blob/main/examples/capture_motion.py
     def IsUserMoving(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
+        self.CheckCameraThread()
         return max(self.last_seen, self.last_motion) > datetime.now() - timedelta(seconds=secs)
 
 
@@ -218,6 +232,7 @@ class Camera:
         return cur # allows easy setting of previous frame
 
     def ShowView(self):
+        self.CheckCameraThread()
         if not self.show_view: RemoveFile(cf.g('WIS_FILE'))  #remove view file if exsists
         self.show_view=True
 
@@ -241,6 +256,7 @@ class Camera:
         return self.TakePicture(fname, beQuiet, seeUser, timeout)
 
     def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False, timeout=cf.g('CAMERA_PICT_SEC')):
+        self.CheckCameraThread()
         if is_dir(fname):
             filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
