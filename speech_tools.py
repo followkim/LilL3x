@@ -19,6 +19,11 @@ LogInfo("Speech Engine Loading...")
 def dummy():
     return
 
+class DummySpeech:
+    def __init__(self):pass
+    def say(self, txt, face=False, asyn=False):
+        print(txt)
+
 class speech_generator:
 
     engine = 0
