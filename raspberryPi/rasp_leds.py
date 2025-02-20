@@ -80,6 +80,7 @@ class LEDS:
                     else:
                         if (STATE.CheckState('ActiveIdle') or STATE.CheckState('Idle')):
                             (ir, jr, self.color) = rainbow_cycle(ir, jr)
+                            self.color[3] = cf.g('BRIGHTNESS')
 
                 if thisColor != self.color:            # don't change colors if not asked to change
                     thisColor = self.color.copy()
