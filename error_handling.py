@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import traceback
 import sys
 import os
@@ -152,12 +153,11 @@ def CloseLog():
     Log(Color(f"{'*' * 10} LOG ENDED {'*' * 10}\n\n\n\n", 'cyan'))
     UploadLog()
 
-def UploadLog():
-    global log_file_name
+def UploadLog(filename=log_file_ln):
     try:
         url = False
         ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
-        files={'fileToUpload': open(log_file_name,'rb')}
+        files={'fileToUpload': open(filename,'rb')}
         payload = {'submit': 'Upload File'}
         r = requests.post(ul_url, data=payload, files=files)
         url = r.text
@@ -180,12 +180,23 @@ CleanDirs("./log")
 
 if __name__ == '__main__':
 
-    InitLogFile()
-    Log("test")
-    SetErrorLevel(4)
-    s = ""
-    while s != 'quit':
-        s=input("input: ")
-        LogInfo(s)
-    RaiseError(s)
+    import shutil
+
+    if len(sys.argv)>1:
+        file = os.path.basename(sys.argv[1])
+        cfile = f"{GetHostname()}_{file}.log"
+        
+        shutil.copyfile(sys.argv[1], cfile)
+        UploadLog(cfile)
+        os.remove(cfile)
+    else:
+        InitLogFile()
+        Log("test")
+        SetErrorLevel(4)
+        s = ""
+        UploadLog("config.py")
+        while s != 'quit':
+            s=input("input: ")
+            LogInfo(s)
+        RaiseError(s)
     CloseLog()
