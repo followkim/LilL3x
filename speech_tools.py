@@ -130,7 +130,7 @@ class gTTS_tts:
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
+        tts = gTTS(txt, lang=cf.g('GTTS_LANG'), tld=cf.g('GTTS_VOICE'))
         tts.save(filename)
         return filename
 

@@ -67,6 +67,8 @@ DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be
 
 HEADER|Speech Tools|2
 SPEECH_ENGINE|Speech Engine|The engine that should generate speech.
+GTTS_LANG|gTTS Language|Get from <a href="https://gtts.readthedocs.io/en/latest/module.html#gtts.lang.tts_langs" target="_blank">gTTS Voices</a>. Pick a <u>Language Code</u>.|SPEECH_ENGINE_gTTS
+GTTS_VOICE|gTTS Voice<br>(Top-level domain)|Get from <a href="https://gtts.readthedocs.io/en/latest/module.html#gtts.lang.tts_langs" target="_blank">gTTS Voices</a>.  Pick a <u>top-level domain code</u> that matches the language code above.|SPEECH_ENGINE_gTTS
 AWS_VOICE_ID|Amazon Voice|The Amazon voice (if amazon is the speech engine.)  See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>|SPEECH_ENGINE_amazon
 AWS_VOICE_ENGINE|Amazon Voice Type|See <a href="https://docs.aws.amazon.com/polly/latest/dg/available-voices.html" target="_blank">Amazon Polly Available Voices</a>|SPEECH_ENGINE_amazon
 AWS_ACCESS_KEY|Amazon Access Key|See <a href="https://us-west-1.console.aws.amazon.com/" target="_blank">Amazon Web Services</a>|SPEECH_ENGINE_amazon
