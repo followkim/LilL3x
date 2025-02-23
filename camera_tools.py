@@ -94,13 +94,13 @@ class Camera:
 
                 # do not use the camera if in Active or Wake... unless asked to.  should_wake() is true if user asks for camera.
                 if self.should_wake() or not STATE.IsInteractive():
-                    img = self._read_camera_array()
-                    if isinstance(img, bool):  #_is_dark will access image.  Don't do anything if there isn't an image
+                    img = self.__read_camera_array()
+                    if isinstance(img, bool):  #__is_dark will access image.  Don't do anything if there isn't an image
                         LogError(f"Unable to get camera  image")
                         SleepOn(cf.g('CAMERA_SLEEP_SEC')*2)
                         continue
 
-                    if self._is_dark(img):
+                    if self.__is_dark(img):
                         STATE.ChangeState('SleepState')      # allow the camera to dictate this, LilLex.Sleep() will reset state when light again
                         SleepOn(secs=cf.g('CAMERA_SLEEP_SEC')*2, varf=STATE.IsSleeping, wakeOn=False)
                         continue                             # as it is dark, we can't see anything and should try to continue loop
@@ -159,7 +159,7 @@ class Camera:
                         mood_thrd.name = f"{GetHostname()} GetEmotionThread"
                         mood_thrd.start()
                     '''
-                    if self.show_view: self._whatISee(img)
+                    if self.show_view: self.__whatISee(img)
                     if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
                 # END if should_wake or not.STATEIsInteractive()
 
@@ -177,13 +177,13 @@ class Camera:
     def should_wake(self):
           return self.show_view or self.take_picture or self.take_portrait
 
-    def _read_camera_buffer(self):
+    def __read_camera_buffer(self):
         try:
             return cv2.flip(self.cam.capture_buffer("lores"), 0)
         except Exception as e:
             return RaiseError(f"Error reading camera ({e.args})")
 
-    def _read_camera_array(self):
+    def __read_camera_array(self):
         try:
             return cv2.flip(self.cam.capture_array(), 0)
         except Exception as e:
@@ -192,7 +192,7 @@ class Camera:
     def IsDark(self):
         return self.is_dark
     
-    def _is_dark(self, image):
+    def __is_dark(self, image):
         # Convert image to HSV colorspace
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -242,8 +242,8 @@ class Camera:
         RemoveFile(cf.g('WIS_FILE'))
         return
 
-    def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
-        if isinstance(img, bool): img = self._read_camera_buffer()
+    def __whatISee(self, img=False, filename=cf.g('WIS_FILE')):
+        if isinstance(img, bool): img = self.__read_camera_buffer()
 
 #        gmi = cv2.flip(img, 1)
         ig = cv2.resize(img, (128, 64))
@@ -283,7 +283,7 @@ class Camera:
             if not beQuiet:
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
-                    self._whatISee(image)    # show_view is set outside the loop
+                    self.__whatISee(image)    # show_view is set outside the loop
                     while self.show_view: sleep(0.25)
             if seeUser: self.take_portrait = False
             else: self.take_picture = False

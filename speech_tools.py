@@ -117,9 +117,9 @@ class pytts_tts:
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
        self.engine.setProperty('volume', (min(cf.g('VOLUME'), 10)/10)) # does not go to 11
-       self.engine.say(txt)
+       self.engine.save_to_file(txt, filename)
        self.engine.runAndWait()
-       return False
+       return filename
 
     def Close(self):
         self.engine.stop()
@@ -175,7 +175,7 @@ class elevenLabs_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        url = "https://api.elevenlabs.io/v1/text-to-speech/" + cf.g('ELEVENLABS_VOICE_ID')
+        url = cf('ELEVENLABS_URL') + cf.g('ELEVENLABS_VOICE_ID')
 
         data = {
             "text": txt,

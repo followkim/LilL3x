@@ -35,26 +35,37 @@
         }
 
 	function PrintConfig() {
-		$configFile = str_replace("txt", (sizeof(array_keys($_GET))>0?array_keys($_GET)[0]:"txt"), CONFIG_FILE);
-		$configFile = file_exists($configFile)?$configFile:CONFIG_FILE;
+
+		echo "<body>";
+                echo "<center><b><h1>Configure ".gethostname()."</b></h1></center>";
+                echo '<form action="" method="POST">';
+		echo "<table>";
 
 		if (isset($_POST)) {
 			if (count($_POST) > 0 ) {
 		            WriteConfig($_POST, $configFile);
 			}
 		}
+		if  (sizeof(array_keys($_GET))>0) {
+			$a =  array("restart", "reboot", "quit");
+	                if (in_array(array_keys($_GET)[0], array("restart", "reboot", "quit"))) {
+				$filename = '/home/el3ktra/LilL3x/.'.array_keys($_GET)[0];
+				fclose(fopen($filename , "w"));
+				chmod($filename, 0664);
+				echo "<br>requested " . array_keys($_GET)[0];
+				header('Location: /LilL3x/config/');
+                                exit;
+			}
+			$configFile = str_replace("txt", array_keys($_GET)[0], CONFIG_FILE);
+			if (file_exists($configFile)) PrintConfigDev($configFile);
+			else PrintConfigPretty();
+		} else PrintConfigPretty();
 
-		echo "<body>";
-                echo "<center><b><h1>Configure ".gethostname()."</b></h1></center>";
-                echo '<form action="" method="POST">';
-
-		echo "<table>";
-
-		if ((sizeof(array_keys($_GET))>0) and (strlen(array_keys($_GET)[0])>1)) PrintConfigDev($configFile);
-		else PrintConfigPretty();
 
 		echo "</table>";
                 echo '<input type="submit" value="Set"/></form>';
+                echo '<a href="/LilL3x/config/?restart"><input type="button" value="Restart"/></a>';
+                echo '<a href="/LilL3x/config/?reboot"><input type="button" value="Reboot"/></a>';
 	}
 
 	function PrintConfigPretty($configFilePath=CONFIG_FILE, $configDDPath=CONFIG_DD) {
