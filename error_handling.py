@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     if len(sys.argv)>1:
         file = os.path.basename(sys.argv[1])
-        cfile = f"{GetHostname()}_{file}.log"
+        cfile = f"{GetHostname()}_{file}"
         
         shutil.copyfile(sys.argv[1], cfile)
         UploadLog(cfile)

@@ -318,7 +318,22 @@ class Config:
             return diff
         except Exception as e: LogError(f"Error pulling from Git: {e.args}")
         return False
-    
+
+    def CheckFiles(self):
+        # check if we were asked to reboot or reset
+        if os.path.exists(".restart"):
+            STATE.ChangeState('Restart')
+            os.remove('.restart')
+        if os.path.exists(".reboot"):
+            STATE.ChangeState('Reboot')
+            os.remove('.reboot')
+        if os.path.exists(".quit"):
+            STATE.ChangeState('Quit')
+            os.remove('.quit')
+        return STATE.ShouldQuit() 
+
+
+
     def g(self, key, default=False):
 #        if self.IsConfigDirty(): self.LoadConfig()
         if key in self.config:
@@ -384,6 +399,7 @@ class Config:
                    self.CheckGit() # will update then change state to restart!!
                    UploadLog()
                    CleanDirs(cf.g('TEMP_PATH'), 12)
+
                 if self.IsConfigDirty(): self.LoadConfig()
 
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
@@ -395,7 +411,7 @@ class Config:
         self.WriteConfig()
 
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.should_quit
+        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.CheckFiles() or self.should_quit
 
 # we want to Load config here so that just including will load config
 cf = Config()

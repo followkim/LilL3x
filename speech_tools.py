@@ -52,7 +52,7 @@ class speech_generator:
                 LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
                 if face: face.off()
-                LogError("speech_tools: tts error: " + e.args)
+                LogError(f"speech_tools: tts error: {e.args}")
                 txt = "There was a speech error  " + e.args
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
@@ -117,9 +117,9 @@ class pytts_tts:
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
        self.engine.setProperty('volume', (min(cf.g('VOLUME'), 10)/10)) # does not go to 11
-       self.engine.say(txt)
+       self.engine.save_to_file(txt, filename)
        self.engine.runAndWait()
-       return False
+       return filename
 
     def Close(self):
         self.engine.stop()
@@ -175,7 +175,7 @@ class elevenLabs_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        url = "https://api.elevenlabs.io/v1/text-to-speech/" + cf.g('ELEVENLABS_VOICE_ID')
+        url = cf('ELEVENLABS_URL') + cf.g('ELEVENLABS_VOICE_ID')
 
         data = {
             "text": txt,
@@ -289,17 +289,8 @@ class google_tts:
 
 
 if __name__ == '__main__':
-    class LEDS:
-        def __init__(self):
-             return
-        def thinking(self):
-             return
-        def talking(self):
-             return
-        def off(self):
-             return
-    l = LEDS()
     
+    pygame.mixer.init()
     sr = speech_generator()
     sr.SwitchEngine("google")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
