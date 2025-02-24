@@ -52,7 +52,7 @@ class speech_generator:
                 LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
                 if face: face.off()
-                LogError("speech_tools: tts error: " + e.args)
+                LogError(f"speech_tools: tts error: {e.args}")
                 txt = "There was a speech error  " + e.args
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
@@ -289,17 +289,8 @@ class google_tts:
 
 
 if __name__ == '__main__':
-    class LEDS:
-        def __init__(self):
-             return
-        def thinking(self):
-             return
-        def talking(self):
-             return
-        def off(self):
-             return
-    l = LEDS()
     
+    pygame.mixer.init()
     sr = speech_generator()
     sr.SwitchEngine("google")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
