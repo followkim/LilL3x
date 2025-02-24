@@ -42,19 +42,19 @@
 		echo "<table>";
 
 		if (isset($_POST)) {
+			$configFile = str_replace("txt", (sizeof(array_keys($_GET))>0?array_keys($_GET)[0]:"txt"), CONFIG_FILE);
+			$configFile = file_exists($configFile)?$configFile:CONFIG_FILE;
 			if (count($_POST) > 0 ) {
 		            WriteConfig($_POST, $configFile);
 			}
 		}
-		if  (sizeof(array_keys($_GET))>0) {
+		if (sizeof(array_keys($_GET))>0) {
 			$a =  array("restart", "reboot", "quit");
-	                if (in_array(array_keys($_GET)[0], array("restart", "reboot", "quit"))) {
-				$filename = '/home/el3ktra/LilL3x/.'.array_keys($_GET)[0];
+	                if (!(isset($POST) or count($_POST) > 0) and (in_array(array_keys($_GET)[0], array("restart", "reboot", "quit")))) {
+				$filename = '/home/el3ktra/LilL3x/.tst_'.array_keys($_GET)[0];
 				fclose(fopen($filename , "w"));
 				chmod($filename, 0664);
 				echo "<br>requested " . array_keys($_GET)[0];
-				header('Location: /LilL3x/config/');
-                                exit;
 			}
 			$configFile = str_replace("txt", array_keys($_GET)[0], CONFIG_FILE);
 			if (file_exists($configFile)) PrintConfigDev($configFile);
