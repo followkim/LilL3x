@@ -48,6 +48,10 @@ class Camera:
             self.face_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_frontalface_default.xml') 
             self.eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml') 
 
+            self.cam = Picamera2()
+            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}, lores={"size": (320,240), "format": "YUV420"})
+            self.cam.configure(video_config)
+
             self.CheckCameraThread()
 
         except Exception as e:
@@ -73,9 +77,6 @@ class Camera:
         # open the camera
         try: 
             os.environ["LIBCAMERA_LOG_LEVELS"] = "3"
-            self.cam = Picamera2()
-            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}, lores={"size": (320,240), "format": "YUV420"})
-            self.cam.configure(video_config)
             self.cam.start()
         except Exception as e:
             RaiseError(f"Unable to init Picamera: {e.args}")
@@ -363,7 +364,7 @@ def RemoveFile(file):
     try: os.remove(file)
     except: pass
 
-CleanDirs("./picts")
+CleanDirs("./picts", "\.jpg$")
 
 if __name__ == '__main__':
     global STATE
