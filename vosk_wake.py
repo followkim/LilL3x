@@ -48,7 +48,7 @@ class Vosk_listener:
 
         device_info = sd.query_devices(AUDIO_DEVICE, "input")
         self.samplerate = int(device_info["default_samplerate"])
-        model = Model(lang="en-us")
+        model = Model(cf.g('VOSK_PATH') + "vosk-model-small-en-us-0.15")
 
         self.rec = KaldiRecognizer(model, self.samplerate)
         self.wake_mp3 = pygame.mixer.Sound(cf.g('WAKE_MP3'))
@@ -214,6 +214,7 @@ if __name__ == '__main__':
     pygame.mixer.init()
     face = DummyFace()
     sg = Vosk_listener(face)
+    '''
 #    print("setting ambient")
 #    sg.update(5)
     STATE.ChangeState('Active')
@@ -232,3 +233,4 @@ if __name__ == '__main__':
         sleep(0.5)
         print(f"vol: {round(STATE.volume)}")
     print("wake phrase: " + sg.wake_phrase)
+   '''
