@@ -72,7 +72,7 @@ GPIO.setup(BUTTON, GPIO.IN)
 hostname = socket.gethostname()
 start = datetime.now()
 
-while (GPIO.input(BUTTON)) and (datetime.now()-start).seconds < (60*10):
+while (GPIO.input(BUTTON)) and (datetime.now()-start).total_seconds() < (60*10):
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
 

@@ -92,6 +92,7 @@ EL3KTRA_VISION_MODEL||str
 ADHOC_API_KEY||str|
 CORGI_API_KEY|na|str|
 CORGI_MODEL|llama3.1|str|
+CORGI_VISION_MODEL|llama3.2-vision:latest|str|1
 EL3KTRA_API_KEY|llama3.1:8b|str|1
 EL3KTRA_MODEL|llama3.1:8b|str|1
 EL3KTRA_VISION_MODEL|llama3.2-vision:latest|str|1

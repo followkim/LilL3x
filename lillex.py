@@ -61,13 +61,10 @@ class lill3x:
     face = False
 
     def __init__(self):
+        isRestart = False
         if '--restart' in sys.argv:       # if restart, don't say hello or play the welcome bell
             isRestart = True
             LogInfo("Resuming after restart")
-            STATE.ChangeState('ActiveIdle')
-        else:
-            isRestart = False
-            STATE.ChangeState('Hello')
 
         pygame.mixer.init()
 
@@ -142,8 +139,9 @@ class lill3x:
 
         if isRestart:
             try: self.ai.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
-            except:  pass
+            except: self.ai.last_ai_interaction = datetime.now()
             LogInfo(f"Last Interaction:  {self.ai.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
+            STATE.ChangeState('ActiveIdle')
         else:
             STATE.ChangeState('Hello')
 
@@ -323,8 +321,9 @@ class lill3x:
                    STATE.ChangeState('Active')
                    self.ears.update()
                    self.ai.say(self.ai.Greet())
+                else: STATE.ChangeState('ActiveIdle')
             else:
-                SleepOn(varf=self.ai.IsIdle, wakeOn=False)  # sleep until State change or seeing user
+                SleepOn(-1, self.ai.IsIdle, step=10, wakeOn=False)  # sleep until State change or seeing user
         else:
             SleepOn((cf.g('IDLE_WAIT_MIN')*60) - self.ai.LastAIInteraction()) # may be negative, will sleep until state change (wake)
 
@@ -339,7 +338,6 @@ class lill3x:
             else:
                 STATE.ChangeState('ActiveIdle')  # will switch to Active Idle once user is seen
         else:
-            CleanDirs(cf.g('TEMP_PATH'), 6)
             SleepOn(varf=self.eyes.IsDark, wakeOn=False)
 
     #User has asked Lil3x to watch the house.  Take pictures of any movement and send them RIGHT AWAY!
@@ -404,7 +402,6 @@ class lill3x:
 ## THREADING INFO
 #os.chdir('/home/el3ktra/LilL3x/')
 # Get the current working directory
-CleanDirs("./temp", )
 
 print(f"{GetHostname()} started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()

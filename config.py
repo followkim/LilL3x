@@ -398,7 +398,7 @@ class Config:
                    if self.config_changed: self.WriteConfig() # periodically write just in case
                    self.CheckGit() # will update then change state to restart!!
                    UploadLog()
-                   CleanDirs(cf.g('TEMP_PATH'), 12)
+                   CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
 
                 if self.IsConfigDirty(): self.LoadConfig()
 
@@ -417,7 +417,7 @@ class Config:
 cf = Config()
 
 if __name__ == '__main__':
-    
+
     SetErrorLevel(4)
     if len(sys.argv)>1:
         if len(sys.argv)==2:

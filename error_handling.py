@@ -167,16 +167,18 @@ def UploadLog(filename=log_file_ln):
         LogError(f"Unable to upload logFile {e.args}")
         return False
 
-def CleanDirs(dir, hours=30*24):   # 30 days is the default
+def CleanDirs(dir, path="", hours=30*24):   # 30 days is the default
+    regex = re.compile(path)
     time_in_secs = time.time() - (hours * 60 * 60) 
     if os.path.exists(dir):
         for root_folder, folders, files in os.walk(dir):
             for file in files:
-                if file[0] != '.':
+                if regex.search(file):
                     file_path = os.path.join(root_folder, file)
                     if os.path.getctime(file_path) < time_in_secs:
                        os.remove(file_path)
-CleanDirs("./log")
+
+CleanDirs("./log", "\.(log|txt)$", 30*24)
 
 if __name__ == '__main__':
 
