@@ -1,6 +1,9 @@
 #!/bin/bash
 source /home/el3ktra/LilL3x/bin/activate
 
-./error_handling.py config/config.txt
-
+cd vosk
+wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+unzip vosk-model-small-en-us-0.15.zip
+cd ..
+ln -s vosk model
 
