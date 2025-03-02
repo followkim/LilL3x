@@ -379,15 +379,16 @@ class lill3x:
        os.system("sudo reboot")
 
     def WaitThreads(self):
+       start = datetime.now()
        threads = threading.enumerate()
        numThreads = len(threads)
-       while numThreads > 0:
+       while numThreads > 0 and (datetime.now()-start).total_seconds() < 30: # force quit after 30 seconds
            threads = threading.enumerate()
            numThreads = len(threads)
            for t in threads:
                if re.search(f"{GetHostname()}", t.name): LogInfo(f"T={len(threads)} Waiting on {t.name}.")
                else: numThreads = numThreads - 1
-           sleep(3)
+           sleep(2)
 
      # A version of sleep that will break out if the state changes by WakeWord.   Avoids long period of uninterruptable sleep.
     def Sleep(self, secs):
