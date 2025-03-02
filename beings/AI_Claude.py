@@ -19,6 +19,7 @@ class AI_Claude(AI_openAI):
 
     client = 0
     config=0
+
     model_key = 'CLAUDE_MODEL'
     model_slow_key = 'CLAUDE_MODEL_SLOW'
     name = "Claude"
@@ -42,15 +43,15 @@ class AI_Claude(AI_openAI):
     def ai_respond(self, user_input, canParaphrase=False):
         reply = ""
         file = False
-        
+        stream = True
         this_model = self.model
         class_resp = AI.respond(self, user_input)  # will return either a response
 #       The parent class handled the input.  
 #       Unless told to paraphrase, return
 
         if class_resp:
-            if class_resp == "return":
-                return  # don't say anything
+            if class_resp in ("return", "!", ""):
+                return ""  # don't say anything
             elif class_resp == "goodbye": # allow the AI to say goodbye
                 user_input =  "I have to go now, goodbye"
             elif not class_resp[0].isalpha(): # contains instructions (!, #, @)... we will skip
@@ -66,6 +67,11 @@ class AI_Claude(AI_openAI):
             file = None
             with open(l[2], "rb") as image_file: file = base64.b64encode(image_file.read()).decode("utf-8")
             user_input = [{"type": "image", "source":{"type": "base64", "media_type": "image/jpeg", "data": file}},{"type": "text", "text": l[1]}]
+        elif user_input[0] == '~':  # its a picture
+            user_input = f"Paraphrase '{user_input[1:]}'"
+        elif user_input[0] == '!':  # its a picture
+            user_input = user_input[1:]
+            stream = False
         elif not user_input[0].isalpha():
             user_input = user_input[1:]
 
@@ -73,22 +79,36 @@ class AI_Claude(AI_openAI):
 
         self.face.thinking()
         try:
-            message = self.client.messages.create(
-                model=self.model(),
-                max_tokens=500,
-                temperature=cf.g('TEMPERATURE'),
-                system = f"{cf.g('BACKSTORY')}  {cf.g('INSTRUCTION')}",
-                messages=self.GetMemory()
-            )
-            reply = message.content[0].text
+            if stream:
+                rep = ""
+                with self.client.messages.stream(model=self.model(), max_tokens=500, temperature=cf.g('TEMPERATURE'), system = f"{cf.g('BACKSTORY')}  {cf.g('INSTRUCTION')}", messages=self.GetMemory()) as stream:
+                    for text in stream.text_stream:
+                        reply = reply + text
+                        eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", text)
+                        if eos:
+                            rep = rep + text[:(eos.span()[0])+2]
+                            self.face.talking()
+                            self.mouth.say(self.StripActions(rep), face=self.face, asyn=True)
+                            LogDebug("Async: " + str(text))
+                            rep = text[(eos.span()[0])+2:]
+                            self.face.thinking()
+                        else: rep = rep + text
+                self.mouth.say(self.StripActions(rep), face=self.face, asyn=False)
+                self.face.off()
+            else:
+                message = self.client.messages.create(model=self.model(), max_tokens=500, temperature=cf.g('TEMPERATURE'), system = f"{cf.g('BACKSTORY')}  {cf.g('INSTRUCTION')}", messages=self.GetMemory())
+                reply = message.content[0].text
             self.memory.append({"role": "assistant", "content": reply}) # overwrite reply
         except Exception as e:
+            stream = False
             reply = f"There was an error talking to Claude: {str(e)}"
         if file:
-            LogDebug("deleting pict: " + self.memory[-2]['content'][1]['text'])
+            LogDebug("deleting from memory pict: " + self.memory[-2]['content'][1]['text'])
             self.memory[-2]["content"]=user_input  # erase the picture
         self.face.off()
-        return reply
+
+        if stream: return ""
+        else: return reply
 
     def SumMemory(self, memory=False):
         if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
@@ -114,22 +134,24 @@ class AI_Claude(AI_openAI):
        return
 
 if __name__ == '__main__':
+   
+    from speech_tools import DummySpeech
+    from face import DummyFace
+    import pygame
+
+    pygame.mixer.init()
+#    eyes = Camera()
 
     global STATE
+    SetErrorLevel(4)
     STATE.ChangeState('Idle')
-    from face import DummyFace
-    
     ai = AI_Claude()
     ai.face = DummyFace()
-    user_inp = "#Describe this picture#./picts/p233834.jpg#http://www.whocares.com"
-    print(ai.respond(user_inp))
-#    dtd = timedelta(seconds=65)
-#    ai.PrettyDuration(dtd)
-#    user_inp = "#Here is a picture of me#temp/capture_0_20240827201920388254.jpg"
-#    print(ai.respond(user_inp))
-    while user_inp != "quit":
-        print("User: ", end="")
-        user_inp = input()
-        out = ai.respond("^" + user_inp)
-        print(f'AI: {out}')
+#    ai.eyes = eyes
+    ai.mouth = DummySpeech()
+    user_inp = ""
+    while not STATE.ShouldQuit():
+        user_inp = input(f"{cf.g('USERNAME')}: ")
+        print(f'{cf.g("AINAME")}: {ai.respond(user_inp)}')
 
+  #  eyes.Close()

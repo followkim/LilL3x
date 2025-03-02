@@ -35,6 +35,7 @@ class AI_ollama(AI_openAI):
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
         self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
+        if class_resp in ( "!", ""): return "" 
         args = {'model': self.model(), 'stream': True}
 
         (user_input, args) = self.HandleResponse(class_resp, user_input, args)
@@ -69,7 +70,7 @@ class AI_ollama(AI_openAI):
         if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
             face=False       # don't allow mouth to control the face
             self.face.looking()  # turn the screen
-
+            self.face.leds.thinking()
         for chunk in response: #self.client.stream(self.GetMemory()):
             m = chunk['message']['content']
 #            m = chunk.content LC
@@ -77,12 +78,14 @@ class AI_ollama(AI_openAI):
             eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
             if eos:
                 reply = reply + m[:(eos.span()[0])+2]
+                if not face: self.face.leds.talking()
                 self.mouth.say(self.StripActions(reply), face=face, asyn=True)
                 LogDebug("Async: " + str(chunk))
                 reply = m[(eos.span()[0])+2:]
+                if not face: self.face.leds.thinking()
             else: reply = reply + m
-        self.mouth.say(self.StripActions(reply), face=face, asyn=False)
-        if face: face.off()
+        self.mouth.say(self.StripActions(reply), face=self.face, asyn=False)
+        self.face.off()
         return self.StripActions(full_reply)
 
 
@@ -103,7 +106,7 @@ class AI_ollama(AI_openAI):
         else: return reply
 
     #NOte: this function alters the memory
-    def HandleResponse(self, class_resp, user_input, arg, canParaphrase=False):
+    def HandleResponse(self, class_resp, user_input, arg):
 #       The parent class handled the input.  
 #       Unless told to paraphrase, return
 #        max_tokens = 500*self.token_mult
@@ -113,7 +116,7 @@ class AI_ollama(AI_openAI):
                 user_input = class_resp
             else:
                 return (False, False) ## go with the class responce
-
+            
 #        return "ChatGPT: '"+user_input+"'"  # uncomment to test without using tokens
         role = "user"
         ret_tools = {}
@@ -201,7 +204,7 @@ class AI_Corgi(AI_ollama):
     api_key = cf.g('CORGI_API_KEY')
     model_key = 'CORGI_MODEL'
     slow_model_key=model_key
-    vision_model_key=model_key
+    vision_model_key='CORGI_VISION_MODEL'
 
 class AI_El3ktra(AI_ollama):
     name = "El3ktra"

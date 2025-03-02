@@ -13,7 +13,6 @@ import json
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from config import cf
 
 # import parent modules - set to parent folder
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
@@ -35,6 +34,9 @@ class AI_Kindroid(AI):
     def respond(self, user_input, canParaphrase=True):
         img_url = None
         img_desc = None
+        stream = True
+        reply = ""
+        start= datetime.now()
         try:
             class_resp = AI.respond(self, user_input)  # will return either a response
             # If class_resp not False, the parent class handled the input.
@@ -42,9 +44,10 @@ class AI_Kindroid(AI):
                 if class_resp == "!": return ""
                 elif class_resp[0] == '#':  # its a picture
                     user_input = class_resp[1:]
-                elif user_input[0] == '~':  # paraphrase
+                elif class_resp[0] == '~':  # paraphrase
                     return class_resp[1:]
                 elif user_input[0] == '!':  # its an instruction
+                    stream=False
                     user_input = user_input[1:]
                 else:
                     return class_resp  # everythign else just read as is
@@ -64,24 +67,45 @@ class AI_Kindroid(AI):
             chat_data = {
                 'ai_id': cf.g('KINDROID_GMPID'),
                 'message': user_input #,
-#            'stream': False, 'image_url': img_url,'image_description':img_desc,
-#            'internet_response': None,'link_url': None,'link_description': None
+#                'stream': stream #, 
+                #'image_url': img_url,'image_description':img_desc, 'internet_response': None,'link_url': None,'link_description': None
             }
 
-            responce = requests.post(cf.g('KINDROID_URL'), headers=chat_headers, data=json.dumps(chat_data))
-            LogDebug(responce)
-            if responce.status_code == 200:
-                reply = responce.text
+            responce = requests.post(cf.g('KINDROID_URL'), headers=chat_headers,  data=json.dumps(chat_data), stream=stream)
+            if stream:
+                p_reply = ""
+                reply = ""
+                eos = False
+                LogDebug("sreaming resp")
+                for chunk in responce.iter_content():
+                    m = chunk.decode('utf-8')
+                    reply = m
+                    eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
+                    if eos:
+                        p_reply = p_reply + m[:(eos.span()[0])+2]
+                        self.mouth.say(self.StripActions(p_reply), face=self.face, asyn=True)
+                        p_reply = m[(eos.span()[0])+2:]
+                    else: p_reply = p_reply + m
+                self.mouth.say(self.StripActions(p_reply), face=self.face, asyn=False)  # when done say what is left
                 self.TrainData(user_input, reply)
+                reply = ""
+
             else:
-                reply = "Sorry, I can't seem to reach the internet.  I got error {responce}"
-                LogError(f"Error {responce} talking to Kindroid")
+                LogDebug("sync resp")
+                LogDebug(responce)
+                if responce.status_code == 200:
+                    reply = responce.text
+                    self.TrainData(user_input, reply)
+                else:
+                    reply = "Sorry, I can't seem to reach the internet.  I got error {responce}"
+                    LogError(f"Error {responce} talking to Kindroid")
+        # otherise, there was an error
         except Exception as e:
             reply = "Sorry, I can't seem to reach the internet.  I got an error trying to talk to Kindroid."
             LogError(f"Exception talking to Kindroid: {e.args}" )
 
-        # otherise, there was an error
         self.face.off()
+        LogInfo(f"Completed request in {(datetime.now()-start).total_seconds()}s")
         return reply
 
     def Close(self):
@@ -90,22 +114,15 @@ class AI_Kindroid(AI):
 
 
 if __name__ == '__main__':
+    from speech_tools import DummySpeech
+    from face import DummyFace
 
     global STATE
     STATE.ChangeState('Idle')
 
-    class LEDS:
-        def __init__(self):
-             return
-        def thinking(self):
-             return
-        def talking(self):
-             return
-        def off(self):
-             return
-    from face import DummyFace
     ai = AI_Kindroid()
     ai.face = DummyFace()
+    ai.mouth = DummySpeech()
 #    ai.Greet()
 #    ai.WakeMessage()
 #    ai.Interact()    

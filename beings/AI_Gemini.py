@@ -45,8 +45,8 @@ class AI_Gemini(AI):
 #       Unless told to paraphrase, return
 
         if class_resp:
-            if class_resp == "return":
-                return  # don't say anything
+            if class_resp in ( "return", "", "!"):
+                return  "" # don't say anything
             elif class_resp == "goodbye": # allow the AI to say goodbye
                 user_input =  "I have to go now, goodbye"
             elif class_resp[0] == '#':  # its a picture
