@@ -17,6 +17,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfi
 from globals import STATE
 from config import cf
 
+class tool_call:
+    name = ""
+    id = ""
+    args = ""
+
 class AI_openAI(AI):
     base_url = ""
     api_key = ""
@@ -80,48 +85,14 @@ class AI_openAI(AI):
             if max_tokens: args['max_tokens'] = max_tokens
             if tools: args['tools'] = tools
             if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
-            if stream and not self.tools: args['stream'] = True  # could set to false if tools are used
+            if stream: args['stream'] = True  # could set to false if tools are used
             
-            if stream: reply, response = self.reply_async(args)
-            else: reply, response = self.reply_sync(args)
+            if stream: reply = self.reply_async(args)
+            else: reply = self.reply_sync(args)
 
-            LogDebug(response)
-            if response:
+            if reply:
                 self.memory.append({"role": "assistant", "content": reply}) # save reply
                 self.TrainData(user_input, reply)
-
-                if response.choices[0].finish_reason == "tool_calls":
-
-                     # append the tool call reply
-                    tool_call =  response.choices[0].message.tool_calls[0]
-                    self.memory.append(response.choices[0].message)    # from https://platform.openai.com/docs/guides/function-calling
-                    self.memory.append({"role": "tool", "tool_call_id": tool_call.id, "content": "success"},)
-
-                    # get tool call data
-                    reply = eval('self.'+ tool_call.function.name +"(" + tool_call.function.arguments+ ")")
-                    LogDebug(f"Tool call result: {reply}")
-
-                    # append the message
-                    (user_input, max_tokens, tools, streamx) = self.HandleResponse(False, reply) # reply contains result of ttol call
-                    LogDebug(f"Sending image: {self.memory[-1]}")
-                    args = {'model': self.model(), 'messages':self.GetMemory()}
-                    if max_tokens:    args['max_tokens']  = max_tokens
-                    if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
-
-                    try:
-                        response = self.client.chat.completions.create(**args)
-                        LogDebug(f"Response from tool call: {response}")
-                        if response.choices[0].message.content:
-                            reply = self.StripActions(response.choices[0].message.content)
-                            self.memory.append({"role": "assistant", "content": reply},)
-                            stream=False # force return of data
-                        else: LogWarn("No mesage in responce!")
-                    except Exception as e:
-                        LogError(f"There was an error sending the Tool Call result. {str(e.args)}")
-                        reply = f"There was an error handling an OpenAI Tool Call. Check the logs."
-                        self.memory.pop()  # get rid of tool call
-                        self.memory.pop()  # get rid of the memory that called the tool call!
-
 
             else: LogWarn(f"AI_Openai: Didn't get response")
         except Exception as e:
@@ -134,6 +105,11 @@ class AI_openAI(AI):
         return str(reply.encode('ascii', 'ignore').decode("utf-8"))
 
     def reply_async(self, args):
+        # tool calls
+        tc = None
+        ic_id = None
+        tc_arg = ""
+
         reply = ""
         full_reply = ""
         finish = ""
@@ -150,7 +126,7 @@ class AI_openAI(AI):
         resp = False
         for chunk in response:
             if not resp: resp = chunk
-            LogDebug(f"Async: {chunk}")
+            LogDebug(f"Async ch: {chunk}")
             m = chunk.choices[0].delta.content
             finish = chunk.choices[0].finish_reason
             if m:
@@ -159,14 +135,24 @@ class AI_openAI(AI):
                 if eos:
                     reply = reply + m[:(eos.span()[0])+2]
                     self.mouth.say(self.StripActions(reply), face=face, asyn=True)
-                    LogDebug("Async: " + str(chunk))
                     reply = m[(eos.span()[0])+2:]
                 else: reply = reply + m
+            if chunk.choices[0].delta.tool_calls:
+                if chunk.choices[0].delta.tool_calls[0].function.arguments: tc_arg = tc_arg + chunk.choices[0].delta.tool_calls[0].function.arguments
+                if chunk.choices[0].delta.tool_calls[0].function.name:
+                    tc = chunk.choices[0].delta.tool_calls[0].function.name
+                    tc_id = chunk.choices[0].delta.tool_calls[0].id
+
+        if finish == "tool_calls":
+            LogDebug(f"Async Tool Call: {tc}({tc_arg})")
+            self.memory.append(resp.choices[0].delta)    # from https://platform.openai.com/docs/guides/function-calling
+            reply = self.HandleToolCall(tc, tc_id, tc_arg)
+            full_reply = reply
         self.mouth.say(self.StripActions(reply), face=face, asyn=False)
         if face: face.off()
-        resp.choices[0].finish_reason = finish
-        return self.StripActions(full_reply), resp # always strip reply when async
 
+        return self.StripActions(full_reply)
+ 
 
     def reply_sync(self, args, should_strip=True):
 
@@ -178,10 +164,52 @@ class AI_openAI(AI):
             reply =  response.choices[0].message.content
             if not reply: reply = ""
         LogDebug("Sync: " + str(response))
-        if should_strip: return self.StripActions(reply), response
-        else: return reply, response
 
+        if response.choices[0].finish_reason == "tool_calls":
+            # append the tool call reply
+            name =  response.choices[0].message.tool_calls[0].function.name
+            id =  response.choices[0].message.tool_calls[0].id
+            argument =  response.choices[0].message.tool_calls[0].function.arguments
+            self.memory.append(response.choices[0].message)    # from https://platform.openai.com/docs/guides/function-calling
+            reply = self.HandleToolCall(name, id, argument)
+        if should_strip: return self.StripActions(reply)
+        else: return reply
 
+    def HandleToolCall(self, name, id, arguments):
+
+        self.memory.append({"role": "tool", "tool_call_id": id, "content": "success"},)
+
+        # get tool call data
+        reply = eval('self.'+ name +"(" + arguments+ ")")
+        LogDebug(f"Tool call result: {reply}")
+
+        # append the message
+        (user_input, max_tokens, tools, streamx) = self.HandleResponse(False, reply) # reply contains result of ttol call
+        LogDebug(f"Sending tool call: {self.memory[-1]}")
+        args = {'model': self.model(), 'messages':self.GetMemory()}
+        if max_tokens:    args['max_tokens']  = max_tokens
+        if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
+
+        try:
+            response = self.client.chat.completions.create(**args)
+            LogDebug(f"Response from tool call: {response}")
+            if response.choices[0].message.content:
+                reply = self.StripActions(response.choices[0].message.content)
+                self.memory.append({"role": "assistant", "content": reply},)
+                stream=False # force return of data
+            else: LogWarn("No mesage in responce!")
+        except Exception as e:
+            LogError(f"There was an error sending the Tool Call result. {str(e.args)}")
+            reply = f"There was an error handling an OpenAI Tool Call. Check the logs."
+            self.memory.pop()  # get rid of tool call
+            self.memory.pop()  # get rid of the memory that called the tool call!
+
+        # save and reload the convo to remove the tool calls from memory
+        self.WriteConvo()
+        self.memory = self.LoadConvo()
+
+        return reply
+    
     #NOte: this function alters the memory
     def HandleResponse(self, class_resp, user_input, canParaphrase=False):
 #       The parent class handled the input.  
@@ -190,12 +218,10 @@ class AI_openAI(AI):
         max_tokens = 500*self.token_mult
 
         if class_resp:
-            if canParaphrase and not cf.g('SAVE_TOKENS'):  # something to paraphrase
-                user_input = "Paraphrase '"+class_resp+"'"
             if not class_resp[0].isalpha(): # contains instructions (!, #, @)
                 user_input = class_resp
             else:
-                return (False, False, False, False)
+                return (False, False, False, False) # say the class responce
 
 #        return "ChatGPT: '"+user_input+"'"  # uncomment to test without using tokens
         role = "user"
@@ -204,17 +230,21 @@ class AI_openAI(AI):
             user_input = user_input[1:]
             self.memory.append({"role": role, "content": user_input},)
 
-        #reply is a command 
+        if user_input[:1] == '~': #paraphrase
+            user_input = user_input[1:]
+            self.memory.append({"role": role, "content": "Paraphrase '"+class_resp+"'"},)
+
+        #reply is a command
         elif user_input[:1] == '!': #command
-             role = "assistant"
+#             role = "assistant"
              user_input = user_input[1:]
              self.memory.append({"role": role, "content": user_input},)
              max_tokens=100*self.token_mult  #75 words - keep it short for spontanous uttering
              stream=False
 
-        #reply is an command 
+        #reply is an command
         elif user_input[:1] == '^': #write memories
-             role = "assistant"
+#             role = "assistant"
              user_input = user_input[1:]
              self.memory.append({"role": role, "content": user_input},)
              max_tokens=1000*self.token_mult
@@ -231,7 +261,8 @@ class AI_openAI(AI):
         #reply is just text
         else:
              self.memory.append({"role": role, "content": user_input})
-             ret_tools = self.tools
+
+        ret_tools = self.tools
 
         return (user_input, max_tokens, ret_tools, stream)
 
@@ -239,12 +270,12 @@ class AI_openAI(AI):
         return cf.g(key)
 
     def GetMemory(self):
-         return self.memory
-#        slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
-#        return self.memory[3:] + self.memory[slice:]
+#        return self.memory
+        slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
+        return self.memory[:3] + self.memory[slice:]
 
     def TakePictureToolCall(self, context):
-        LogInfo("Calling Taking Picture from ChatGPT")
+        LogInfo(f"Calling Taking Picture from {self.name}")
         file = self.TakePicture()
         url = self.eyes.UploadPicture(file)
         LogInfo(f"URL: {url}")
@@ -258,25 +289,6 @@ class AI_openAI(AI):
         self.face.off()
         return f"#{context}#{file}#{url}"
 
-    #ON Startup
-    def Hello(self):
-#        return self.respond(f"!{cf.g('GREET_STR').format(cf.c('USERNAMEP', 'USERNAME'), AI.PrettyDuration(self, datetime.now() - self.last_user_interaction))}")
-        return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
-
-    # On Wake State return greeting
-    def WakeMessage(self):
-        resp = "!{cf.g('WAKE_STR')}"
-        return self.respond(resp)
-
-    # From Idle State return greeting when user seen
-    def Greet(self):
-          if (self.LastAIInteraction() / 3600) > cf.g('AWAY_HOURS'):  # haven't talked to the user in more then 6 hours
-              if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR')}")
-              elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR')}")
-              elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR')}")
-
-          if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR')}")
-          else: return self.InitiateConvo()
 
     def Think(self):
         # when the memory gets too full, reset it.
@@ -286,17 +298,6 @@ class AI_openAI(AI):
 #            self.memory = self.LoadConvo(read=False)
 #            self.face.off()
         return AI.Think(self)
-
-    def InitiateConvo(self, mood=""):
-        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
-        elif random.randint(0, 5) == 1:
-            path = self.TakePicture(0, selfie=True)
-            if path:
-                url  = self.eyes.UploadPicture(path)
-                desc = f"{cf.g('CAMERA_CONVO_STR')}"
-                return self.respond(f'#!{desc}#{path}#{url}') # force async
-        return self.respond(f"!{cf.g('CONVO_STR').format(self.TimeOfDay())}")
-
 
     def IsConvoDirty(self):
         try:
@@ -327,7 +328,7 @@ class AI_openAI(AI):
                         f.write(f"{m['content']}|{next['content']}\n")
                         i = i+1
                 except:
-                    LogWarn(f"WriteConvo: item not indexable: {m}")
+                    LogWarn(f"WriteConvo: item not indexable: {m}") # will get thrown for tool calls
                     pass  # not indexable
                 i = i+1
             f.close()
@@ -384,11 +385,6 @@ class AI_openAI(AI):
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
         return "!"+AI.SetEvent(self, event)
 
-    def Intruder(self):
-        AI.Intruder(self)
-        return self.respond(f"!{cf.g('INTRUDER_STR')}")
-        #email URL
-
     def SaveMemories(self, memory=False):  # called on close
         if not memory:
             self.memory = self.memory[3:]
@@ -423,7 +419,7 @@ class AI_ChatGPT(AI_openAI):
     model_key = 'CHATGPT_MODEL'
     slow_model_key = 'CHATGPT_MODEL_SLOW'
     name = "ChatGPT"
-    tools = False # function_tools # False # turn this on if asked
+    tools = function_tools # False # turn this on if asked
     token_mult = 1
     training = True
 
@@ -465,17 +461,24 @@ class AI_Llama(AI_openAI):
 
 if __name__ == '__main__':
 #    from camera_tools import Camera
-#    eyes = Camera()
- 
-    global STATE
+    from speech_tools import DummySpeech
     from face import DummyFace
-    STATE.ChangeState('Idle')
-    ai = AI_Llama()
-    ai.face = DummyFace()
+    import pygame
 
+    pygame.mixer.init()
+ #   eyes = Camera()
+
+    global STATE
+    SetErrorLevel(4)
+    STATE.ChangeState('Idle')
+    ai = AI_ChatGPT()
+    ai.face = DummyFace()
+  #  ai.eyes = eyes
+    ai.mouth = DummySpeech()
     user_inp = ""
     while not STATE.ShouldQuit():
-        user_inp = "^" + input(f"{cf.g('USERNAME')}: ")
+        user_inp = input(f"{cf.g('USERNAME')}: ")
         print(f'{cf.g("AINAME")}: {ai.respond(user_inp)}')
 
+   # eyes.Close()
 #    ai.Close()

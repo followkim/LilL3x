@@ -347,9 +347,18 @@ class AI:
 
         return
 
+    def LastInteraction(self):
+        if cf.g('IDLE_ON_CAMERA'): return min(self.eyes.LastSeen(), self.LastUserInteraction())
+        else: return self.LastUserInteraction()
+
+    def LastUserInteraction(self):
+        return (datetime.now()-self.last_user_interaction).seconds
+
+    def LastAIInteraction(self):
+        return (datetime.now()-self.last_ai_interaction).seconds
+
     def IsIdle(self):
          return not self.LookForUser() and self.LastInteraction() > ((cf.g('ACTIVE_IDLE_TO')*60) & 0xffffffff)
-
 
     def CanInteract(self):
         if not ('INITIATE_ODDS') or not self.LookForUser() or self.CanIHearYou(): return False
@@ -375,53 +384,39 @@ class AI:
             return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
         else: return ""
 
-    def LastInteraction(self):
-        if cf.g('IDLE_ON_CAMERA'): return min(self.eyes.LastSeen(), self.LastUserInteraction())
-        else: return self.LastUserInteraction()
-
-    def LastUserInteraction(self):
-        return (datetime.now()-self.last_user_interaction).seconds
-
-    def LastAIInteraction(self):
-        return (datetime.now()-self.last_ai_interaction).seconds
-
-    def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
-        event_name = event['event_name']
-        event_date = event['event_date']
-        self.messages.SetMessage('event', event_name, event_date)
-        return (f"OK, I'll remind you about {event_name} at {event_date}")
-
 
     def Close(self):
         cf.s('LAST_INTERACTION', self.last_ai_interaction.strftime(cf.g('CONFIG_DT_FORMAT')))
         return
 
-    # Default responses uses in AIs not designed to take demands. 
-
     # From Idle State return greeting when user seen
     def Greet(self):
-          if (self.LastAIInteraction() / 3600) > 6:  # haven't talked to the user in more then 6 hours
-              self.respond(f"Good {self.TimeOfDay()}!  It's been a few hours.")
-          else: return self.InitiateConvo()
+        if (self.LastAIInteraction() / 3600) > cf.g('AWAY_HOURS'):  # haven't talked to the user in more then 6 hours
+            if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR')}")
+            elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR')}")
+            elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR')}")
+
+        if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR')}")
+        else: return self.InitiateConvo()
 
     def InitiateConvo(self, mood=""):
-        if mood: return self.respond(f"I feel {mood} right now.")
-        elif self.has_vision and random.randint(0, 4) == 1:
-            path = self.TakePicture(0)
+        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
+        elif self.has_vision and random.randint(0, 5) == 1:
+            path = self.TakePicture(0, selfie=True)
             if path:
                 url  = self.eyes.UploadPicture(path)
-                desc = f"Here is a picture of what you can see"
+                desc = f"{cf.g('CAMERA_CONVO_STR')}"
                 return self.respond(f'#!{desc}#{path}#{url}') # force async
-
-        return self.respond(f"Good {self.TimeOfDay()}")
+        return self.respond(f"!{cf.g('CONVO_STR').format(self.TimeOfDay())}")
 
 
     def Hello(self):
-        return self.respond(f"Hello {cf.g('AINAME')}")
+        return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
-    def WakeMessage(self):
-        resp = f"Hey {cf.g('AINAME')}"
-        return self.respond(resp)
+    def Intruder(self):
+        AI.Intruder(self)
+        return self.respond(f"!{cf.g('INTRUDER_STR')}")
+        #email URL
 
     # A few time utilities - might wnat to move these into a seperate file
     def TimeOfDay(self):
@@ -499,10 +494,17 @@ class AI:
         newStr = str(newStr.encode('ascii', 'ignore').decode("utf-8"))
         newStr = newStr.replace(cf.g('AINAME'  ), cf.c('AINAMEP',   'AINAME'  ))
         newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
-        newStr = newStr.replace(cf.g('USERNAME'), cf.c('USERNAMEP', 'USERNAME'))
 #        newStr = newStr.replace('"', '')  # remove quotes
 #        newStr = newStr.replace("'", '')
         return newStr
+
+    def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
+        event_name = event['event_name']
+        event_date = event['event_date']
+        self.messages.SetMessage('event', event_name, event_date)
+        return (f"OK, I'll remind you about {event_name} at {event_date}")
+
+
 
 if __name__ == '__main__':
 
