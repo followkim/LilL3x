@@ -62,7 +62,6 @@ class AI_Nomi(AI):
                 return class_resp  # everythign else just read as is
 
         chat_url = cf.g('NOMI_URL').format(cf.g("NOMI_ID"))
-        print(chat_url)
         chat_data = {
             'messageTxt': user_input
         }
@@ -87,7 +86,7 @@ class AI_Nomi(AI):
                 error_data = json.loads(e.read().decode())
                 LogError(f"Nomi HTTPError: {error_data}")
         except Exception as e:
-            print(f"Nomi POST Error: {e}")
+            LogError(f"Nomi POST Error: {e}")
 
         self.face.off()
         return reply
