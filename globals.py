@@ -13,8 +13,9 @@ def SleepOn(secs=-1, varf=STATE.GetState, step=0.5, watchState=True, wakeOn=None
     haveWake = wakeOn!=None
 
     if watchState:
+        thisState = STATE.GetState()
         if STATE.ShouldWake(): return
-        else: thisState = STATE.GetState()
+
     # starting condition
     var = varf()
     sleep_for = min(step, max(secs,step))

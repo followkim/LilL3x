@@ -23,7 +23,7 @@ class AI_Gemini(AI):
     name = "Gemini"
     training = True
     has_vision = True
-
+    tools = False
     def __init__(self):
         AI.__init__(self)
         genai.configure(api_key=cf.g('GEMINI_API_KEY'))
