@@ -175,7 +175,7 @@ class elevenLabs_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        url = cf('ELEVENLABS_URL') + cf.g('ELEVENLABS_VOICE_ID')
+        url = cf.g('ELEVENLABS_URL') + cf.g('ELEVENLABS_VOICE_ID')
 
         data = {
             "text": txt,

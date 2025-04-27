@@ -374,8 +374,8 @@ if __name__ == '__main__':
     c = Camera()
 #    exit(0)
     try: 
-        Thread  = threading.Thread(target=c.CameraLoopThread)
-        Thread.start()
+#        Thread  = threading.Thread(target=c.CameraLoopThread)
+#        Thread.start()
         c.ShowView()
         while not c.CanISeeYou(): sleep(0.25)
         print("user seen")
