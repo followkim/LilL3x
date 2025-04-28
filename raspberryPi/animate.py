@@ -204,10 +204,10 @@ class Screen:
        vol = (max(STATE.volume,1)/cf.g('MAX_VOLUME')) * step*(arcs+1)
        if STATE.volume > 0: draw.ellipse((0, 0, step, step), fill=1, outline=1)
        else: draw.ellipse((2, 2, 4, 4), fill=1, outline=1)
-       i = 0
-       while i < arcs and vol > (i*step):
-           i = i + 1                    # skip the first arc to leave some space (first arc is too small also)
+       i = 1
+       while i <= arcs and vol > (i*step):
            draw.arc((0, 0, step + (i*step), step + (i*step)), start=start, end=end, fill="white", width=1)
+           i = i + 1                    # skip the first arc to leave some space (first arc is too small also)
 
 
     def DrawVolumeBar(self, draw, x=5, y=20, h=40, w=4):
