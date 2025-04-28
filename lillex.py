@@ -322,10 +322,8 @@ class lill3x:
                    self.ears.update()
                    self.ai.say(self.ai.Greet())
                 else: STATE.ChangeState('ActiveIdle')
-            else:
-                SleepOn(-1, self.ai.IsIdle, step=10, wakeOn=False)  # sleep until State change or seeing user
-        else:
-            SleepOn((cf.g('IDLE_WAIT_MIN')*60) - self.ai.LastAIInteraction()) # may be negative, will sleep until state change (wake)
+            else: SleepOn(cf.g('IDLE_SLEEP'))
+        else: SleepOn((cf.g('IDLE_WAIT_MIN')*60) - self.ai.LastAIInteraction()) # may be negative, will sleep until state change (wake)
 
     def SleepState(self):
         ''' Sleep: Lights are off.  AI Hardware is turned off.

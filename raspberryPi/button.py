@@ -17,12 +17,12 @@ beeps = {
 
 class Button:
 
-    BUTTON = 17
     btn = False
     def __init__(self):
+        BUTTON = 17
 #        GPIO.setmode(GPIO.BCM)
 #        GPIO.setup(self.BUTTON, GPIO.IN)
-        self.btn = gpiozero.Button(17)
+        self.btn = gpiozero.Button(BUTTON)
 
     def ButtonThread(self, audio):
         while not STATE.ShouldQuit():

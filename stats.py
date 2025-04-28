@@ -14,13 +14,13 @@ import time
 from datetime import datetime
 import subprocess
 import socket
-
 from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
 
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
+import gpiozero
 BUTTON = 17
 
 
@@ -66,13 +66,14 @@ font = ImageFont.load_default()
 # font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
 
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON, GPIO.IN)
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setup(BUTTON, GPIO.IN)
+btn = gpiozero.Button(BUTTON)
 
 hostname = socket.gethostname()
 start = datetime.now()
 
-while (GPIO.input(BUTTON)) and (datetime.now()-start).total_seconds() < (60*10):
+while (not btn.is_pressed) and (datetime.now()-start).total_seconds() < (60*10):
     # Draw a black filled box to clear the image.
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
 
@@ -89,9 +90,9 @@ while (GPIO.input(BUTTON)) and (datetime.now()-start).total_seconds() < (60*10):
     try:
         cmd = "/usr/sbin/iwgetid -r"
         SSID = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if SSID in ("", "LilL3x") and IP.count(".")<3:
+        if SSID in ("", hostname) and IP.count(".")<3:
             start = datetime.now()  # don't time out if wainting for IP
-            SSID="LilL3x" #hostname #TODO use hostname as ssid
+            SSID=hostname
     except:
         pass
 
@@ -105,12 +106,12 @@ while (GPIO.input(BUTTON)) and (datetime.now()-start).total_seconds() < (60*10):
         draw.text((x, top + ((height/4)*2)), "Waiting for IP...", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), " ", font=font, fill=255)
 
-    elif SSID == "LilL3x":
+    elif SSID == hostname:
         draw.text((x, top + ((height/4)*2)), "Logon to local wifi.", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "Goto wifi.php", font=font, fill=255)
     else:
-        draw.text((x, top + ((height/4)*2)), f"Welcome to {hostname}!  Press", font=font, fill=255)
-        draw.text((x, top + ((height/4)*3)), "Button to Continue", font=font, fill=255)
+        draw.text((x, top + ((height/4)*2)), f"Welcome to {hostname}!", font=font, fill=255)
+        draw.text((x, top + ((height/4)*3)), "Press The Button", font=font, fill=255)
 
     disp.image(image)
     disp.show()
