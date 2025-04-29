@@ -14,3 +14,4 @@ include
 pyvenv.cfg 
 sr.py
 /training/*.dat
+/vosk/*
