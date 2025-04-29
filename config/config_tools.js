@@ -30,13 +30,15 @@ function showhide(name, evt) {
        	const hide = document.querySelectorAll("[class*='"+name+"_']"); // Replace '.className' with the actual class name
 	for (var i=0;i<hide.length;i+=1){
 		hide[i].style.display = 'none';
-                console.log(i + "Hiding " + hide[i].class)
+                console.log(i + "Hiding " + hide[i].className)
+                hide[i].dispatchEvent(new Event('change'));
 		// TODO : search the children of this element to close all dependants
 	}
        	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
 	for (var i=0;i<show.length;i+=1){
 		show[i].style.display = '';
-                console.log(i + "Showing " + show[i].class)
+                console.log(i + "Showing " + show[i].className)
+                show[i].dispatchEvent(new Event('change'));
 	}
 	console.log("curr: " + selectedValue);
 }
@@ -48,13 +50,15 @@ function showhideChk(name, evt) {
        	const hide = document.querySelectorAll("[class*='"+name+"_']"); // Replace '.className' with the actual class name
 	for (var i=0;i<hide.length;i+=1){
 		hide[i].style.display = 'none';
-                console.log(i + "Hiding " + hide[i].class)
+                console.log(i + "Hiding " + hide[i].className)
+                hide[i].dispatchEvent(new Event('change'));
 		// TODO : search the children of this element to close all dependants
 	}
        	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
 	for (var i=0;i<show.length;i+=1){
 		show[i].style.display = '';
-                console.log(i + "Showing " + show[i].class)
+                console.log(i + "Showing " + show[i].className)
+                show[i].dispatchEvent(new Event('change'));
 	}
 	console.log("curr: " + selectedValue);
 }
