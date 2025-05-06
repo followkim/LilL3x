@@ -18,6 +18,7 @@ from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
+from picamera2 import Picamera2
 
 #import RPi.GPIO as GPIO
 import gpiozero
@@ -32,6 +33,12 @@ i2c = busio.I2C(SCL, SDA)
 # to the right size for your display!
 disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 
+
+# check the camera
+try:
+    cam = Picamera2
+except:
+    cam = False 
 # Clear display.
 disp.fill(0)
 disp.show()
