@@ -7,7 +7,6 @@ import threading
 from pathlib import Path
 from datetime import datetime, timedelta
 import openai
-import llamaapi
 import random
 from AI_class import AI
 from error_handling import *
@@ -16,11 +15,6 @@ from function_tools import function_tools
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE
 from config import cf
-
-class tool_call:
-    name = ""
-    id = ""
-    args = ""
 
 class AI_openAI(AI):
     base_url = ""
@@ -37,11 +31,7 @@ class AI_openAI(AI):
 
     def __init__(self):
         AI.__init__(self)
-        if self.base_url:
-#            self.client = openai.Client(api_key=self.api_key,base_url=self.base_url)
-            self.client=openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
-        else:
-            self.client = openai.Client(api_key=self.api_key,)
+        self.client = openai.Client(api_key=self.api_key,)
 
 
         self.memory = self.LoadConvo()
@@ -49,7 +39,7 @@ class AI_openAI(AI):
         return
 
     def model(self, vision=False):
-        if vision: return cf.c(self.vision_model_key, self.model_key)
+        if vision and self.has_vision: return cf.c(self.vision_model_key, self.model_key)
         else: return cf.g(self.model_key)
 
     def respond(self, user_input):
@@ -85,9 +75,10 @@ class AI_openAI(AI):
             if max_tokens: args['max_tokens'] = max_tokens
             if tools: args['tools'] = tools
             if self.use_temp: args['temperature'] = cf.g('TEMPERATURE')
-            if stream: args['stream'] = True  # could set to false if tools are used
             
-            if stream: reply = self.reply_async(args)
+            if stream:
+                args['stream'] = True
+                reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
 
             if reply:
@@ -115,8 +106,11 @@ class AI_openAI(AI):
         finish = ""
         resp = ""
         face = self.face
-        response = self.client.chat.completions.create(**args)
-
+        try:
+            response = self.client.chat.completions.create(**args)
+        except Exception as e:
+            LogError(f"Caught exception creating response: {e.args}")
+            return ""
         #if this is a picture we are talking about, leave it on the screen
 #        if args['model']==self.model(vision=True):
         if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
@@ -124,33 +118,37 @@ class AI_openAI(AI):
             self.face.looking()  # turn the screen
 
         resp = False
-        for chunk in response:
-            if not resp: resp = chunk
-            LogDebug(f"Async ch: {chunk}")
-            m = chunk.choices[0].delta.content
-            finish = chunk.choices[0].finish_reason
-            if m:
-                full_reply = full_reply + m
-                eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
-                if eos:
-                    reply = reply + m[:(eos.span()[0])+2]
-                    self.mouth.say(self.StripActions(reply), face=face, asyn=True)
-                    reply = m[(eos.span()[0])+2:]
-                else: reply = reply + m
-            if chunk.choices[0].delta.tool_calls:
-                if chunk.choices[0].delta.tool_calls[0].function.arguments: tc_arg = tc_arg + chunk.choices[0].delta.tool_calls[0].function.arguments
-                if chunk.choices[0].delta.tool_calls[0].function.name:
-                    tc = chunk.choices[0].delta.tool_calls[0].function.name
-                    tc_id = chunk.choices[0].delta.tool_calls[0].id
+        try:
+            for chunk in response:
+                if not resp: resp = chunk  # grab the firset chunk to be used below for tool calls
+                LogDebug(f"Async ch: {chunk}")
+                m = chunk.choices[0].delta.content
+                finish = chunk.choices[0].finish_reason
+                if m:
+                    full_reply = full_reply + m
+                    eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
+                    if eos:
+                        reply = reply + m[:(eos.span()[0])+2]
+                        self.mouth.say(self.StripActions(reply), face=face, asyn=True)
+                        reply = m[(eos.span()[0])+2:]
+                    else: reply = reply + m
+                if chunk.choices[0].delta.tool_calls:
+                    if chunk.choices[0].delta.tool_calls[0].function.arguments: tc_arg = tc_arg + chunk.choices[0].delta.tool_calls[0].function.arguments
+                    if chunk.choices[0].delta.tool_calls[0].function.name:
+                        tc = chunk.choices[0].delta.tool_calls[0].function.name
+                        tc_id = chunk.choices[0].delta.tool_calls[0].id
+    
+            if finish == "tool_calls":
+                LogDebug(f"Async Tool Call: {tc}({tc_arg})")
+                self.memory.append(resp.choices[0].delta)    # from https://platform.openai.com/docs/guides/function-calling
+                reply = self.HandleToolCall(tc, tc_id, tc_arg)
+                full_reply = reply
+            self.mouth.say(self.StripActions(reply), face=face, asyn=False)
+        except Exception as e:
+            LogError(f"Caught exception creating resonse: {e.args}")
+            return ""
 
-        if finish == "tool_calls":
-            LogDebug(f"Async Tool Call: {tc}({tc_arg})")
-            self.memory.append(resp.choices[0].delta)    # from https://platform.openai.com/docs/guides/function-calling
-            reply = self.HandleToolCall(tc, tc_id, tc_arg)
-            full_reply = reply
-        self.mouth.say(self.StripActions(reply), face=face, asyn=False)
         if face: face.off()
-
         return self.StripActions(full_reply)
  
 
@@ -211,7 +209,7 @@ class AI_openAI(AI):
         return reply
     
     #NOte: this function alters the memory
-    def HandleResponse(self, class_resp, user_input, canParaphrase=False):
+    def HandleResponse(self, class_resp, user_input):
 #       The parent class handled the input.  
 #       Unless told to paraphrase, return
         stream = True
@@ -423,24 +421,17 @@ class AI_ChatGPT(AI_openAI):
     token_mult = 1
     training = True
 
-class AI_Deepseek(AI_openAI):
+class AI_open_ai_url(AI_openAI):
 
-    tools = False
-    token_mult = 1
-    base_url = cf.g('DEEPSEEK_URL')
-    api_key = cf.g('DEEPSEEK_API')
-    model_key = 'DEEPSEEK_MODEL'
-    slow_model_key = model_key
-    name = "Deepseek"
+    base_url  = ""
 
     def __init__(self):
-        AI.__init__(self) 
+        AI.__init__(self)
         self.client=openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.memory = self.LoadConvo()
         return
 
-class AI_Grok(AI_openAI):
-
+class AI_Grok(AI_open_ai_url):
     tools = False
     token_mult = 1
     base_url = cf.g('GROK_URL')
@@ -448,16 +439,18 @@ class AI_Grok(AI_openAI):
     model_key = 'GROK_MODEL'
     slow_model_key = model_key
     name = "Grok"
+    has_vision = False
 
-class AI_Llama(AI_openAI):
+class AI_Llama(AI_open_ai_url):
     base_url = cf.g('LLAMA_BASE_URL')
     api_key = cf.g('LLAMA_KEY')
     model_key = 'LLAMA_MODEL'
     slow_model_key = 'LLAMA_MODEL_SLOW'
     name = "Llama"
     tools = False
-    token_mult = 0.5
+    token_mult = 1
     use_temp = False
+    has_vision = False
 
 if __name__ == '__main__':
 #    from camera_tools import Camera
@@ -471,7 +464,7 @@ if __name__ == '__main__':
     global STATE
     SetErrorLevel(4)
     STATE.ChangeState('Idle')
-    ai = AI_ChatGPT()
+    ai = AI_Llama()
     ai.face = DummyFace()
   #  ai.eyes = eyes
     ai.mouth = DummySpeech()
