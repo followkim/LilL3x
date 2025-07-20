@@ -36,7 +36,7 @@ disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 
 # check the camera
 try:
-    cam = Picamera2
+    cam = Picamera2()
 except:
     cam = False 
 # Clear display.
