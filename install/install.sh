@@ -2,7 +2,7 @@ sudo apt-get update
 
 git clone -b v2 http://github.com/followkim/LilL3x/
 python -m venv --system-site-packages LilL3x
-cat LilL3x/pyvenv.cfg | grep "include-system-site-packages = true"  ## TODO: take action if this line isn't there
+  ## TODO: take action if this line isn't there
 source LilL3x/bin/activate
 echo "source LilL3x/bin/activate" | sudo tee -a ~/.bashrc
 echo "cd ~/LilL3x/" | sudo tee -a ~/.bashrc
@@ -59,7 +59,7 @@ nano sr.py
 # seeed voicecard
 cd ~
 uname -rn  # get the kernal version, should be 6.6
-git clone -b v6.6 https://github.com/HinTak/seeed-voicecard/
+git clone -b v6.12 https://github.com/HinTak/seeed-voicecard/
 cd seeed-voicecard/
 sudo ./install.sh
 sudo raspi-config #TODO automate: pick sound card, turn on i2c 
@@ -75,7 +75,7 @@ sudo -E env PATH=$PATH python3 raspi-blinka.py
 pip install adafruit-circuitpython-ssd1306
 
 # system changes
-(crontab -l; echo "@reboot sh /home/el3ktra/LilL3x/launch.sh >> /home/el3ktra/LilL3x/Log/cronlog") | crontab -
+(crontab -l; echo "@reboot sh /home/el3ktra/LilL3x/launch.sh >> /home/el3ktra/LilL3x/log/cronlog") | crontab -
 
 echo "Enter a password (8 letters): "
 read password
