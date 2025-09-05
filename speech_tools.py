@@ -60,21 +60,27 @@ class speech_generator:
         if face and not asyn: face.off()
         return txt
 
-    def PlaySound(self, filename, watchState=False, asyn=False):
+    def PlaySound(self, filename, watchState=False, asyn=False, loop=False):
         if STATE.CheckState('Wake'): watchState = False
         if filename:
             while pygame.mixer.get_busy(): sleep(0.5)
             s = pygame.mixer.Sound(filename)
             s.set_volume(min(cf.g('VOLUME'), 10)/10) # does not go to 11
-            channel = s.play()
-            while channel.get_busy() and not asyn:
-                if watchState and STATE.CheckState('Wake'): s.stop()
+            c = pygame.mixer.Channel(0) if not loop else pygame.mixer.Channel(1)
+            c.play(s) if not loop else c.play(s, loops=-1)
+            while c.get_busy() and not asyn:
+                if watchState and STATE.CheckState('Wake'): c.stop()
                 else: sleep(0.5) #STATE.volume = channel.get_volume()
+            return c
 
     def StopSound(self):
         if pygame.mixer.music.get_busy():
             pygame.mixer.music.stop()
         return not pygame.mixer.music.get_busy()
+
+    def StopChannel(self, channel, fade=1):
+#         channel.stop()
+        channel.fadeout(fade*1000)
 
     def IsBusy(self):
         return pygame.mixer.get_busy()
@@ -292,11 +298,11 @@ if __name__ == '__main__':
     
     pygame.mixer.init()
     sr = speech_generator()
-    sr.SwitchEngine("google")
-    sr.say("the big red dog jumped over the lazy fox", asyn=True)
-    cf.s('GOOGLE_LANG_CODE', 'en-AU')
-    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
+#    sr.SwitchEngine("google")
+#    cf.s('GOOGLE_LANG_CODE', 'en-AU')
+#    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
 
+    sr.say("the big red dog jumped over the lazy fox", asyn=True)
     sr.say("oh what a beautiful day!", asyn=True)
     sr.say("I have a wonderful feeling", asyn=False)
     print("done")

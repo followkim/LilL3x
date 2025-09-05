@@ -67,10 +67,6 @@ class AI_ollama(AI_openAI):
         response = self.client.chat(**args)
 
 #        if args['model']==self.model(vision=True):
-        if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
-            face=False       # don't allow mouth to control the face
-            self.face.looking()  # turn the screen
-            self.face.leds.thinking()
         for chunk in response: #self.client.stream(self.GetMemory()):
             m = chunk['message']['content']
 #            m = chunk.content LC

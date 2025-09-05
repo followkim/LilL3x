@@ -81,8 +81,6 @@ class Config:
         currAI = self.g('AI_ENGINE')
         currListen = self.g('LISTEN_ENGINE')
         currSpeech = self.g('SPEECH_ENGINE')
-        currWWe = self.g('WAKE_WORD_ENGINE')
-        currWW = self.g('WAKE_WORD')
 #        currAudioProfile = self.g('AUDIO_PROFILE') TODO
 #        currFramesProfile = self.g('FRAMES_PROFILE')
 
@@ -116,13 +114,12 @@ class Config:
             cmds = []
             if currAI and currAI != self.g('AI_ENGINE'):   	 	cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
             if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):	cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
-            if currWW and currWW != self.g('WAKE_WORD'):		cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
             if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
-            if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
                 STATE.data = cmds
+        LogDebug("Config File Loaded")
         return len(self.config)
 
     def CheckConfig(self, load, check=False):
@@ -152,7 +149,7 @@ class Config:
                     if reload:
                         load[key] = {'val': type_f[check[key]['type']](check[key]['val']), 'type': check[key]['type'] }
                         self.config_changed = True
-
+                        LogDebug(f"Key {key} changed, marking for reload")
             except Exception as e:
                 LogError(f"CheckConfig got exception on key {key}: {str(e)}: {str(e.args)}")
         return load
@@ -179,7 +176,9 @@ class Config:
                             if isDict: cnfg[key]['req'] = req
                         except Exception as e:
                             LogWarn(f'Error inserting {key}:{val}({type}) ({e.args})')
-            if not isDict: os.system(f"sudo touch {fileName}")
+            if not isDict: 
+                os.system(f"sudo touch {fileName}")
+                LogDebug(f"touched file {fileName}")
         except Exception as e:
             LogError(f'LoadConfigDict ({fileName}) caught exception: ({e.args})')
 
@@ -268,13 +267,14 @@ class Config:
             else: LogError(f"WriteConfig: unable to read {self.configFileDefault}")
         except Exception as e:
             LogError(f"WriteConfig exception: {e.args}")
+        LogDebug("Wrote to config File.")
         return ret
 
     def CheckGit(self):
         self.lastGit = datetime.now()
         update_files = -1
         try:
-            repo = git.Repo(f"{os.getenv('HOME')}/LilL3x/")
+            repo = git.Repo(f"/home/el3ktra/LilL3x/")
             diff = self.GitDiff(repo)
             update_files = len(diff)
             if update_files>0:
@@ -297,7 +297,7 @@ class Config:
                     if file_updated: LogInfo(f"\t[{file.change_type}]:{file.a_path}")
                     else: LogError(f"File not updated:  [{file.change_type}]:{file.a_path}")
 
-                    if re.search(r"update.sh$",  file.a_path) and file_updated: os.system(f"bash {file.a_path} &")
+                    if re.search(r"update.sh$$",  file.a_path) and file_updated: os.system(f"bash {file.a_path} &")
                     if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart')
                     if file.a_path[-4:] == ".ppm" and file_updated:
                         STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine.  Changed will happen on restart
@@ -340,7 +340,9 @@ class Config:
             try:
                 return self.config[key]['val']
             except Exception as e: LogError(f"Config.g caught exception: {e.args}")
-        else: return default
+        else:
+            LogWarn(f"cf.g: Key {key} not found")
+            return default
 
     def d(self, key):
 #        if self.IsConfigDirty(): self.LoadConfig()
@@ -371,6 +373,7 @@ class Config:
         self.WriteConfig()
 
     def s(self, key, val):
+        LogDebug(f"Setting {key} to {val}")
         try:
             if re.search(r"^(int|bool)", self.config[key]['type']) and isinstance(val, str):
                 val = int(val)
@@ -401,7 +404,6 @@ class Config:
                    CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
 
                 if self.IsConfigDirty(): self.LoadConfig()
-
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
                 if (datetime.now()-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
                 else:  SleepOn(-1, self.config_wake, 10)

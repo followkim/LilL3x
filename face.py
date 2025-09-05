@@ -5,22 +5,26 @@ from config import cf
 from error_handling import *
 
 sys.path.insert(0, './raspberryPi/')
-from apa102 import APA102
-from animate import Screen
-from rasp_leds import LEDS
+from eyes import LEDS
+
+#sys.path.insert(0, './raspberryPi/')
+#from apa102 import APA102
+#from animate import DummyScreen
+#from rasp_leds import LEDS
+
 
 sys.path.insert(0, '..')
 LogInfo("Importing Face...")
 
 class Face:
-    screen = 0
+#    screen = 0
     leds = 0
     def __init__(self):
-        self.screen = Screen()
+#        self.screen = Screen()
         self.leds = LEDS()
-        animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-        animate_thread.name = f"{GetHostname()} AnimateThread"
-        animate_thread.start()
+#        animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
+#        animate_thread.name = f"{GetHostname()} AnimateThread"
+#        animate_thread.start()
         
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
         led_thread.name = f"{GetHostname()} LEDThread"
@@ -28,49 +32,51 @@ class Face:
  
 
     def SetViewControl(self, showViewStartFunc, showViewEndFunc):
-        self.view_start = showViewStartFunc
-        self.view_end = showViewEndFunc
+        pass
+#        self.view_start = showViewStartFunc
+#        self.view_end = showViewEndFunc
 
     def Close(self, run=True):
         if run:
-            self.screen.Close()
+ #           self.screen.Close()
             self.leds.Close()
 
     def talking(self, run=True):
         if run:
-            self.view_end()
+ #           self.view_end()
             self.leds.talking()
-            self.screen.talking()
+ #           self.screen.talking()
 
     def listening(self, run=True):
         if run:
-            self.view_end()
+  #          self.view_end()
             self.leds.listening()
-            self.screen.listening()
+  #          self.screen.listening()
 
     def thinking(self, run=True):
         if run:
-            self.view_end()
+   #         self.view_end()
             self.leds.thinking()
-            self.screen.thinking()
+   #         self.screen.thinking()
 
     def looking(self, run=True):
         if run:
             self.leds.looking()
-            self.view_start()
-            self.screen.looking()
+#            self.view_start()
+#            self.screen.looking()
 
     def idle(self, run=True):
         if run:
-            self.view_end()
-            self.screen.off()
+ #           self.view_end()
+ #           self.screen.off()
             self.leds.off()
- 
+
     def off(self, run=True):
         self.idle(run)
 
     def message(self, text):
-        self.screen.message(text)
+        pass 
+#       self.screen.message(text)
 def dummy(): pass
 
 class DummyFace:
@@ -101,24 +107,27 @@ if __name__ == '__main__':
     face.SetViewControl(dummy, dummy)
     STATE.ChangeState('ActiveIdle')
 
-    ww = pico_wake.pico_wake()
-    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
-    ww_thread.name = f"{GetHostname()} WakeWordThread"
-    ww_thread.start()
+#    ww = pico_wake.pico_wake()
+#    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
+#    ww_thread.name = f"{GetHostname()} WakeWordThread"
+#    ww_thread.start()
 
 
-    sleep(20)
-    '''
+#    sleep(20)
     # state test
+    LogDebug("talking")
     face.talking()
     sleep(2)
 
+    LogDebug("listening")
     face.listening()
     sleep(2)
 
+    LogDebug("thinking")
     face.thinking()
     sleep(2)
-    '''
+
+    LogDebug("idle")
     face.idle()
 #    b = 0
 #    while b >= 0:
@@ -136,7 +145,7 @@ if __name__ == '__main__':
         
 #    animate_thread = threading.Thread(target=face.screen.AnimateThread)
 #    animate_thread.start()
-    face.idle()
+#    face.idle()
 #    STATE.ChangeState('Looking')
 #    sleep(5)
 #    STATE.ChangeState('Surveil')
@@ -148,10 +157,10 @@ if __name__ == '__main__':
 #    face.listening()
 #    sleep(10)
 #    cf.s('SCREEN_DEBUG', True)
-    face.idle()
+#    face.idle()
 ##    face.message("Hi there!")
     STATE.ChangeState('Active')
-    face.looking()
+#    face.looking()
 #    sleep(360)
     STATE.ChangeState('Idle')
     sleep(10)
@@ -159,8 +168,8 @@ if __name__ == '__main__':
     sleep(10)
     STATE.ChangeState('ActiveIdle')
     sleep(10)
-    '''
     face.Close()
+    '''
     '''
     '''
     while face:

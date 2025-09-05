@@ -67,6 +67,7 @@ class SpeechRecognition_listener:
             self.speech.dynamic_energy_adjustment_ratio =1.5  # reset to default
             LogInfo(f"SR Update: no dynamic, energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
 
+        
         if not needMic or MIC_STATE.TakeMic(cf.g('MIC_TO')):
             with sr.Microphone() as source:
                 self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
@@ -122,7 +123,7 @@ class SpeechRecognition_listener:
                     while listen_thread.is_alive():
                         x += 1
                         speaking_energy = round(self.speech.current_energy-self.speech.energy_threshold)
-                        STATE.volume = speaking_energy   # self.speech.current_energy
+                        STATE.volume = self.speech.current_energy
                         run_avg.append(speaking_energy) # should be positive if user is speaking
                         if (x % 120) == 0: # print debug string every 1 secs
                             LogDebug(f"Energy:\t{round(self.speech.current_energy)}\t{round(self.speech.energy_threshold)}\t{speaking_energy}\t{round(sum(run_avg)/len(run_avg))}\t{(datetime.now()-dt).seconds}s")
@@ -283,6 +284,7 @@ class SpeechRecognition_listener:
 if __name__ == '__main__':
     pygame.mixer.init()
     sg = SpeechRecognition_listener()
+    print("sg.update")
     sg.update()
 #    sg.engine="whisper"
 #    while True:
@@ -295,9 +297,10 @@ if __name__ == '__main__':
 #        to = input()
 #        print("Phrase Limit: ", end="")
 #        pl = input()
-        cf.s('INTERPRET_ENGINE', 'vosk')
+#        cf.s('INTERPRET_ENGINE', 'vosk')
         print("Speak")
         txt = sg.listen()
         print(txt)
         print(f'\nElapsed Seconds: {(datetime.now()-dt).seconds}.  thrsh = {int(sg.speech.energy_threshold)}')
         sleep(1)
+1

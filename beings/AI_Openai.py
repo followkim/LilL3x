@@ -113,9 +113,9 @@ class AI_openAI(AI):
             return ""
         #if this is a picture we are talking about, leave it on the screen
 #        if args['model']==self.model(vision=True):
-        if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
-            face=None            # don't allow mouth to control the face
-            self.face.looking()  # turn the screen
+##        if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
+#            face=None            # don't allow mouth to control the face
+#            self.face.looking()  # turn the screen
 
         resp = False
         try:

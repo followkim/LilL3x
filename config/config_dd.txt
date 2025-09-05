@@ -3,9 +3,9 @@ USERNAMEP|Pronunciation|How you pronounce your name (if different)
 USEREMAIL|Email|Your email
 
 HEADER|AI Information|2
-AINAME|AI Name|Your AI's name
-AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
+AINAME|Cat Name|Your Cat's name
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
+WAKEPHRASE|Wake Prompt|The prompt to send to the AI model when you touch your cat's nose
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 OPEN_AI_API_KEY|GPT Model|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
 CHATGPT_MODEL|GPT Model|Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
@@ -22,7 +22,6 @@ CORGI_MODEL|Corgi Model||AI_ENGINE_Corgi
 CORGI_VISION_MODEL|Corgi Vision Model||AI_ENGINE_Corgi
 EL3KTRA_API_KEY|El3ktra API Key|Get from El3ktra|AI_ENGINE_El3ktra
 EL3KTRA_MODEL|El3ktra Model||AI_ENGINE_El3ktra
-EL3KTRA_VISION_MODEL|El3ktra Vision Model||AI_ENGINE_El3ktra
 GEMINI_API_KEY|Gemini API Key||AI_ENGINE_Gemini
 GEMINI_MODEL|Gemini Model|Get from <a href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">Gemini Models</a>|AI_ENGINE_Gemini
 GEMINI_MODEL_SLOW|Gemini Model Slow|Save tokens with a slower model for non-conversational replies.  Get from link above.|AI_ENGINE_Gemini
@@ -36,23 +35,9 @@ NOMI_ID|Nomi ID||AI_ENGINE_Nomi
 GROK_API|Grok API Key|Get from <a href="https://console.x.ai/team/default/api-keys" target="_blank">Grok API Key</a>|AI_ENGINE_Grok
 GROK_MODEL|Grok Model|Get from <a href="https://docs.x.ai/docs/models" target="_blank">Deepseek Models</a>|AI_ENGINE_Grok
 
-
-HEADER|Wake|2
-WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
-PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>|WAKE_WORD_ENGINE_pico
-WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
-
-
 HEADER|Behaviors|2
-VOLUME|Volume|Should be 1-10
-INITIATE_ODDS|Interactivity|Approximate interactions per hour (0 for none)
-INTERACT_MIN|Interactivity Min|Minutes to wait before interacting again
-INTERACT_MAX|Interactivity Max|Don't wait longer then this many minutes to interact
-ACTIVE_IDLE_TO|Active Timeout|Minutes until you AI goes into inactive mode. (-1 for never)
-IDLE_ON_CAMERA|Idle on View|Idle when the user isn't seen in Active Timeout minutes.  Otherwise, idle even if user is seen.
-IDLE_WAIT_MIN|Inactive Quiet|When inactive, minutes to wait before interacting again (-1 for never)
-SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes)
-SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in minutes)
+PURR_SEC|Purr seconds|Number of seconds of petting before purring starts
+STROKE_TO|Stroke|Number of seconds it takes to stroke a cat once
 
 HEADER|Listening|2
 LISTEN_ENGINE|Listen Engine|The engine that controls the microphone.  Vosk is better at listening but bad at correctly interpreting speech.
@@ -83,35 +68,17 @@ GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google
 GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>|SPEECH_ENGINE_google
 GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
 GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
-
-HEADER|Camera|2
-MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
-CAMERA_SLEEP_SEC|Camera Sleep|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
-IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
-CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
-
+VOLUME|Volume|Should be 1-10
 
 HEADER|LEDs|2
 BRIGHTNESS|Brightness|The brightness of the LEDs
 LIGHT_SPEED|LED Speed|How fast the LEDs will animate.  Should be 1-100
 LISTEN_LED|Listening Color|What color the LEDS will show when the AI is Listening.
-THINK_LED|Thinking Color|What color the LEDS will show when the AI is thinking.
+LOVE_LED|Love Color|What color the LEDS will show when the AI is thinking about you.
 TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to you.
-LOOK_LED|Looking Color|What color the LEDS will show when the AI is looking at you.
-
-HEADER|Screen|2
-FPS|Frames Per Second|Frames per second for display.
-MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
-SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
-SCREEN_DEBUG|Screen Info|Show debugging information on the screen
 
 HEADER|Developer Tools|2
 DEBUG|Logging Level|Set debug level messages
-SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees and indicate if sounds can be heard)
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
-WELCOME_IMAGE|Welcome Image|Image shown on startup
-
-#HEADER|Keys and Models|2
-
 
 

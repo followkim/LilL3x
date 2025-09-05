@@ -19,7 +19,7 @@ class Button:
 
     btn = False
     def __init__(self):
-        BUTTON = 17
+        BUTTON = 27
 #        GPIO.setmode(GPIO.BCM)
 #        GPIO.setup(self.BUTTON, GPIO.IN)
         self.btn = gpiozero.Button(BUTTON)
@@ -46,7 +46,7 @@ class Button:
                 STATE.ChangeState(beeps[restartBeeps])
                 LogInfo(f"Button: {beeps[restartBeeps]}")
             else:
-               sleep(0.5)
+               sleep(0.25)
         LogInfo("ButtonThread exit.")
 
 

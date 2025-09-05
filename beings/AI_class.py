@@ -29,7 +29,7 @@ class AI:
     name = ""
     messages = Messages()
     ears = 0
-    eyes =0
+#    eyes =0
 
     mouth = 0
     face = 0
@@ -42,12 +42,15 @@ class AI:
         self.last_user_interaction = self.last_ai_interaction
         self.has_auth = True
 
-    def SetBody(self, ears, eyes, mouth, face):
+    def SetBody(self, ears, mouth, face):
         self.ears = ears
-        self.eyes = eyes
+        #self.eyes = eyes
         self.mouth = mouth
         self.face = face
         self.face.message(self.name)
+
+    def Hello(self):
+        return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     def respond(self, txt):
         if not txt:
@@ -56,10 +59,6 @@ class AI:
         
         search_txt_p = txt.lower().strip()
         search_txt = re.sub(r'[^\w\s]', '', search_txt_p)
-
-        if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
-            STATE.ChangeState('ActiveIdle')
-            return f"!"
 
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
@@ -115,44 +114,6 @@ class AI:
 
         if re.search(r"(show|dump|output|print)( your)? (running |current |active )?threads", search_txt):
             return f"I have {ShowThreads()} running, check the logs for a list."
-
-        if re.search(r"^(is (something|anything) moving|can you see movement|am i moving)$", search_txt):
-            self.LookForUser(cf.g('CAMERA_PICT_SEC'))
-            return self.YesNo(self.eyes.IsUserMoving(), "Yes, I see movement",  "No, I can't see any movement")
-
-        if re.search(r"^can you see me$", search_txt):
-            return self.YesNo(self.LookForUser(cf.g('CAMERA_PICT_SEC')), "Yes, I can see you!",  "No, I can't see you")
-
-        if re.search(r"^is (the room|it) dark( in here)?$", search_txt):
-            return self.YesNo(self.eyes.IsDark(), "~Yes it is dark in here",  "~No it isn't dark in here")
-
-        if re.search(r"^show (me|us) what you see$", search_txt):
-            self.LookForUser(10)
-            return "~Here is what I see through my camera"
-
-        # TODO: parse out picture description
-        if self.has_vision and not self.tools and (re.search(r"(^|, |. |so |and )(get|take|snap) (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?", search_txt_p) or
-                re.search(r"^(hey )?look at (.*)$", search_txt)):
-            '''
-            m = re.search(r"^take (a |my|our )(look|picture|photo|snapshot)( (at|of) (.*))?$", search_txt)
-            if not m: m2 = re.search(r"^(hey )?look at (.*)$", search_txt)
-
-            selfie=False
-            if m:
-                if m[5]: desc = f"{self.GetString('CAMERA_STR').format('and '+ str(m[5]))}"
-                if m[1] in ('my', 'our') or m[5] in ('me', 'us'): selfie = True
-            elif m2: desc = f"{self.GetString('CAMERA_STR').format('and '+str(m2[2]))}"
-            else: desc = f"{self.GetString('CAMERA_STR').format(cf.g('USERNAME'))}"
-            '''
-            desc = cf.g('CAMERA_STR')
-            selfie = False
-            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'), selfie=selfie)
-
-            if path:
-                url  = self.eyes.UploadPicture(path)
-                return f'#{desc}#{path}#{url}'
-            else:
-                return "Sorry, I couldn't take a picture"
 
         if re.search(r"^((can i )?talk|switch|let me (talk|speak)) to (.*)*$", search_txt):    # , flags-re.IGNORECASE):
             AI = search_txt.split()[-1]
@@ -277,11 +238,10 @@ class AI:
 
     def listen(self, beQuiet=False):
         resp = self.ears.listen(beQuiet=beQuiet)
-        regex = re.compile(f"\\b{cf.c(cf.c('WAKE_WORD_REGEX', 'AINAMEP'), 'AINAME')}\\b")
-        resp = re.sub(regex,  cf.g('AINAMEP'), resp)
         if resp and not beQuiet:
             self.last_user_interaction = datetime.now()
         return resp
+
     def TrainData(self, user_input, reply):
         if self.training:
             reply = self.StripActions(reply).strip('\n')+"\n"  # can't include '\n' in {}
@@ -290,133 +250,15 @@ class AI:
             f.write(f"{datetime.now().strftime('%y-%m-%d %H:%M:%S')}|{user_input}|{reply}")
             f.close()
 
-    def Intruder(self):
-        url = self.eyes.SendPicture()
-        LogConvo(f"{cf.g('AINAME')}: INTRUDER!!! {url}")
-        #email URL
-        return
-
-    def CanIHearYou(self, duration=cf.g('AMBIENT')):
-        start = datetime.now()
-        avg = [STATE.volume]
-        quiet = self.ears.GetQuiet()
-        self.face.listening(cf.g('SHOW_USER_CHECK'))
-        newVol = STATE.volume - quiet
-        while (datetime.now()-start).seconds<duration:  # floor the volume for the meter
-            if STATE.volume != newVol:
-                avg.append(STATE.volume)  # don't accidently append the floored one
-                if cf.g('SHOW_USER_CHECK'):
-                    newVol = STATE.volume-quiet
-                    STATE.volume = newVol
-
-        self.face.off(cf.g('SHOW_USER_CHECK'))
-
-        vol = round(sum(avg) / len(avg))
-        LogDebug(f"CanIHearYou:vol={vol} > q={round(quiet)}: {vol > quiet}")
-        return vol and vol > quiet
-
-
-    def LookForUser(self, duration=0):
-        if duration or cf.g('SHOW_USER_CHECK'):
-            if not duration: duration = cf.g('LOOK_SECS_TO_DEFAULT')
-            self.face.looking()
-            if self.WaitWIS(duration): sleep(cf.g('CAMERA_PICT_SEC'))  # WaitWIS blocks until wis fuke and sleep allows the user to admire the view
-            self.face.off()
-        return self.eyes.CanISeeYou()
-
-    def TakePicture(self, duration=0, selfie=False):
-
-        # wait for WIS file, then show the view to get teh user ready
-        if duration>0:
-            self.face.looking()
-            if self.WaitWIS():
-                sleep(duration)  # second sleep allows the user to see the camera
-
-        if selfie: path = self.eyes.TakePortrait(beQuiet=(duration==0))  # will shutter sound if duration
-        else: path = self.eyes.TakePicture(beQuiet=(duration==0))  # will shutter sound if duration
-#        if path: sleep(duration)    #pause to show the picture (if duration==0 no sleep)
-        return path
-
-    def WaitWIS(self, duration=5):
-        # wait for the view to be shown
-        end = datetime.now() + timedelta(seconds=duration)
-        while not os.path.exists(cf.g('WIS_FILE')) and end>datetime.now(): sleep(0.1)
-        return os.path.exists(cf.g('WIS_FILE'))
-
     def Think(self):
 
         return
 
-    def LastInteraction(self):
-        if cf.g('IDLE_ON_CAMERA'): return min(self.eyes.LastSeen(), self.LastUserInteraction())
-        else: return self.LastUserInteraction()
-
-    def LastUserInteraction(self):
-        return (datetime.now()-self.last_user_interaction).seconds
-
-    def LastAIInteraction(self):
-        return (datetime.now()-self.last_ai_interaction).seconds
-
-    def IsIdle(self):
-         return not self.LookForUser() and self.LastInteraction() > ((cf.g('ACTIVE_IDLE_TO')*60) & 0xffffffff)
-
-    def CanInteract(self):
-        if not ('INITIATE_ODDS') or not self.LookForUser() or self.CanIHearYou(): return False
-        secs = self.LastAIInteraction()
-
-        # too soon for an action (and action not forced)
-        if secs > 0 and secs < (cf.g('INTERACT_MIN')*60):
-            return False
-        elif secs > (cf.g('INTERACT_MAX')*60):
-            return True
-        else: return False
-
-    def Interact(self, dice=False):
-
-        if not dice:
-            if self.LastAIInteraction() > (cf.g('INTERACT_MAX')*60): dice = 1
-        # if could interact: calculate random.  interactions per hour (ie 12) / initiate odds
-        else: dice = random.randint(0, round(((60*60)/cf.g('ACTIVE_IDLE_SLEEP')) / cf.g('INITIATE_ODDS')))
-
-        # If we hit the jackpot, interact
-        if dice == 1:
-            LogInfo(f"Performing Interaction after {round(self.LastUserInteraction()/60)} minutes.")
-            return(self.InitiateConvo(mood=self.eyes.GetEmotion()))
-        else: return ""
 
 
     def Close(self):
         cf.s('LAST_INTERACTION', self.last_ai_interaction.strftime(cf.g('CONFIG_DT_FORMAT')))
         return
-
-    # From Idle State return greeting when user seen
-    def Greet(self):
-        if (self.LastAIInteraction() / 3600) > cf.g('AWAY_HOURS'):  # haven't talked to the user in more then 6 hours
-            if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR')}")
-            elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR')}")
-            elif self.TimeOfDay() == "evening": return self.respond(f"!{cf.g('EVENING_STR')}")
-
-        if self.TimeOfDay() == "night": return self.respond(f"!{cf.g('NIGHT_STR')}")
-        else: return self.InitiateConvo()
-
-    def InitiateConvo(self, mood=""):
-        if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
-        elif self.has_vision and random.randint(0, 5) == 1:
-            path = self.TakePicture(0, selfie=True)
-            if path:
-                url  = self.eyes.UploadPicture(path)
-                desc = f"{cf.g('CAMERA_CONVO_STR')}"
-                return self.respond(f'#!{desc}#{path}#{url}') # force async
-        return self.respond(f"!{cf.g('CONVO_STR').format(self.TimeOfDay())}")
-
-
-    def Hello(self):
-        return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
-
-    def Intruder(self):
-        AI.Intruder(self)
-        return self.respond(f"!{cf.g('INTRUDER_STR')}")
-        #email URL
 
     # A few time utilities - might wnat to move these into a seperate file
     def TimeOfDay(self):
