@@ -53,7 +53,7 @@ class speech_generator:
             except Exception as e:
                 if face: face.off()
                 LogError(f"speech_tools: tts error: {e.args}")
-                txt = "There was a speech error  " + e.args
+                txt = f"There was a speech error {e.args}"
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
             while self.IsBusy(): sleep(0.5)
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     
     pygame.mixer.init()
     sr = speech_generator()
-    sr.SwitchEngine("typeCast")
+    sr.SwitchEngine("pytts")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
 #    cf.s('GOOGLE_LANG_CODE', 'en-AU')
 #    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
