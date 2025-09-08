@@ -28,7 +28,7 @@ class AI_openAI(AI):
     memory = []
     last_convo_load = datetime.now()
     use_temp = True
-
+    needsSave = False
     def __init__(self):
         AI.__init__(self)
         self.client = openai.Client(api_key=self.api_key,)
@@ -44,7 +44,7 @@ class AI_openAI(AI):
 
     def respond(self, user_input):
         if self.IsConvoDirty(): self.memory = self.LoadConvo()
-        
+
         start = datetime.now()
         ret = self.ai_respond(user_input)
         LogInfo(f"Completed request in {(datetime.now()-start).total_seconds()}s")
@@ -52,7 +52,7 @@ class AI_openAI(AI):
         write_convo_thread = threading.Thread(target=self.WriteConvo, daemon=True)
         write_convo_thread.name = f"{GetHostname()} WriteConvoThread"
         write_convo_thread.start()
-
+        self.needsSave = True
         return ret
 
 
@@ -89,10 +89,10 @@ class AI_openAI(AI):
         except Exception as e:
             LogError(f"There was an error talking to OpenAI. {str(e.args)}")
             reply = f"There was an error talking to OpenAI. Check the logs."
-            self.memory.pop()  #get rid of that bad membry!
+            self.memory = self.memory[:-1]  #get rid of that bad membry!
             stream=False
         self.face.off()
-        if stream: return ""
+        if stream: return ""  # dont reread last message read during async
         return str(reply.encode('ascii', 'ignore').decode("utf-8"))
 
     def reply_async(self, args):
@@ -121,7 +121,7 @@ class AI_openAI(AI):
         try:
             for chunk in response:
                 if not resp: resp = chunk  # grab the firset chunk to be used below for tool calls
-                LogDebug(f"Async ch: {chunk}")
+#                LogDebug(f"Async ch: {chunk}")
                 m = chunk.choices[0].delta.content
                 finish = chunk.choices[0].finish_reason
                 if m:
@@ -199,8 +199,7 @@ class AI_openAI(AI):
         except Exception as e:
             LogError(f"There was an error sending the Tool Call result. {str(e.args)}")
             reply = f"There was an error handling an OpenAI Tool Call. Check the logs."
-            self.memory.pop()  # get rid of tool call
-            self.memory.pop()  # get rid of the memory that called the tool call!
+            self.memory = self.memory[:-2]  # get rid of tool call and memory that called the tool
 
         # save and reload the convo to remove the tool calls from memory
         self.WriteConvo()
@@ -264,12 +263,24 @@ class AI_openAI(AI):
 
         return (user_input, max_tokens, ret_tools, stream)
 
+    def NoResponse(self):
+        if self.is_spontanous:
+            self.is_spontanous = False
+            LogDebug("No response.  Removing last two memories")
+#            self.memory = self.memory[:-2]  
+            del self.memory[-2:]
+            self.WriteConvo()
+            LogDebug(self.memory[:3])
+
     def GetString(self, key):
         return cf.g(key)
 
     def GetMemory(self):
 #        return self.memory
         slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
+        if self.memory[0]['role']!='system':
+            LogError("First memory NOT system!!")
+            self.memory = self.InitMemory() + self.memory
         return self.memory[:3] + self.memory[slice:]
 
     def TakePictureToolCall(self, context):
@@ -295,6 +306,9 @@ class AI_openAI(AI):
 #            self.face.thinking()
 #            self.memory = self.LoadConvo(read=False)
 #            self.face.off()
+        if self.needsSave: 
+            #self.SaveMemories()
+            self.needsSave = False
         return AI.Think(self)
 
     def IsConvoDirty(self):
@@ -421,7 +435,7 @@ class AI_ChatGPT(AI_openAI):
     token_mult = 1
     training = True
 
-class AI_open_ai_url(AI_openAI):
+class AI_OpenAIurl(AI_openAI):
 
     base_url  = ""
 
@@ -431,7 +445,7 @@ class AI_open_ai_url(AI_openAI):
         self.memory = self.LoadConvo()
         return
 
-class AI_Grok(AI_open_ai_url):
+class AI_Grok(AI_OpenAIurl):
     tools = False
     token_mult = 1
     base_url = cf.g('GROK_URL')
@@ -441,12 +455,23 @@ class AI_Grok(AI_open_ai_url):
     name = "Grok"
     has_vision = False
 
-class AI_Llama(AI_open_ai_url):
+class AI_Llama(AI_OpenAIurl):
     base_url = cf.g('LLAMA_BASE_URL')
     api_key = cf.g('LLAMA_KEY')
     model_key = 'LLAMA_MODEL'
     slow_model_key = 'LLAMA_MODEL_SLOW'
     name = "Llama"
+    tools = False
+    token_mult = 1
+    use_temp = False
+    has_vision = False
+
+class AI_Poe(AI_OpenAIurl):
+    base_url = cf.g('POE_BASE_URL')
+    api_key = cf.g('POE_KEY')
+    model_key = 'POE_MODEL'
+    slow_model_key = model_key
+    name = "Poe"
     tools = False
     token_mult = 1
     use_temp = False

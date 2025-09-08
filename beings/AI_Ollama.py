@@ -35,7 +35,7 @@ class AI_ollama(AI_openAI):
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
         self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
-        if class_resp in ( "!", ""): return "" 
+        if class_resp in ( "!", ""): return ""
         args = {'model': self.model(), 'stream': True}
 
         (user_input, args) = self.HandleResponse(class_resp, user_input, args)
@@ -54,7 +54,7 @@ class AI_ollama(AI_openAI):
             LogError(f"There was an error talking to Ollama. {str(e)}")
             reply = f"I had a slight glitch, give it a second and try again."
             args['stream'] = False
-            self.memory.pop()  #get rid of that bad membry!
+            self.memory = self.memory[:-1]  #get rid of that bad membry!
 
         self.face.off()
         if args['stream']: return "" # don't return the reply if streaming, it's already been spoken

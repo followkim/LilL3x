@@ -37,6 +37,8 @@ class AI:
     training = False
     has_vision = False
 
+    is_spontanous = False
+
     def __init__(self):
         self.last_ai_interaction = datetime.now()
         self.last_user_interaction = self.last_ai_interaction
@@ -51,7 +53,8 @@ class AI:
 
     def respond(self, txt):
         if not txt:
-            return False
+             return False
+#            return ""  #let the AI know that there was no responce
 
         
         search_txt_p = txt.lower().strip()
@@ -59,7 +62,8 @@ class AI:
 
         if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
             STATE.ChangeState('ActiveIdle')
-            return f"!"
+            self.last_ai_interaction = datetime.now() + timedelta(minutes=30)
+            return f"sorry"
 
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
@@ -254,7 +258,9 @@ class AI:
         # reboot
 
         return False # unable to match string, have child do it
-    
+
+    def NoResponse(self):
+        return
 
     def YesNo(self, test, yes, no):
         if test:
@@ -280,8 +286,10 @@ class AI:
         regex = re.compile(f"\\b{cf.c(cf.c('WAKE_WORD_REGEX', 'AINAMEP'), 'AINAME')}\\b")
         resp = re.sub(regex,  cf.g('AINAMEP'), resp)
         if resp and not beQuiet:
+            self.is_spontanous = False # is an actual conversation now!
             self.last_user_interaction = datetime.now()
         return resp
+
     def TrainData(self, user_input, reply):
         if self.training:
             reply = self.StripActions(reply).strip('\n')+"\n"  # can't include '\n' in {}
@@ -369,7 +377,7 @@ class AI:
             return False
         elif secs > (cf.g('INTERACT_MAX')*60):
             return True
-        else: return False
+        else: return True
 
     def Interact(self, dice=False):
 
@@ -389,8 +397,11 @@ class AI:
         cf.s('LAST_INTERACTION', self.last_ai_interaction.strftime(cf.g('CONFIG_DT_FORMAT')))
         return
 
+    # SPONTANOUS RESPONCES
+
     # From Idle State return greeting when user seen
     def Greet(self):
+        self.is_spontanous = True
         if (self.LastAIInteraction() / 3600) > cf.g('AWAY_HOURS'):  # haven't talked to the user in more then 6 hours
             if self.TimeOfDay() == "morning":   return self.respond(f"!{cf.g('MORNING_STR')}")
             elif self.TimeOfDay() == "afternoon": return self.respond(f"!{cf.g('AFTERNOON_STR')}")
@@ -400,8 +411,9 @@ class AI:
         else: return self.InitiateConvo()
 
     def InitiateConvo(self, mood=""):
+        self.is_spontanous = True
         if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
-        elif self.has_vision and random.randint(0, 5) == 1:
+        elif self.has_vision and random.randint(0, 2) == 1:
             path = self.TakePicture(0, selfie=True)
             if path:
                 url  = self.eyes.UploadPicture(path)
@@ -411,9 +423,11 @@ class AI:
 
 
     def Hello(self):
+        self.is_spontanous = True
         return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     def Intruder(self):
+        self.is_spontanous = True
         AI.Intruder(self)
         return self.respond(f"!{cf.g('INTRUDER_STR')}")
         #email URL
