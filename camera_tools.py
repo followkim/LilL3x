@@ -144,7 +144,7 @@ class Camera:
                                     tracker=cv2.legacy.TrackerCSRT_create()
                                     ret = tracker.init(img, (x, y, w, h))
                                     if cf.g('SCREEN_DEBUG') and self.show_view: cv2.rectangle(img,(int(x),int(y)),(int(x+w),int(y+h)),(0,0,0),10)
-                                    LogDebug(f"Camera: Found Face at ({x}, {y}, {w}, {h})")
+#                                    LogDebug(f"Camera: Found Face at ({x}, {y}, {w}, {h})")
                         else:
                             tracker = None
                             STATE.cx=0
