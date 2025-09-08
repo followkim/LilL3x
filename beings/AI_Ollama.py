@@ -33,7 +33,6 @@ class AI_ollama(AI_openAI):
         return
 
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
-        self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
         if class_resp in ( "!", ""): return "" 
         args = {'model': self.model(), 'stream': True}
@@ -56,14 +55,12 @@ class AI_ollama(AI_openAI):
             args['stream'] = False
             self.memory.pop()  #get rid of that bad membry!
 
-        self.face.off()
         if args['stream']: return "" # don't return the reply if streaming, it's already been spoken
         else: return reply
 
     def reply_async(self, args):
         reply = ""
         full_reply = ""
-        face = self.face
         response = self.client.chat(**args)
 
 #        if args['model']==self.model(vision=True):
@@ -74,14 +71,12 @@ class AI_ollama(AI_openAI):
             eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
             if eos:
                 reply = reply + m[:(eos.span()[0])+2]
-                if not face: self.face.leds.talking()
-                self.mouth.say(self.StripActions(reply), face=face, asyn=True)
+                self.mouth.say(self.StripActions(reply), asyn=True)
                 LogDebug("Async: " + str(chunk))
                 reply = m[(eos.span()[0])+2:]
-                if not face: self.face.leds.thinking()
             else: reply = reply + m
-        self.mouth.say(self.StripActions(reply), face=self.face, asyn=False)
-        self.face.off()
+        self.mouth.say(self.StripActions(reply), asyn=False)
+#        self.face.off()
         return self.StripActions(full_reply)
 
 
@@ -141,30 +136,6 @@ class AI_ollama(AI_openAI):
             self.memory.append({"role": role, "content": user_input})
             #max_tokens=1000*self.token_mult
 
-        #reply is a picture
-        elif user_input[:1] == '#': #picture
-            role = "user"
-            (user_input, path, url) = user_input[1:].split('#')
-
-            if user_input[0] == "!":
-                shouldStream = False
-                user_input = user_input[1:]
-            else:
-                shouldStream = True
-
-            if self.model() != self.model(vision=True):  # we have a vision model  and cf.g('USE_DESCRIPTION') TODO
-                # get a description of the picture
-                arg['stream']=False
-                arg['model']=self.model(vision=True)     # if revert, just add this outside if clause
-                arg['messages'] = [{"role": role, "content": cf.g('GET_PICT_DESC'),  'images':[path]}]
-                pictDesc = self.reply_sync(arg)
-
-                arg['model']=self.model() #reset the model
-                user_input = f"{user_input}.  {cf.g('GIVE_PICT_DESC')}: {pictDesc}"
-
-            self.memory.append({"role": role, "content": user_input})
-            arg['stream'] = shouldStream
-
         #reply is just text
         else:
             self.memory.append({"role": role, "content": user_input})
@@ -173,18 +144,6 @@ class AI_ollama(AI_openAI):
 
         arg['messages'] = self.GetMemory()
         return (user_input, arg)
-
-    def SumMemory(self, memory=False):
-        if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
-
-        memory.append({"role": "user", "content": "Summarize the above {len(memory)} items, focusing on facts (namely about the user), upcoming events, current and future projects, and frequent topics.  Be detailed and comprhensive.  This will be saved to reshresh memory later."})
-
-        args = {
-            'model': self.model(),
-            'messages': memory
-        }
-        sum = self.reply_sync(args, False) # don't strip response
-        return sum
 
 class AI_Adhoc(AI_ollama):
     name = "AdHoc"

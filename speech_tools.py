@@ -13,6 +13,7 @@ from config import cf
 from error_handling import *
 from globals import STATE
 import requests
+import re
 
 LogInfo("Speech Engine Loading...")
 
@@ -30,6 +31,7 @@ class speech_generator:
     engineName = ''
     last = 0
     volume = 0
+    channel = False
 
     def __init__(self):
         self.engine_name = cf.g('SPEECH_ENGINE')
@@ -38,7 +40,7 @@ class speech_generator:
 
     def say(self, txt, face=False, asyn=False):
         filename = False
-        if txt:
+        if txt and re.search('[a-zA-Z0-9]', txt):
             try:
                 if face: face.thinking()
                 try:
@@ -47,15 +49,15 @@ class speech_generator:
                     LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
                     filename = self.tts(txt)
 
-                if face: face.talking()
                 if filename: self.PlaySound(filename, watchState=True, asyn=asyn)
+                else: self.PlaySound(cf.g('ERROR_MP3'))
                 LogConvo(f"{cf.g('AINAME')}: '{txt}'")
             except Exception as e:
                 if face: face.off()
                 LogError(f"speech_tools: tts error: {e.args}")
-                txt = "There was a speech error  " + e.args
+                txt = f"T"
         elif not asyn: # in the case where the last file sent has no data but is not asyn
-            if face: face.talking()
+            if face: face.thinking()
             while self.IsBusy(): sleep(0.5)
         if face and not asyn: face.off()
         return txt
@@ -63,27 +65,32 @@ class speech_generator:
     def PlaySound(self, filename, watchState=False, asyn=False, loop=False):
         if STATE.CheckState('Wake'): watchState = False
         if filename:
-            while pygame.mixer.get_busy(): sleep(0.5)
+            if not loop:
+                while self.IsBusy(): sleep(0.25)
             s = pygame.mixer.Sound(filename)
             s.set_volume(min(cf.g('VOLUME'), 10)/10) # does not go to 11
             c = pygame.mixer.Channel(0) if not loop else pygame.mixer.Channel(1)
             c.play(s) if not loop else c.play(s, loops=-1)
+            if not loop: self.channel = c
             while c.get_busy() and not asyn:
                 if watchState and STATE.CheckState('Wake'): c.stop()
-                else: sleep(0.5) #STATE.volume = channel.get_volume()
+                else: sleep(0.25) #STATE.volume = channel.get_volume()
             return c
 
     def StopSound(self):
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.stop()
-        return not pygame.mixer.music.get_busy()
+        if self.IsBusy():
+            self.channel.stop()
+        return not self.IsBusy()
 
-    def StopChannel(self, channel, fade=1):
+    def StopChannel(self, channel, fade=cf.g('PURR_FO')):
 #         channel.stop()
         channel.fadeout(fade*1000)
 
     def IsBusy(self):
-        return pygame.mixer.get_busy()
+         if self.channel:
+             return self.channel.get_busy()
+         else: return False
+#        return pygame.mixer.get_busy()
 
     def SwitchEngine(self, engine_name=cf.g('SPEECH_ENGINE')):
         new_engine = 0
@@ -105,10 +112,12 @@ class speech_generator:
         return False
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
-        tts.save(filename)
-        return filename
-
+        try:
+            tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
+            tts.save(filename)
+            return filename
+        except:  # no internet
+            return None
     def Close(self):
         pygame.quit()
 
@@ -117,12 +126,12 @@ class pytts_tts:
 
     def __init__(self):
         self.engine = pyttsx3.init()
-        self.engine.setProperty('voice', self.engine.getProperty('voices')[1].id)
+#        self.engine.setProperty('voice', self.engine.getProperty('voices')[1].id)
         LogInfo("Speech Engine: pytts")
         return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-       self.engine.setProperty('volume', (min(cf.g('VOLUME'), 10)/10)) # does not go to 11
+#       self.engine.setProperty('volume', (min(cf.g('VOLUME'), 10)/10)) # does not go to 11
        self.engine.save_to_file(txt, filename)
        self.engine.runAndWait()
        return filename
@@ -293,12 +302,46 @@ class google_tts:
     def Close(self):
         return
 
+class typeCast_tts:
+    client = 0
+    CHUNK_SIZE = 1024
+
+    headers = {
+      "X-API-KEY": cf.g('TYPECAST_API_KEY'),
+      "Content-Type": "application/json"
+    }
+
+    def __init__(self):
+         LogInfo("Speech Engine: TypeCast")
+         return
+
+    def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+
+        url = cf.g('TYPECAST_URL')
+
+        data = {
+            "text": txt,
+            "model": cf.g('TYPECAST_MODEL'),
+            "voice_id": cf.g('TYPECAST_VOICE_ID'),
+            "prompt": {"preset": "happy", "preset_intensity": 2.0}
+        }
+
+        response = requests.post(url, json=data, headers=self.headers)
+        if response.status_code != 200:
+            raise Exception(f"typeCast_tts returned error {response.status_code} - {response.text}")
+        else:
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+        return filename
+
+    def Close(self):
+        return
 
 if __name__ == '__main__':
     
     pygame.mixer.init()
     sr = speech_generator()
-#    sr.SwitchEngine("google")
+    #sr.SwitchEngine("pytts")
 #    cf.s('GOOGLE_LANG_CODE', 'en-AU')
 #    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
 

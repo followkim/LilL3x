@@ -23,6 +23,7 @@ class Purr:
     purr_thread = False
     is_purring = False
     audio = False
+    face = False
     def __init__(self):
         START_BUTTON = 22
         END_BUTTON = 23
@@ -35,10 +36,11 @@ class Purr:
         led_pin = 13
         self.motor = PWMLED(led_pin)
 
-    def PurrThread(self, audio):
+    def PurrThread(self, audio, face):
         startPet = False
         lastPet = False
         self.audio = audio
+        self.face = face
         LogInfo("PurrThread started")
         while not self.should_quit:
 
@@ -59,11 +61,9 @@ class Purr:
                     if not is_petting: break
                     waitBtn = self.aBtn if self.bBtn.is_pressed else self.bBtn
                     lastPet = datetime.now()
-                    LogDebug("Stroke")
                     if startPet + timedelta(seconds=cf.g('PURR_SEC')) < datetime.now():
                         self.purr_motor()
-                sleep(1)
-            else: sleep(30)
+            else: sleep(cf.g('PURR_SLEEP'))
         LogInfo("PurrThread exit.")
 
     def purr_motor(self):
@@ -78,6 +78,7 @@ class Purr:
 
     def purr_motor_thread(self):
         # play purring
+        startPurr = datetime.now()
         purr_channel = self.audio.PlaySound(cf.g('PURR_MP3'), asyn=True, loop=True)
 
         # Define sine wave parameters
@@ -90,17 +91,21 @@ class Purr:
         while self.is_purring and not self.should_quit:
             # Calculate sine wave value (scaled and offset for brightness)
             brightness = amplitude * sin(2 * pi * frequency * t) + offset
+            t += 0.01  # Adjust for smoother or faster animation
 
             # Ensure brightness stays within valid range (0 to 1)
             brightness = max(0, min(1, brightness))
             self.motor.value = (brightness)/2 + 0.5 # range 0.5-1 to always have some power
 
+            if startPurr + timedelta(seconds=cf.g('PURR_SEC')) < datetime.now(): self.face.loving()
+
             # Increment time and control update speed
-            t += 0.01  # Adjust for smoother or faster animation
-            sleep(0.01) # Small sleep to allow the Pi to perform other tasks
+            sleep(0.1) # Small sleep to allow the Pi to perform other tasks
+
 
         self.motor.off() # Turn off the LED on exit
         self.audio.StopChannel(purr_channel, cf.g("PURR_FO"))
+        self.face.off()
 
     def Close(self):
         self.should_quit = True
@@ -114,5 +119,12 @@ if __name__ == '__main__':
             return False
     a = A()
 
+    class B:
+        def loving():
+            print(s)
+        def off():
+            return False
+    b = B()
+
     p = Purr()
-    p.PurrThread(a)
+    p.PurrThread(a, b)

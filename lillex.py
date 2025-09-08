@@ -22,7 +22,7 @@ import signal
 # START LILL3X modules
 from error_handling import *
 InitLogFile()
-from globals import STATE, SleepOn
+from globals import STATE, SleepOn, HasInternet
 from config import cf
 
 from listen_tools import SpeechRecognition_listener
@@ -58,6 +58,8 @@ class lill3x:
     button = False
     purr = False
 
+    wifi = True
+
     def __init__(self):
         isRestart = False
         if '--restart' in sys.argv:       # if restart, don't say hello or play the welcome bell
@@ -68,11 +70,6 @@ class lill3x:
 
 #        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo(f"Starting {GetHostname()}")
-        # create the hardware objects
- #       try:
- #           self.eyes = Camera()
- #       except Exception as e:
- #           RaiseError(f"Init():Could not init camera. {e.args}")
 
         try:
             self.mouth = speech_generator()
@@ -83,13 +80,11 @@ class lill3x:
 
         try:
             self.face = Face() # note this spawns two threads: animate and led threads.  The face will appear here.
- #           self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
-            RaiseError(f"Init():Could not init Display. {e.args}")
+            RaiseError(f"Init():Could not init Eyes. {e.args}")
 
         try:
             self.ears = eval(f"{cf.g('LISTEN_ENGINE')}_listener(self.face)")
-#            self.ears = SpeechRecognition_listener()
         except Exception as e:
             RaiseError(f"Init():Could not init listener. {e.args}")
             STATE.ChangeState('Quit')
@@ -108,11 +103,16 @@ class lill3x:
 
         try:
             self.purr = Purr()
-            purr_thread = threading.Thread(target=self.purr.PurrThread, args=(self.mouth,), daemon=True)
+            purr_thread = threading.Thread(target=self.purr.PurrThread, args=(self.mouth,self.face,), daemon=True)
             purr_thread.name = f"{GetHostname()} PurrThread"
             purr_thread.start()
         except Exception as e:
             RaiseError(f"Init():Could not init Purring. {e.args}")
+
+        while not HasInternet():
+            LogInfo("Waiting for Internet...")
+            sleep(5)
+
 
         # get AI
         try:
@@ -243,7 +243,6 @@ class lill3x:
     # Hello: Give a greeting to the user:
     def Hello(self):
         '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
-#        self.face.message(f"{cf.g('HELLO_MESSAGE_STR').format(cf.g('USERNAME'))}")
         self.ai.say(self.ai.Hello())  #TODO - give a greeting at first meet
         STATE.ChangeState('Active')
         return
@@ -251,11 +250,16 @@ class lill3x:
     # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
     def Wake(self):
         '''Wake: called when the STATE is changed to Wake by wake_word or button threads'''
-#        wp = self.ww.GetWakePhrase()
-#        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.c('AINAMEP', 'AINAME').lower()}$", wp.lower()):
-#            self.ai.say(self.ai.respond(wp))
-        self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
+        self.face.thinking()
         STATE.ChangeState('Active')
+
+        # check for connectivity
+        if self.wifi or self.WifiOn():
+            if cf.g('SHOULD_GREET'): self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
+        else:
+            self.mouth.PlaySound(cf.g('ERROR_MP3'))
+            STATE.ChangeState('SleepState')
+            self.face.off()
 
     def Active(self):
         ''' Active: User is present and activly talking to ai without need for wakeword
@@ -269,10 +273,17 @@ class lill3x:
     def SleepState(self):
         ''' Sleep: Lights are off.  AI Hardware is turned off.
         ''         AI can: machine learning, check lights/sound '''
-
-        SleepOn(step=1) #sleep until state change
+        if STATE.StateDuration() > 60 * cf.g('WIFI_OFF'):
+            self.WifiOff()
+            SleepOn(step=1) #sleep until state change
+        else:
+            SleepOn(secs=(60*cf.g('WIFI_OFF'))+1, step=1)
 
     def Quit(self):
+
+       if self.wifi or self.WifiOn(): LogDebug("Wifi on")
+       else: LogError("Wifi could not be turned on")
+
        if self.ai: self.ai.Close()
        if self.mouth: self.mouth.Close()
        if self.ears: self.ears.Close()
@@ -284,12 +295,19 @@ class lill3x:
 
     def Restart(self):
        self.Quit()
-       python = sys.executable
-       args = [sys.argv[0], "--restart"]
-       cmd = [python] + args
-       subprocess.Popen(cmd, start_new_session=True)
-
-
+       try:
+           python = sys.executable
+           args = [sys.argv[0], "--restart"]
+           cmd = [python] + args
+           LogDebug(f"Restart cmd: {cmd}")
+           process = subprocess.Popen(cmd, start_new_session=True)
+#       with open('process_output.txt', 'w') as outfile:
+#           process = subprocess.Popen(cmd, stdout=outfile, stderr=outfile)
+#           process.wait()
+ #      LogDebug(f"Popen returned {process.returncode}")
+           sleep(10)
+       except Exception as e:
+           LogError(f"Unable to restart.  {e.args}")
     def Reboot(self):
        self.Quit()
        os.system("sudo reboot")
@@ -315,6 +333,33 @@ class lill3x:
         while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.ShouldQuit() or  STATE.IsInteractive()):
             sleep(sleep_for)
 
+    def WifiOff(self):
+        """Turns off the Wi-Fi interface (wlan0) on a Raspberry Pi."""
+        try:
+            LogInfo("Turning off Wi-Fi...")
+            # Command to bring down the wlan0 interface
+            cmd = 'sudo ifconfig wlan0 down'
+            os.system(cmd)
+            LogInfo("Wi-Fi turned off.")
+            self.wifi = False
+        except Exception as e:
+            LogError(f"Error turning off Wi-Fi: {e}")
+
+    def WifiOn(self):
+        """Turns on the Wi-Fi interface (wlan0) on a Raspberry Pi."""
+        try:
+            # Command to bring up the wlan0 interface
+            cmd = 'sudo ifconfig wlan0 up'
+            os.system(cmd)
+            LogInfo("Wi-Fi turned on.")
+        except Exception as e:
+            LogError(f"Error turning on Wi-Fi: {e}")
+
+        wait = datetime.now() + timedelta(seconds=60)
+        while not HasInternet() and wait > datetime.now():
+            sleep(2)
+        self.wifi = HasInternet()
+        return self.wifi
 
 ## THREADING INFO
 #os.chdir('/home/el3ktra/LilL3x/')

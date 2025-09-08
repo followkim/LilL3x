@@ -2,9 +2,10 @@
 from time import sleep
 from datetime import datetime
 import RPi.GPIO as GPIO
-import gpiozero
+#import gpiozero
 import sys
 
+sys.path.insert(0, '..')
 from globals import STATE
 from error_handling import *
 from config import cf
@@ -16,25 +17,26 @@ beeps = {
 }
 
 class Button:
-
+    BUTTON = 27
     btn = False
     def __init__(self):
-        BUTTON = 27
-#        GPIO.setmode(GPIO.BCM)
-#        GPIO.setup(self.BUTTON, GPIO.IN)
-        self.btn = gpiozero.Button(BUTTON)
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.BUTTON, GPIO.IN)
+
+#        self.btn = gpiozero.Button(BUTTON)
 
     def ButtonThread(self, audio):
         while not STATE.ShouldQuit():
     
 #            if not (GPIO.input(self.BUTTON)):
-            if self.btn.is_pressed:
+            if GPIO.input(self.BUTTON):
                 if not audio.IsBusy():
                     audio.PlaySound(cf.g('WAKE_MP3'))
                 pressDT = datetime.now()
                 restartBeeps = 1
 
-                while self.btn.is_pressed and restartBeeps < 3:
+                while GPIO.input(self.BUTTON) and restartBeeps < 3:
                     if restartBeeps==1 and (datetime.now()-pressDT).total_seconds() >= cf.g('RESTART_SEC'):
                         audio.PlaySound(cf.g('WAKE_MP3'))
                         restartBeeps = 2

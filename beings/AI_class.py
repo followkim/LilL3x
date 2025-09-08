@@ -47,7 +47,6 @@ class AI:
         #self.eyes = eyes
         self.mouth = mouth
         self.face = face
-        self.face.message(self.name)
 
     def Hello(self):
         return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
@@ -82,7 +81,6 @@ class AI:
 
         if re.search(r"^what((')?s| is) (my|our|your|the) ip( address)?$", search_txt):
             ips = check_output(['hostname', '--all-ip-addresses'])
-            self.face.message(ips.split()[0].decode())
             return "My IP address is " + ips.split()[0].decode()
 
         if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
@@ -231,9 +229,10 @@ class AI:
         #TODO: ask user at least twice if no yes/no
 
     def say(self, txt, asyn=False):
+        self.face.thinking()
         self.last_ai_interaction = datetime.now()
         txt = self.StripActions(txt) # *sigh* remove actions
-        ret = self.mouth.say(txt, self.face, asyn=asyn)
+        ret = self.mouth.say(txt, asyn=asyn)
         return ret
 
     def listen(self, beQuiet=False):

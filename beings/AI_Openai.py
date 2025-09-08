@@ -43,6 +43,7 @@ class AI_openAI(AI):
         else: return cf.g(self.model_key)
 
     def respond(self, user_input):
+        self.face.thinking()
         if self.IsConvoDirty(): self.memory = self.LoadConvo()
         
         start = datetime.now()
@@ -52,12 +53,11 @@ class AI_openAI(AI):
         write_convo_thread = threading.Thread(target=self.WriteConvo, daemon=True)
         write_convo_thread.name = f"{GetHostname()} WriteConvoThread"
         write_convo_thread.start()
-
+        
         return ret
 
 
     def ai_respond(self, user_input, canParaphrase=False):
-        self.face.thinking()
         class_resp = AI.respond(self, user_input)  # will return either a response
         (user_input, max_tokens, tools, stream) = self.HandleResponse(class_resp, user_input)
         if not user_input:
@@ -91,7 +91,7 @@ class AI_openAI(AI):
             reply = f"There was an error talking to OpenAI. Check the logs."
             self.memory.pop()  #get rid of that bad membry!
             stream=False
-        self.face.off()
+        #self.face.off()  # leave the face on
         if stream: return ""
         return str(reply.encode('ascii', 'ignore').decode("utf-8"))
 
@@ -105,7 +105,6 @@ class AI_openAI(AI):
         full_reply = ""
         finish = ""
         resp = ""
-        face = self.face
         try:
             response = self.client.chat.completions.create(**args)
         except Exception as e:
@@ -129,7 +128,7 @@ class AI_openAI(AI):
                     eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
                     if eos:
                         reply = reply + m[:(eos.span()[0])+2]
-                        self.mouth.say(self.StripActions(reply), face=face, asyn=True)
+                        self.mouth.say(self.StripActions(reply), asyn=True)
                         reply = m[(eos.span()[0])+2:]
                     else: reply = reply + m
                 if chunk.choices[0].delta.tool_calls:
@@ -148,11 +147,11 @@ class AI_openAI(AI):
             LogError(f"Caught exception creating resonse: {e.args}")
             return ""
 
-        if face: face.off()
+#        if face: face.off()
         return self.StripActions(full_reply)
  
 
-    def reply_sync(self, args, should_strip=True):
+    def reply_sync(self, args, should_strip=True, think=False):
 
 #        ai_msg = self.client.invoke(input=args['messages'], kwargs=args)
 #        reply = ai_msg.content
@@ -387,9 +386,11 @@ class AI_openAI(AI):
         if not memory:
             self.memory = self.memory[3:]
         else: self.memory = memory
-        memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
-        memStr = ''.join(memStr.splitlines())
-        cf.w('HISTORY', memStr)
+        if len(self.memory):
+            memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
+            memStr = ''.join(memStr.splitlines())
+            cf.w('HISTORY', memStr)
+        else: memStr = cf.g('HISTORY')
         return memStr
 
     def SumMemory(self, memory=False): # unused

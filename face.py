@@ -20,58 +20,48 @@ class Face:
 #    screen = 0
     leds = 0
     def __init__(self):
-#        self.screen = Screen()
         self.leds = LEDS()
-#        animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-#        animate_thread.name = f"{GetHostname()} AnimateThread"
-#        animate_thread.start()
-        
         led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
         led_thread.name = f"{GetHostname()} LEDThread"
         led_thread.start()
- 
 
-    def SetViewControl(self, showViewStartFunc, showViewEndFunc):
-        pass
-#        self.view_start = showViewStartFunc
-#        self.view_end = showViewEndFunc
+    def Close(self):
+        self.leds.Close()
 
-    def Close(self, run=True):
-        if run:
- #           self.screen.Close()
-            self.leds.Close()
+    def listening(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
+        self.leds.listening()
 
-    def talking(self, run=True):
-        if run:
- #           self.view_end()
-            self.leds.talking()
- #           self.screen.talking()
+    def thinking(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
+        self.leds.thinking()
 
-    def listening(self, run=True):
-        if run:
-  #          self.view_end()
-            self.leds.listening()
-  #          self.screen.listening()
+    def looking(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
+        self.leds.looking()
 
-    def thinking(self, run=True):
-        if run:
-   #         self.view_end()
-            self.leds.thinking()
-   #         self.screen.thinking()
+    def loving(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
+        self.leds.loving()
 
-    def looking(self, run=True):
-        if run:
-            self.leds.looking()
-#            self.view_start()
-#            self.screen.looking()
+    def idle(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
+        self.leds.off()
 
-    def idle(self, run=True):
-        if run:
- #           self.view_end()
- #           self.screen.off()
-            self.leds.off()
-
-    def off(self, run=True):
+    def off(self, run=False):
+        if run: 
+            LogError("Run is set!")
+            DumpStack()
         self.idle(run)
 
     def message(self, text):
@@ -82,30 +72,25 @@ def dummy(): pass
 class DummyFace:
     def __init__(self): pass
     def SetViewControl(self, showViewStartFunc=dummy, showViewEndFunc=dummy): pass
-    def Close(self, run=True):pass
-    def talking(self, run=True):pass
-    def listening(self, run=True):pass
-    def thinking(self, run=True):pass
-    def looking(self, run=True):pass
-    def idle(self, run=True): pass
-    def off(self, run=True): pass
+    def Close(self):pass
+    def talking(self):pass
+    def listening(self):pass
+    def thinking(self):pass
+    def looking(self):pass
+    def idle(self): pass
+    def off(self): pass
     def message(self, text): pass
 
 if __name__ == '__main__':
     from time import sleep
     from globals import STATE
-    import pico_wake
     import threading
     global STATE
-    import pygame
-    pygame.mixer.init()
 
 
     def dummy():
         pass
     face = Face() #main
-    face.SetViewControl(dummy, dummy)
-    STATE.ChangeState('ActiveIdle')
 
 #    ww = pico_wake.pico_wake()
 #    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
@@ -115,20 +100,28 @@ if __name__ == '__main__':
 
 #    sleep(20)
     # state test
-    LogDebug("talking")
-    face.talking()
-    sleep(2)
+#    LogDebug("talking")
+#    face.talking()
+#    sleep(2)
 
-    LogDebug("listening")
-    face.listening()
-    sleep(2)
+#    LogDebug("listening")
+#    face.listening()
+#    sleep(2)
 
     LogDebug("thinking")
     face.thinking()
-    sleep(2)
+    sleep(10)
 
     LogDebug("idle")
     face.idle()
+    sleep(2)
+
+    LogDebug("loving")
+    face.loving()
+    sleep(10)
+
+    face.Close()
+    sleep(2)
 #    b = 0
 #    while b >= 0:
 #        b = int(input("Brightness: 0-100: "))
@@ -159,6 +152,7 @@ if __name__ == '__main__':
 #    cf.s('SCREEN_DEBUG', True)
 #    face.idle()
 ##    face.message("Hi there!")
+    '''
     STATE.ChangeState('Active')
 #    face.looking()
 #    sleep(360)
@@ -169,7 +163,6 @@ if __name__ == '__main__':
     STATE.ChangeState('ActiveIdle')
     sleep(10)
     face.Close()
-    '''
     '''
     '''
     while face:

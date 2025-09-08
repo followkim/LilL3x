@@ -5,7 +5,7 @@ import re
 import sys
 from word2number import w2n
 from error_handling import *
-from globals import STATE, SleepOn
+from globals import STATE, SleepOn, HasInternet
 from time import sleep
 from datetime import datetime, timedelta
 import git
@@ -119,7 +119,6 @@ class Config:
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
                 STATE.data = cmds
-        LogDebug("Config File Loaded")
         return len(self.config)
 
     def CheckConfig(self, load, check=False):
@@ -178,7 +177,6 @@ class Config:
                             LogWarn(f'Error inserting {key}:{val}({type}) ({e.args})')
             if not isDict: 
                 os.system(f"sudo touch {fileName}")
-                LogDebug(f"touched file {fileName}")
         except Exception as e:
             LogError(f'LoadConfigDict ({fileName}) caught exception: ({e.args})')
 
@@ -271,6 +269,9 @@ class Config:
         return ret
 
     def CheckGit(self):
+        if not HasInternet():
+            LogDebug("Can't check GIT, no Internet")
+            return
         self.lastGit = datetime.now()
         update_files = -1
         try:

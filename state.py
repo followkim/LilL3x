@@ -44,14 +44,14 @@ class State:
             LogInfo(f"State: tried to change from {self.current} to {new_state}, saving for later.")
             self.last_state = new_state
 
-        elif self.current == 'Wake' and new_state != 'Active':
+        elif self.current == 'Wake' and new_state != 'Active' and new_state != 'Quit':
             LogWarn(f"State: tried to change from {self.current} to {new_state}, not allowed.")
             return self.current             # can only move to Active from Wake-- don't everwrite Wake
 
         elif not self.ShouldQuit():          # can't change out of quit state
-            if self.StateDuration()<60: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {self.StateDuration()} secs")
-            elif self.StateDuration()<60*60: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {round(self.StateDuration()/60)} minutes")
-            else: LogInfo(f"State changed: from {self.current} to {new_state} after being idle for {round(self.StateDuration()/3600)} hours")
+            if self.StateDuration()<60: LogInfo(f"State changed: from {self.current} to {new_state} after being in state for {self.StateDuration()} secs")
+            elif self.StateDuration()<60*60: LogInfo(f"State changed: from {self.current} to {new_state} after being in state for {round(self.StateDuration()/60)} minutes")
+            else: LogInfo(f"State changed: from {self.current} to {new_state} after being in state for {round(self.StateDuration()/3600)} hours")
             self.last_state = self.current
             self.current = new_state
             self.last_dt = datetime.now()

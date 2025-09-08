@@ -9,9 +9,12 @@ BACKSTORY|You are a sweet little kitten.|blob|
 WAKEPHRASE|Your person just gently booped your nose.|blob|
 HISTORY||blob
 PURR_SEC|30|int
+PURR_SLEEP|10|int
 STROKE_TO|5|int
+SHOULD_GREET|1|bool
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|bool
+WIFI_OFF|30|int
 BRIGHTNESS|50|int|
 BRIGHT_SPEED|2|int|1
 LIGHT_SPEED|75|int|1
@@ -49,6 +52,9 @@ CHATGPT_VOICE|nova|str|
 ELEVENLABS_API_KEY||str|
 ELEVENLABS_VOICE_ID||str|
 ELEVENLABS_MODEL_ID|eleven_multilingual_v2|str|1
+TYPECAST_API_KEY||str
+TYPECAST_VOICE_ID||str
+TYPECAST_MODEL|ssfm-v21|str
 DEBUG|2|int|1
 CHECK_GIT|30|int|1
 CONFIG_DT_FORMAT|%Y-%m-%d %H:%M:%S|str|1

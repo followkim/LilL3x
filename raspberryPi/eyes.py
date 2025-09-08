@@ -40,15 +40,14 @@ COLORS_RGB = {
     'off':[0, 0, 0, 0],
 }
 
+
 #MAX_BRIGHTNESS = APA102.MAX_BRIGHTNESS
 #NUM_LEDS = 12
 
 class LEDS:
     color = COLORS_RGB['off']
     should_quit = False
-    is_idle = True
-    is_thinking = False
-    is_talking = False
+    state = "idle"
     pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.2, auto_write=False, pixel_order=ORDER)
     def __init__(self):
         pass
@@ -56,9 +55,6 @@ class LEDS:
     def SetColor(self, inColor):
         color = None
         try:
-            self.is_idle = False
-            self.is_thinking = False
-            self.is_talking = False
             if isinstance(inColor, str):
                 if inColor[0]=="#":
                     int_value = int(inColor[1:], 16)
@@ -69,133 +65,115 @@ class LEDS:
                 color = inColor.copy()
         except Exception as e:
             LogError(f"LEDS:SetColor Exception setting color {str(inColor)}: {e.args}")
-        #print(f"Set Color: {color[0]}, {color[1]}, {color[2]}")
         return color
 
     def LEDThread(self):
         LogInfo("LEDThread started")
-        jr = 0
-        ir = 0
-        thisColor = self.color.copy()          # keep track of the current color/brightness
+        r = 0
+#        thisColor = self.color.copy()          # keep track of the current color/brightness
         brightDelta = 1
+        br = 0
         has_error = False
+
         while not self.should_quit:
             try:
-
-                if self.is_idle:
+#                LogDebug(f"Eye state = {self.state}")
+                if not self.state or self.state == "idle":
+                    br = 0
                     # If sleeping, dim the lights
                     self.pixels.fill((0, 0, 0)) # Sets all pixels to black
                     self.pixels.show()          # Updates the strip to show the change
-                    if STATE.IsSleeping():
-                        SleepOn(varf=STATE.IsSleeping, wakeOn=False)
+                    while self.state == "idle" and not self.should_quit:
+                        if STATE.IsSleeping(): sleep(1)
+                        else: sleep(0.1)
 
-                if self.is_thinking:
-                        (ir, jr, self.color) = rainbow_cycle(ir, jr)
+                elif self.state == "thinking":
+                    r = self.rainbow_cycle(r)
+                    self.pixels.show()
+                    sleep(0.001)
 
-                if self.is_talking:
-                    br = max(min(STATE.volume/cf.g('MAX_VOLUME'), 1.0), 0)
+                elif self.state == "loving":
+                    c = self.SetColor(cf.g('LOVE_LED'))
+                    self.state = "loving"
+                    (br, brightDelta) = bounce(br, 0.01, brightDelta)
+                    self.pixels.fill((int(c[0] * br), int(c[1] * br), int(c[2] * br)))
+                    self.pixels.show()
+                    sleep(0.1)
+
+                elif self.state == "listening":
+                    br = (max(min(STATE.volume/cf.g('MAX_VOLUME'), 1.0), 0) * 0.90) + 0.10
                     talk = self.SetColor(cf.g('LISTEN_LED'))
-                    self.is_talking = True
-                    thisColor = [talk[0] * br, talk[1] * br, talk[2] * br]
-#                    LogDebug(f"thisColor = [{talk[0]} * {br}, {talk[1]} * {br}, {talk[2]} * {br}]")
+                    self.pixels.fill((int(talk[0] * br), int(talk[1] * br), int(talk[2] * br)))
+                    self.pixels.show()
 
-                if thisColor != self.color:            # don't change colors if not asked to change
-                    thisColor = self.color.copy()
-#                    for i in range(NUM_LEDS):
-#                        self.driver.set_pixel(i, self.color[0], self.color[1], self.color[2], self.color[3])
-#                    print(f"self.pixels.fill(({self.color[0]}, {self.color[1]}, {self.color[2]}))")
-                    self.pixels.fill((self.color[0], self.color[1], self.color[2]))
-                    try:
-                        self.pixels.show()
-                    except Exception as e:
-                        LogError(f"LEDS:LedThread: Exception on driver.show() {str(self.color)}: {e.args}")
-                        if has_error: should_quit = True
-                        else: has_error = True
-                        self.off()
-                #sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+                #sleep(0.01)  #sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
             except Exception as e:
                 LogError(f"LEDS:LedThread exception: {str(e)}:{e.args}")
-                if has_error: should_quit = True
+                if has_error: self.should_quit = True
                 else: has_error = True
 
         self.pixels.fill((0, 0, 0))
         self.pixels.show()
-#        self.driver.clear_strip()
-#        self.driver.cleanup()
         LogInfo("LEDThread ended")
 
-    def blue(self):
-        self.color = self.SetColor(COLORS_RGB['blue'])
-
-    def green(self):
-        self.color = self.SetColor(COLORS_RGB['green'])
-
-    def orange(self):
-        self.color = self.SetColor(COLORS_RGB['orange'])
-
-    def pink(self):
-        self.color = self.SetColor(COLORS_RGB['pink'])
-
-    def purple(self):
-        self.color = self.SetColor(COLORS_RGB['purple'])
-
-    def red(self):
-        self.color = self.SetColor(COLORS_RGB['red'])
-
-    def white(self):
-        self.color = self.SetColor(COLORS_RGB['white'])
-
-    def yellow(self):
-        self.color = self.SetColor(COLORS_RGB['yellow'])
 
     def off(self):
-        self.color = self.SetColor(COLORS_RGB['off'])
-        self.is_idle = True
-
-    def talking(self):
-        self.color = self.SetColor(cf.g('TALK_LED'))
+        self.state = "idle"
+        LogDebug("LEDS idle")
 
     def listening(self):
-        self.color = self.SetColor(cf.g('LISTEN_LED'))
-        self.is_talking = True
+        self.state = 'listening'
+        LogDebug("LEDS Listening")
 
     def thinking(self):
-#        self.color = self.SetColor(cf.g('THINK_LED'))
-        self.is_thinking = True
+        self.state = "thinking"
+        LogDebug("LEDS thinking")
+
+    def loving(self):
+        if self.state != "loving": LogDebug("LEDS loving")
+        self.state = "loving"
 
     def idle(self):
-        self.color = self.SetColor('off')
- 
+        self.off()
+
     def Close(self):
         self.should_quit = True
 
-def rainbow_cycle(i, j):
-    color = wheel((i+j) & 255)
-    i = i + 1
-    if i >= 256:
-        i = 0
-        j = j + 1
-        if j >= 256: j = 0
-    return (i, j, color)
+    def rainbow_cycle(self, j):
+        if j >= 255: j = j % 255
+        for i in range(num_pixels):
+            pixel_index = (i * 256 // num_pixels) + j
+            self.pixels[i] = wheel(pixel_index & 255)
+        return j + 1
 
 def wheel(pos):
-    """Generate rainbow colors across 0-255 positions."""
-    if pos < 85:
-        return [pos * 3, 255 - pos * 3, 0, 100]
+    # Input a value 0 to 255 to get a color value.
+    # The colours are a transition r - g - b - back to r.
+    if pos < 0 or pos > 255:
+        r = g = b = 0
+    elif pos < 85:
+        r = int(pos * 3)
+        g = int(255 - pos * 3)
+        b = 0
     elif pos < 170:
         pos -= 85
-        return [255 - pos * 3, 0, pos * 3, 100]
+        r = int(255 - pos * 3)
+        g = 0
+        b = int(pos * 3)
     else:
         pos -= 170
-        return [0, pos * 3, 255 - pos * 3, 100]
+        r = 0
+        g = int(pos * 3)
+        b = int(255 - pos * 3)
+    return (r, g, b) if ORDER in {neopixel.RGB, neopixel.GRB} else (r, g, b, 0)
 
-def bounce(cur, step=1, delta=1, min_val=1, max_val=50):
+def bounce(cur, step=0.1, delta=1, min_val=0, max_val=0.5):
     """Bounces a number between two values."""
     cur = cur + (step * delta)
     if cur > max_val:
         cur = max_val
-        if delta > 1: delta = -1
+        delta = -1
     elif cur < min_val:
         cur = min_val
-        if delta < 1: delta = 1
+        delta = 1
     return (cur, delta)
