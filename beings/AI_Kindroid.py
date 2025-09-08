@@ -76,7 +76,6 @@ class AI_Kindroid(AI):
                 p_reply = ""
                 reply = ""
                 eos = False
-                LogDebug("sreaming resp")
                 for chunk in responce.iter_content():
                     m = chunk.decode('utf-8')
                     reply = m
@@ -91,7 +90,6 @@ class AI_Kindroid(AI):
                 reply = ""
 
             else:
-                LogDebug("sync resp")
                 LogDebug(responce)
                 if responce.status_code == 200:
                     reply = responce.text
