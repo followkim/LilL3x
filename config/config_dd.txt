@@ -13,6 +13,8 @@ CHATGPT_MODEL_SLOW|GPT Model|For longer prompts.  Get from <a href="https://plat
 LLAMA_KEY|Llama API Key|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
+POE_KEY|Poe API Key|Get from <a href="https://poe.com/api_key" target="_blank">Poe API Keys</a>|AI_ENGINE_Poe
+POE_MODEL|Poe Model|Get from <a href="https://poe.com/explore" target="_blank">Poe.com</a>|AI_ENGINE_Poe
 ADHOC_URL|Adhoc URL|Must be running Ollama on a local server (listening on port 0.0.0.0)</a>|AI_ENGINE_Adhoc
 ADHOC_MODEL|Adhoc Model|Model on your local Ollama server|AI_ENGINE_Adhoc
 ADHOC_MODEL_SLOW|Adhoc Model Slow|For non-convversational requests</a>|AI_ENGINE_Adhoc
@@ -57,6 +59,7 @@ SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in mi
 HEADER|Listening|2
 LISTEN_ENGINE|Listen Engine|The engine that controls the microphone.  Vosk is better at listening but bad at correctly interpreting speech.
 MIC_LIMIT|Microphone Wait|Number of seconds to wait for the user to start talking|LISTEN_ENGINE_SpeechRecognition
+MIC_TO|Microphone Timeout|Number of seconds to wait for more speech after the user has stopped talking|LISTEN_ENGINE_SpeechRecognition
 ENERGY_THRESH|Talking Volume|Decrease if the user is getting cut off, increase if the microphone isn't detecting that no one is talking anymore.|LISTEN_ENGINE_SpeechRecognition
 ENERGY_DYNAMIC|Dynamic Listening|Turn on dynamic listening.  Turn on if speech is cutting of or lagging on.|LISTEN_ENGINE_SpeechRecognition
 DYNAMIC_RATIO|Dynamic Ratio|How much louder then "silent" speaking must be to be counted as speech.  Default is 50.|LISTEN_ENGINE_SpeechRecognition ENERGY_DYNAMIC_true
