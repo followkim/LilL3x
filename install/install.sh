@@ -84,6 +84,11 @@ echo "Enter the passphrase above, including psk=: "
 read passphrase
 sed -i "s/REPLACE_PASSWORD_HERE/$passphrase/g" ~/LilL3x/install/rclocal
 
+## todo : Working on setting up a captive portal for access point
+sudo apt install hostapd
+sudo apt install dnsmasq
+sudo apt-get install iptables
+ 
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
