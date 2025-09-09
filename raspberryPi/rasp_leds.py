@@ -34,6 +34,7 @@ class LEDS:
     color[3] = cf.g('BRIGHTNESS') # se we aren't asking driver to set constantly
     should_quit = False
     is_idle = True
+    is_thinking = False
 
     def __init__(self):
         self.driver = APA102(num_led=NUM_LEDS)
@@ -42,6 +43,7 @@ class LEDS:
         color = None
         try:
             self.is_idle = False
+            self.is_thinking = False
             if isinstance(inColor, str):
                 if inColor[0]=="#":
                     int_value = int(inColor[1:], 16)
@@ -82,6 +84,10 @@ class LEDS:
                             (ir, jr, self.color) = rainbow_cycle(ir, jr)
                             self.color[3] = cf.g('BRIGHTNESS')
 
+                if self.is_thinking:
+                    (ir, jr, self.color) = rainbow_cycle(ir, jr, 5)
+                    self.color[3] = cf.g('BRIGHTNESS')
+
                 if thisColor != self.color:            # don't change colors if not asked to change
                     thisColor = self.color.copy()
                     for i in range(NUM_LEDS):
@@ -93,10 +99,11 @@ class LEDS:
                         if has_error: should_quit = True
                         else: has_error = True
                         self.off()
-                sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+                if self.is_thinking: sleep(0.01)
+                else: sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
             except Exception as e:
                 LogError(f"LEDS:LedThread exception: {str(e)}:{e.args}")
-                if has_error: should_quit = True
+                if has_error: self.should_quit = True
                 else: has_error = True
 
         self.driver.clear_strip()
@@ -138,7 +145,8 @@ class LEDS:
         self.color = self.SetColor(cf.g('LISTEN_LED'))
 
     def thinking(self):
-        self.color = self.SetColor(cf.g('THINK_LED'))
+        self.is_thinking = True
+#        self.color = self.SetColor(cf.g('THINK_LED'))
 
     def looking(self):
         self.color = self.SetColor(cf.g('LOOK_LED'))
@@ -149,13 +157,13 @@ class LEDS:
     def Close(self):
         self.should_quit = True
 
-def rainbow_cycle(i, j):
+def rainbow_cycle(i, j, step=1):
     color = wheel((i+j) & 255)
-    i = i + 1
+    i = i + step
     if i >= 256:
-        i = 0
-        j = j + 1
-        if j >= 256: j = 0
+        i = i % 256
+        j = j + step
+        if j >= 256: j = j % 256
     return (i, j, color)
 
 def wheel(pos):

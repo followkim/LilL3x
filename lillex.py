@@ -277,7 +277,7 @@ class lill3x:
     def Wake(self):
         '''Wake: called when the STATE is changed to Wake by wake_word or button threads'''
         wp = self.ww.GetWakePhrase()
-        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.c('AINAMEP', 'AINAME').lower()}$", wp.lower()):
+        if wp and not re.search(f"^((hey|ok|okay|so) )?{cf.c('AINAMEP', 'AINAME').lower()}$", wp.lower()): # vosk listner only
             self.ai.say(self.ai.respond(wp))
         STATE.ChangeState('Active')
 
@@ -290,7 +290,8 @@ class lill3x:
         if user_input:
             self.ai.say(self.ai.respond(user_input))
         else:
-            STATE.ChangeState('ActiveIdle')
+             self.ai.NoResponse()
+             STATE.ChangeState('ActiveIdle')
 
     def ActiveIdle(self):
         ''' ActiveIdle: User is present but not talking.   User needs to use wakeword or respond to an  inituation to activate ai
@@ -298,7 +299,6 @@ class lill3x:
 
         # if we've been in ActiveIdle state for a while with no interactions and can't see user go into Idle and leave the user alone
 #        if self.ai.LastUserInteraction() > cf.g('ACTIVE_IDLE_TO')*60:
-        self.ai.Think()   # give AI time
 
         if self.ai.IsIdle():
             STATE.ChangeState('Idle')
@@ -315,6 +315,7 @@ class lill3x:
     def Idle(self):
         ''' Idle: User is not present.   User needs to be seen on camera, use wakeword,  or respond to "welcome back" to activate ai'''
 
+        self.ai.Think()   # give AI time
         if self.ai.LastAIInteraction() > ((cf.g('IDLE_WAIT_MIN')*60) & 0xffffffff): # force unsigned
             if not self.ai.IsIdle():
                 if self.ai.CanInteract():        # can see user, not hear user, and not too soon

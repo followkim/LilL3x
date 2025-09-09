@@ -53,7 +53,7 @@ class speech_generator:
             except Exception as e:
                 if face: face.off()
                 LogError(f"speech_tools: tts error: {e.args}")
-                txt = "There was a speech error  " + e.args
+                txt = f"There was a speech error {e.args}"
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
             while self.IsBusy(): sleep(0.5)
@@ -169,8 +169,6 @@ class elevenLabs_tts:
     }
 
     def __init__(self):
-#        self.client = El3venLabs(api_key=cf.g('ELEVENLABS_API_KEY'))
-#        return self.client
          LogInfo("Speech Engine: ElevenLabs")
          return
 
@@ -287,15 +285,49 @@ class google_tts:
     def Close(self):
         return
 
+class typeCast_tts:
+    client = 0
+    CHUNK_SIZE = 1024
+
+    headers = {
+      "X-API-KEY": cf.g('TYPECAST_API_KEY'),
+      "Content-Type": "application/json"
+    }
+
+    def __init__(self):
+         LogInfo("Speech Engine: TypeCast")
+         return
+
+    def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+
+        url = cf.g('TYPECAST_URL')
+
+        data = {
+            "text": txt,
+            "model": cf.g('TYPECAST_MODEL'),
+            "voice_id": cf.g('TYPECAST_VOICE_ID'),
+            "prompt": {"preset": "happy", "preset_intensity": 2.0}
+        }
+
+        response = requests.post(url, json=data, headers=self.headers)
+        if response.status_code != 200:
+            raise Exception(f"typeCast_tts returned error {response.status_code} - {response.text}")
+        else:
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+        return filename
+
+    def Close(self):
+        return
 
 if __name__ == '__main__':
     
     pygame.mixer.init()
     sr = speech_generator()
-    sr.SwitchEngine("google")
+    sr.SwitchEngine("pytts")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
-    cf.s('GOOGLE_LANG_CODE', 'en-AU')
-    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
+#    cf.s('GOOGLE_LANG_CODE', 'en-AU')
+#    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
 
     sr.say("oh what a beautiful day!", asyn=True)
     sr.say("I have a wonderful feeling", asyn=False)
