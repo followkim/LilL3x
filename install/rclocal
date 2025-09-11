@@ -35,7 +35,7 @@ done
 
 if  [ "$x" -eq 5 ]; then
       echo "could not get hostname. Broadcasing net." >> /tmp/rc_test.tx
-      sudo nmcli d wifi hotspot ifname wlan0 ssid LilL3x password psk=REPLACE_PASSWORD_HERE
+      sudo nmcli d wifi hotspot ifname wlan0 ssid $HOSTNAME password PASSWORD
 fi
 
 #python /home/el3ktra/stats.py &
