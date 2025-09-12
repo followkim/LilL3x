@@ -5,8 +5,8 @@ device_index = 0
 
 r = sr.Recognizer()
 r.energy_threshold = 1000
-r.pause_threshold = 0.1
-r.phrase_time_limit =1
+r.pause_threshold = 0.5
+r.phrase_time_limit =0.5
 
 with sr.Microphone(device_index=device_index) as source:
     print("Say something!")
