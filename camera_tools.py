@@ -305,9 +305,12 @@ class Camera:
             ul_url = 'http://el3ktra.el3ktra.net/upload.php'
             files={'fileToUpload': open(pict_path,'rb')}
             payload = {'submit': 'Upload Image'}
-            r = requests.post(ul_url, data=payload, files=files)
-            url = r.text
-            LogInfo(f"Uploaded pict: URL: {url}")
+            try:
+                r = requests.post(ul_url, data=payload, files=files)
+                url = r.text
+                LogInfo(f"Uploaded pict: URL: {url}")
+            except:
+                LogError(f"Exception uploading image {e.args}")
         else: LogWarn(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
 
