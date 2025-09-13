@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from state import State, MicStatus
 from time import sleep
 from subprocess import check_output
+import requests
 
 MIC_STATE = MicStatus()
 STATE = State()
@@ -35,6 +36,16 @@ def GetIP():
 
 def GetHostname():
         return gethostname()
+
+def HasInternet():
+    try:
+        # Attempt to get a response from a reliable website
+        requests.get("https://www.google.com", timeout=5)
+        return True
+    except requests.ConnectionError:
+        return False
+    except requests.Timeout:
+        return False
 
 if __name__ == '__main__':
     def q2q():
