@@ -39,6 +39,7 @@ if  [ "$x" -eq 5 ]; then
 fi
 
 #python /home/el3ktra/stats.py &
+nodogsplash
 
 echo "rc.local complete." >> /tmp/rc_test.txt
 #Reporting code follows..
