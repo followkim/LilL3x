@@ -60,6 +60,11 @@ class AI:
         search_txt_p = txt.lower().strip()
         search_txt = re.sub(r'[^\w\s]', '', search_txt_p)
 
+
+        if re.search(r"^transerror$", search_txt.lower()):
+            STATE.ChangeState('ActiveIdle')
+            return f"I'm sorry, I didn't quite get that."
+
         if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
             STATE.ChangeState('ActiveIdle')
             self.last_ai_interaction = datetime.now() + timedelta(minutes=30)
