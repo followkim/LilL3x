@@ -383,28 +383,14 @@ class AI_openAI(AI):
         return "!"+AI.SetEvent(self, event)
 
     def SaveMemories(self, memory=False):  # called on close
-        if not memory:
-            self.memory = self.memory[3:]
-        else: self.memory = memory
-        if len(self.memory):
+        if len(self.memory) > 3:
+#            self.memory = self.memory[3:]
             memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
             memStr = ''.join(memStr.splitlines())
             cf.w('HISTORY', memStr)
+ #           self.memory = self.InitMemory() + memory
         else: memStr = cf.g('HISTORY')
         return memStr
-
-    def SumMemory(self, memory=False): # unused
-        if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
-
-        memory.append({"role": "user", "content": f"Summarize the above {len(memory)} items, focusing on facts (namely about the user), upcoming events, current and future projects, and frequent topics.  Be detailed and comprehensive.  This will be saved to reshresh your memory the next time you talk."})
-        args = {
-            'model': self.model(),
-            'messages': memory,
-        }
-#        sum = self.reply_sync(args, False) # don't strip response
-        response = self.client.chat.completions.create(**args)
-        if response.choices:
-            return response.choices[0].message.content
 
     def Close(self):
        AI.Close(self)

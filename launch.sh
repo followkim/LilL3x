@@ -31,6 +31,6 @@ echo preload mic
 /home/el3ktra/LilL3x/bin/python mic.py
 
 echo "Starting LilL3x..."
-sudo /home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt
+sudo /home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt 2>&1
 
 echo "Done."

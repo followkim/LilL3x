@@ -209,9 +209,6 @@ class lill3x:
     def SwitchListener(self, newListener):
         ears = None
 
-        #if cf.g('WAKE_WORD_ENGINE').split('_')[0] == newListener.split('_')[0]: 
-        #    ears = self.ww
-        #else:
         try:
             ears = eval(f"{newListener}_listener(self.face)")
         except Exception as e:
@@ -257,7 +254,7 @@ class lill3x:
         if self.wifi or self.WifiOn():
             if cf.g('SHOULD_GREET'): self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
         else:
-            self.mouth.PlaySound(cf.g('ERROR_MP3'))
+            self.mouth.PlaySound(cf.g('ERROR_FILE'))
             STATE.ChangeState('SleepState')
             self.face.off()
 
@@ -277,7 +274,7 @@ class lill3x:
             self.WifiOff()
             SleepOn(step=1) #sleep until state change
         else:
-            SleepOn(secs=(60*cf.g('WIFI_OFF'))+1, step=1)
+            SleepOn(secs=(60*cf.g('WIFI_OFF'))+1, step=1)  # deep sleep
 
     def Quit(self):
 
@@ -340,7 +337,6 @@ class lill3x:
             # Command to bring down the wlan0 interface
             cmd = 'sudo ifconfig wlan0 down'
             os.system(cmd)
-            LogInfo("Wi-Fi turned off.")
             self.wifi = False
         except Exception as e:
             LogError(f"Error turning off Wi-Fi: {e}")
@@ -353,12 +349,13 @@ class lill3x:
             os.system(cmd)
             LogInfo("Wi-Fi turned on.")
         except Exception as e:
-            LogError(f"Error turning on Wi-Fi: {e}")
+            LogError(f"Error turning on Wi-Fi: {e.args}")
 
-        wait = datetime.now() + timedelta(seconds=60)
+        wait = datetime.now() + timedelta(seconds=60)  # wait for the internet for 60 secondss
         while not HasInternet() and wait > datetime.now():
             sleep(2)
         self.wifi = HasInternet()
+        if not self.wifi: LogError("Not able to reach internet after turning on wifi.")
         return self.wifi
 
 ## THREADING INFO

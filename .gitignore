@@ -1,11 +1,9 @@
 .gitignore
-wake/*raspberry-pi.ppn
 config/config.txt
-picts/*.jpg
 log
 temp
 config/*.bk
-LilL3x.log
+zero.log
 __pycache__
 bin
 lib
@@ -15,3 +13,6 @@ pyvenv.cfg
 sr.py
 /training/*.dat
 /vosk/*
+media/error.mp3
+share/
+tests/

@@ -24,13 +24,12 @@ class Purr:
     is_purring = False
     audio = False
     face = False
+    fsr1 = 22
+    fsr2 = 23
     def __init__(self):
-        START_BUTTON = 22
-        END_BUTTON = 23
-#        GPIO.setmode(GPIO.BCM)
-#        GPIO.setup(self.BUTTON, GPIO.IN)
-        self.aBtn = gpiozero.Button(START_BUTTON)
-        self.bBtn = gpiozero.Button(END_BUTTON)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.fsr1, GPIO.IN)
+        GPIO.setup(self.frs2, GPIO.IN)
 
         # Define the GPIO pin connected to the LED
         led_pin = 13
@@ -44,14 +43,14 @@ class Purr:
         LogInfo("PurrThread started")
         while not self.should_quit:
 
-            if self.aBtn.is_pressed or self.bBtn.is_pressed:
-                waitBtn = self.aBtn if self.bBtn.is_pressed else self.bBtn
+            if GPIO.input(self.fsr1) or GPIO.input(self.fsr2):
+                waitFsr = self.fsr1 if GPIO.input(self.fsr2) else self.fsr2
                 is_petting = True
                 LogDebug("Petting Detected")
                 startPet = datetime.now()
                 lastPet = startPet
                 while is_petting == True:
-                    while not waitBtn.is_pressed and is_petting and not self.should_quit:
+                    while notGPIO.input(waitFsr) and is_petting and not self.should_quit:
                         if lastPet + timedelta(seconds=cf.g('STROKE_TO')) < datetime.now() or self.should_quit:
                             is_petting = False
                             self.is_purring = False
@@ -59,7 +58,7 @@ class Purr:
                             break
                         else: sleep(0.1)
                     if not is_petting: break
-                    waitBtn = self.aBtn if self.bBtn.is_pressed else self.bBtn
+                    waitFsr = self.fsr1 if GPIO.input(self.fsr2) else self.fsr2
                     lastPet = datetime.now()
                     if startPet + timedelta(seconds=cf.g('PURR_SEC')) < datetime.now():
                         self.purr_motor()
@@ -89,6 +88,8 @@ class Purr:
         # Loop to continuously update LED brightness
         t = 0
         while self.is_purring and not self.should_quit:
+            volume = (min((datetime.now() - startPurr).total_seconds() / (10 * 60), 1) * 0.75) + 0.25
+            self.audio.SetChannelVolume(purr_channel, volume)
             # Calculate sine wave value (scaled and offset for brightness)
             brightness = amplitude * sin(2 * pi * frequency * t) + offset
             t += 0.01  # Adjust for smoother or faster animation
@@ -100,7 +101,7 @@ class Purr:
             if startPurr + timedelta(seconds=cf.g('PURR_SEC')) < datetime.now(): self.face.loving()
 
             # Increment time and control update speed
-            sleep(0.1) # Small sleep to allow the Pi to perform other tasks
+            sleep(0.25) # Small sleep to allow the Pi to perform other tasks
 
 
         self.motor.off() # Turn off the LED on exit

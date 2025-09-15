@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from datetime import datetime 
+from datetime import datetime
 import os
 import re
 import sys
@@ -396,20 +396,20 @@ class Config:
         self.should_quit = True
 
     def config_thread(self):
-        while not self.should_quit:
-            try:
+        try:
+            while not self.should_quit:
                 if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                    if self.config_changed: self.WriteConfig() # periodically write just in case
                    self.CheckGit() # will update then change state to restart!!
-                   UploadLog()
+                   if HasInternet(): UploadLog()
                    CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
 
                 if self.IsConfigDirty(): self.LoadConfig()
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
                 if (datetime.now()-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
                 else:  SleepOn(-1, self.config_wake, 10)
-            except  Exception as e:
-                LogError(f"ConfigThread uncaught exception {e.args}")
+        except  Exception as e:
+            LogError(f"ConfigThread uncaught exception {e.args}")
         LogInfo("Config thread ended.")
         self.WriteConfig()
 

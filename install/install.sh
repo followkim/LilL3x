@@ -11,15 +11,12 @@ cd ~/LilL3x/
 
 sudo apt-get update
 
-sudo apt install -y python3-picamera2
-sudo apt-get install -y python3-pil
 sudo apt-get install -y flac
 sudo apt-get install -y libportaudio2
 sudo apt install -y portaudio19-dev
 sudo apt-get install -y espeak
-sudo apt install -y python3-libcamera python3-kms++ libcap-dev
+sudo apt install -y python3-kms++ libcap-dev
 
-pip install opencv-contrib-python
 pip install pygame
 pip install SpeechRecognition
 pip install pyttsx3
@@ -29,20 +26,12 @@ pip install gtts
 pip install vosk
 pip install sounddevice
 pip install PyAudio
-pip install pvporcupine
-pip install pvrecorder
 pip install word2number
 pip install trieregex
 pip install gpiozero
 pip install rpi.gpio
-pip install boto3
+pip install boto3   # for AWS
 pip install GitPython
-
-pip install picamera2
-pip install deepface
-pip install tf-keras
-
-##pip install libcamera
 
 pip install llamaapi
 pip install ollama
@@ -64,27 +53,15 @@ cd seeed-voicecard/
 sudo ./install.sh
 sudo raspi-config #TODO automate: pick sound card, turn on i2c 
 # test 
-arecord -D "plughw:3,0" -f S16_LE -r 16000 -d 2 -t wav test.wav;aplay -D "plughw:3,0" test.wav
-
-# screen
-# GPIO pins: SDA: 3, SCL 5
-cd ~
-pip3 install --upgrade adafruit-python-shell
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
-sudo -E env PATH=$PATH python3 raspi-blinka.py
-pip install adafruit-circuitpython-ssd1306
+arecord -D "plughw:1,0" -f S16_LE -r 16000 -d 2 -t wav test.wav;aplay -D "plughw:1,0" test.wav
 
 # system changes
 (crontab -l; echo "@reboot sh /home/el3ktra/LilL3x/launch.sh >> /home/el3ktra/LilL3x/log/cronlog") | crontab -
 
 echo "Enter a password (8 letters): "
 read password
-wpa_passphrase $HOSTNAME $password
-echo "Enter the passphrase above, including psk=: "
-read passphrase
-sed -i "s/REPLACE_PASSWORD_HERE/$passphrase/g" ~/LilL3x/install/rclocal
-
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
+sudo sed -i "s/PASSWORD/$password/g" /etc/rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
 
@@ -107,9 +84,10 @@ sudo chmod a+x /var/www/html/*.sh
 sudo chown root:root /var/www/html/*.sh
 sudo chown el3ktra:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
 sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
-echo "%www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
-echo "%www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
- #use dedicated sudoers.d file
+
+#use dedicated sudoers.d file
+#echo "%www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
+#echo "%www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
 echo "%www-data ALL=NOPASSWD: /home/el3ktra/LilL3x/config/html/listwifi.sh" | sudo tee /etc/sudoers.d/lill3x
 echo "%www-data ALL=NOPASSWD: /home/el3ktra/LilL3x/config/html/setwifi.sh" | sudo tee -a /etc/sudoers.d/lill3x
 
@@ -136,3 +114,4 @@ unzip vosk-model-small-en-us-0.15.zip
 cd ~/LilL3x/
 
 
+cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt

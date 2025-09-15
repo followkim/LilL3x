@@ -11,7 +11,7 @@ import pygame
 import warnings
 from config import cf
 from error_handling import *
-from globals import STATE
+from globals import STATE, HasInternet
 import requests
 import re
 
@@ -22,8 +22,7 @@ def dummy():
 
 class DummySpeech:
     def __init__(self):pass
-    def say(self, txt, face=False, asyn=False):
-        print(txt)
+    def say(self, txt, face=False, asyn=False): pass
 
 class speech_generator:
 
@@ -36,26 +35,23 @@ class speech_generator:
     def __init__(self):
         self.engine_name = cf.g('SPEECH_ENGINE')
         self.engine = eval(self.engine_name+'_tts()')
+        if HasInternet(): self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
         return
 
-    def say(self, txt, face=False, asyn=False):
+    def say(self, txt, face=False, asyn=False, inFilename=cf.g('SPEECH_FILE')):
         filename = False
         if txt and re.search('[a-zA-Z0-9]', txt):
+            if face: face.thinking()
             try:
-                if face: face.thinking()
-                try:
-                    filename = self.engine.tts(txt)
-                except Exception as e:
-                    LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
-                    filename = self.tts(txt)
-
-                if filename: self.PlaySound(filename, watchState=True, asyn=asyn)
-                else: self.PlaySound(cf.g('ERROR_MP3'))
-                LogConvo(f"{cf.g('AINAME')}: '{txt}'")
+                filename = self.engine.tts(txt, filename=inFilename)
             except Exception as e:
-                if face: face.off()
-                LogError(f"speech_tools: tts error: {e.args}")
-                txt = f"T"
+                LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
+            if not filename: filename = self.tts(txt) # play via gtts
+
+            if face: face.talking()
+            if filename: self.PlaySound(filename, watchState=True, asyn=asyn)
+            LogConvo(f"{cf.g('AINAME')}: '{txt}'")
+
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.thinking()
             while self.IsBusy(): sleep(0.5)
@@ -86,6 +82,9 @@ class speech_generator:
 #         channel.stop()
         channel.fadeout(fade*1000)
 
+    def SetChannelVolume(self, channel, volume):
+        channel.set_volume(volume)
+
     def IsBusy(self):
          if self.channel:
              return self.channel.get_busy()
@@ -103,6 +102,7 @@ class speech_generator:
             self.engine.Close()
             self.engine = new_engine
             self.engine_name = engine_name
+            self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
             cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
             return True
         else:
@@ -116,8 +116,10 @@ class speech_generator:
             tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
             tts.save(filename)
             return filename
-        except:  # no internet
-            return None
+        except Exception as e:  # probably no internet
+            LogError(f"Backup speech failed {e.args}")
+            return cf.g('ERROR_FILE')
+ 
     def Close(self):
         pygame.quit()
 

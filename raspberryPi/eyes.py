@@ -40,7 +40,7 @@ COLORS_RGB = {
     'off':[0, 0, 0, 0],
 }
 
-
+COLOR_CYCLE = [COLORS_RGB['red'], COLORS_RGB['orange'], COLORS_RGB['yellow'], COLORS_RGB['green'], COLORS_RGB['blue'], COLORS_RGB['purple']]
 #MAX_BRIGHTNESS = APA102.MAX_BRIGHTNESS
 #NUM_LEDS = 12
 
@@ -74,7 +74,7 @@ class LEDS:
         brightDelta = 1
         br = 0
         has_error = False
-
+        cycle_index = 0
         while not self.should_quit:
             try:
 #                LogDebug(f"Eye state = {self.state}")
@@ -93,9 +93,10 @@ class LEDS:
                     sleep(0.001)
 
                 elif self.state == "loving":
-                    c = self.SetColor(cf.g('LOVE_LED'))
-                    self.state = "loving"
+                    c  = self.SetColor(COLOR_CYCLE[cycle_index])
                     (br, brightDelta) = bounce(br, 0.01, brightDelta)
+                    if br == 0:
+                        cycle_index = (cycle_index + 1) % len(COLOR_CYCLE)
                     self.pixels.fill((int(c[0] * br), int(c[1] * br), int(c[2] * br)))
                     self.pixels.show()
                     sleep(0.1)
@@ -139,12 +140,21 @@ class LEDS:
     def Close(self):
         self.should_quit = True
 
-    def rainbow_cycle(self, j):
+    def rainbow_cycle(self, j, step=1):
         if j >= 255: j = j % 255
         for i in range(num_pixels):
             pixel_index = (i * 256 // num_pixels) + j
             self.pixels[i] = wheel(pixel_index & 255)
-        return j + 1
+        return j + step
+
+def rainbow_cycle(i, j, step=1):
+    color = wheel((i+j) & 255)
+    i = i + step
+    if i >= 256:
+        i = i % 256
+        j = j + step
+        if j >= 256: j = j % 256
+    return (i, j, color)
 
 def wheel(pos):
     # Input a value 0 to 255 to get a color value.

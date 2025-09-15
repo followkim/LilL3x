@@ -39,7 +39,7 @@ class SpeechRecognition_listener:
         self.end_mp3 = pygame.mixer.Sound(cf.g('END_LISTEN_MP3'))
         self.face = face
 
-#        self.quiet = self.update()
+        self.quiet = self.update()
         return
 
     def SetQuiet(self):
@@ -151,6 +151,7 @@ class SpeechRecognition_listener:
                     pass
                 except Exception as e:
                     RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
+                    self.audio = ""
                 self.audio=False
                 while updt_thrd.is_alive(): sleep(0.25)
 

@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     LogDebug("loving")
     face.loving()
-    sleep(10)
+    sleep(60)
 
     face.Close()
     sleep(2)

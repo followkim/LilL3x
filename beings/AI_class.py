@@ -59,6 +59,10 @@ class AI:
         search_txt_p = txt.lower().strip()
         search_txt = re.sub(r'[^\w\s]', '', search_txt_p)
 
+        if re.search(r"^transerror$", search_txt.lower()):
+            STATE.ChangeState('ActiveIdle')
+            return f"I'm sorry, I didn't quite get that."
+
         if re.search(r"^(what is|what(')?s) your temp(erature)?", search_txt.lower()):
             return f"I am running at {STATE.temp} celcius."
 
@@ -82,12 +86,6 @@ class AI:
         if re.search(r"^what((')?s| is) (my|our|your|the) ip( address)?$", search_txt):
             ips = check_output(['hostname', '--all-ip-addresses'])
             return "My IP address is " + ips.split()[0].decode()
-
-        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
-            STATE.ChangeState('Surveil')
-#            return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
-            return False # let AI handle user_input
-
 
         if re.search(r"^(quit|exit|shut( )?down)$", search_txt): 
             STATE.ChangeState('Quit')
