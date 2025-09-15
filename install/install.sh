@@ -98,15 +98,8 @@ sudo chmod a+rwx /etc/apache2/sites-enabled/000-default.conf
 sudo chmod a+rx /home/el3ktra
 sudo systemctl restart apache2
 
-# get default wakewords -- #TODO: just grab directory not entire repo!!
-cd ~
-git clone http://github.com/Picovoice/porcupine.git
-cp porcupine/resources/keyword_files/raspberry-pi/* ~/LilL3x/wake
-rm -rf porcupine
-
 cd ~/LilL3x/
 
-cd vosk
 cd vosk
 wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 unzip vosk-model-small-en-us-0.15.zip
