@@ -17,33 +17,46 @@ sudo apt install -y portaudio19-dev
 sudo apt-get install -y espeak
 sudo apt install -y python3-kms++ libcap-dev
 
-pip install pygame
-pip install SpeechRecognition
-pip install pyttsx3
-pip install openai
-pip install openai-whisper
-pip install gtts
-pip install vosk
-pip install sounddevice
-pip install PyAudio
-pip install word2number
-pip install trieregex
-pip install gpiozero
-pip install rpi.gpio
-pip install boto3   # for AWS
-pip install GitPython
+sudo pip install pygame  --break-system-packages 
+sudo pip install SpeechRecognition --break-system-packages 
+sudo pip install pyttsx3 --break-system-packages 
+sudo pip install openai --break-system-packages 
+sudo pip install openai-whisper --break-system-packages 
+sudo pip install gtts --break-system-packages 
+sudo pip install vosk --break-system-packages 
+sudo pip install sounddevice --break-system-packages 
+sudo pip install PyAudio --break-system-packages 
+sudo pip install word2number --break-system-packages 
+sudo pip install trieregex --break-system-packages 
+sudo pip install gpiozero --break-system-packages 
+sudo pip install rpi.gpio --break-system-packages 
+sudo pip install boto3   --break-system-packages   # for AWS
+sudo pip install GitPython --break-system-packages 
+sudo pip install llamaapi --break-system-packages 
+sudo pip install ollama --break-system-packages 
+sudo pip install langchain_ollama --break-system-packages 
+sudo pip install google.generativeai --break-system-packages 
+sudo pip install google-cloud-texttospeech --break-system-packages 
+sudo pip install anthropic --break-system-packages 
 
-pip install llamaapi
-pip install ollama
-pip install langchain_ollama
-pip install google.generativeai
-pip install google-cloud-texttospeech
-pip install anthropic
-pip install PyCharacterAI
-pip install characterai
+#https://learn.adafruit.com/neopixels-on-raspberry-pi/python-usage
+sudo pip install PyCharacterAI --break-system-packages 
+sudo pip install characterai --break-system-packages 
+
+sudo pip3 install adafruit-blinka --break-system-packages
+sudo pip3 install rpi_ws281x adafruit-circuitpython-neopixel  --break-system-packages
+sudo python3 -m pip install --force-reinstall adafruit-blinka  --break-system-packages
+
 #Speech regognition
 ln -s lib/python3.11/site-packages/speech_recognition/__init__.py sr.py
 nano sr.py
+
+# LEDS
+cd ~
+pip3 install --upgrade adafruit-python-shell
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
+# NOTE blinka is interactive, run this line by itself!!
+sudo -E env PATH=$PATH python3 raspi-blinka.py
 
 # seeed voicecard
 cd ~
