@@ -1,6 +1,6 @@
 sudo apt-get update
 
-git clone -b v2 http://github.com/followkim/LilL3x/
+git clone -b chatcat http://github.com/followkim/LilL3x/
 python -m venv --system-site-packages LilL3x
   ## TODO: take action if this line isn't there
 source LilL3x/bin/activate
