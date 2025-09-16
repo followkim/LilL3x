@@ -153,7 +153,7 @@ def CloseLog(reason="unk"):
     Log(Color(f"{'*' * 10} LOG ENDED {reason} {'*' * 10}\n\n\n\n", 'cyan'))
     UploadLog()
 
-def UploadLog(filename=log_file_ln):
+def UploadLog(filename=log_file_name):
     try:
         url = False
         ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
@@ -164,7 +164,7 @@ def UploadLog(filename=log_file_ln):
         LogInfo(f"Uploaded log: URL: {url}")
         return url
     except Exception as e:
-        LogError(f"Unable to upload logFile {e.args}")
+        LogError(f"Unable to upload logFile {filename} {e.args}")
         return False
 
 def CleanDirs(dir, path="", hours=30*24):   # 30 days is the default
