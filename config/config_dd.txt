@@ -5,7 +5,7 @@ USEREMAIL|Email|Your email
 HEADER|AI Information|2
 AINAME|AI Name|Your AI's name
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
-BACKSTORY|Backstory|Give a backstory for your AI companion.  Be creative!
+BACKSTORY|Backstory|Give a backstory for your AI companion.  Write in the second person.  Be creative!
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 OPEN_AI_API_KEY|GPT Model|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
 CHATGPT_MODEL|GPT Model|Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
