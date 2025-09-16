@@ -374,14 +374,14 @@ class AI:
          return not self.LookForUser() and self.LastInteraction() > ((cf.g('ACTIVE_IDLE_TO')*60) & 0xffffffff)
 
     def CanInteract(self):
-        if not ('INITIATE_ODDS') or not self.LookForUser() or self.CanIHearYou(): return False
-        secs = self.LastAIInteraction()
 
+        secs = self.LastAIInteraction()
+        ret = False
         # too soon for an action (and action not forced)
-        if secs > 0 and secs < (cf.g('INTERACT_MIN')*60):
+        if not cf.g('INITIATE_ODDS') or secs < (cf.g('INTERACT_MIN')*60):
             return False
-        elif secs > (cf.g('INTERACT_MAX')*60):
-            return True
+
+        if not self.LookForUser() or self.CanIHearYou(): return False
         else: return True
 
     def Interact(self, dice=False):
