@@ -29,7 +29,7 @@ class Purr:
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.fsr1, GPIO.IN)
-        GPIO.setup(self.frs2, GPIO.IN)
+        GPIO.setup(self.fsr2, GPIO.IN)
 
         # Define the GPIO pin connected to the LED
         led_pin = 13
