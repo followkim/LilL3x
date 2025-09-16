@@ -277,7 +277,6 @@ class AI_openAI(AI):
 #        return self.memory
         slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
         if self.memory[0]['role']!='system':
-            LogError("First memory NOT system!!")
             self.memory = self.InitMemory() + self.memory
         return self.memory[:3] + self.memory[slice:]
 
