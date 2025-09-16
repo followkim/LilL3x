@@ -153,7 +153,9 @@ def CloseLog(reason="unk"):
     Log(Color(f"{'*' * 10} LOG ENDED {reason} {'*' * 10}\n\n\n\n", 'cyan'))
     UploadLog()
 
-def UploadLog(filename=log_file_name):
+def UploadLog(filename=False):
+
+    if not filename: filename = log_file_name
     try:
         url = False
         ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
