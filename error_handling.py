@@ -148,9 +148,9 @@ def DumpStack():
             print(f"Error writing to logfile: {e.args}")
     else: traceback.print_stack()
 
-def CloseLog():
+def CloseLog(reason="unk"):
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
-    Log(Color(f"{'*' * 10} LOG ENDED {'*' * 10}\n\n\n\n", 'cyan'))
+    Log(Color(f"{'*' * 10} LOG ENDED {reason} {'*' * 10}\n\n\n\n", 'cyan'))
     UploadLog()
 
 def UploadLog(filename=log_file_name):

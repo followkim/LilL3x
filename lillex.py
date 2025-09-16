@@ -288,7 +288,7 @@ class lill3x:
        if self.face: self.face.Close()
        cf.Close()
        self.WaitThreads()
-       CloseLog()
+       CloseLog(STATE.GetState())
 
     def Restart(self):
        self.Quit()

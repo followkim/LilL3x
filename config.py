@@ -395,26 +395,41 @@ class Config:
         self.CheckGit()
         self.should_quit = True
 
+    today = datetime.now()
     def config_thread(self):
-        try:
-            while not self.should_quit:
-                if (datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
-                   if self.config_changed: self.WriteConfig() # periodically write just in case
-                   self.CheckGit() # will update then change state to restart!!
-                   if HasInternet(): UploadLog()
-                   CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
+        error = False
+        while not self.should_quit:
+            self.today = datetime.now()
+            try:
+                if (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                    if self.config_changed: self.WriteConfig() # periodically write just in case
+                    self.CheckGit() # will update then change state to restart!!
+                    UploadLog()
 
                 if self.IsConfigDirty(): self.LoadConfig()
+
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
-                if (datetime.now()-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
+                if (self.today-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
                 else:  SleepOn(-1, self.config_wake, 10)
-        except  Exception as e:
-            LogError(f"ConfigThread uncaught exception {e.args}")
+            except  Exception as e:
+                LogError(f"ConfigThread exception {e.args}")
+                if error: self.should_quit = True
+                else: self.error = True                    # prevent runaway exceptions
         LogInfo("Config thread ended.")
         self.WriteConfig()
 
+    # this is "dirty" because it will always return false in order to prevent waking a loop.  TODO fix
+    def NewDay_dirty(self):
+        if datetime.now().date() != self.today.date(): #new day
+            CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
+            CloseLog("It's a New Day")
+            InitLogFile()
+            self.today = datetime.now()
+            return False # hacky but True will wake the loop
+        return False
+
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.CheckFiles() or self.should_quit
+        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.NewDay_dirty() or self.CheckFiles() or self.should_quit
 
 # we want to Load config here so that just including will load config
 cf = Config()
