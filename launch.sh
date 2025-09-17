@@ -16,7 +16,7 @@ git pull >> ./log/git_$(date +"%Y-%m-%d").txt
 echo "Run update.sh..."
 . $HOME/LilL3x/install/update.sh >> ./log/update_$(date +"%Y-%m-%d").txt
 
-pactl set-default-sink 80
+#pactl set-default-sink 80
 
 echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
