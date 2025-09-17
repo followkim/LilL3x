@@ -52,6 +52,7 @@ pip install google-cloud-texttospeech
 pip install anthropic
 pip install PyCharacterAI
 pip install characterai
+
 #Speech regognition
 ln -s lib/python3.11/site-packages/speech_recognition/__init__.py sr.py
 nano sr.py
@@ -79,17 +80,8 @@ pip install adafruit-circuitpython-ssd1306
 
 echo "Enter a password (8 letters): "
 read password
-wpa_passphrase $HOSTNAME $password
-echo "Enter the passphrase above, including psk=: "
-read passphrase
-sed -i "s/REPLACE_PASSWORD_HERE/$passphrase/g" ~/LilL3x/install/rclocal
-
-## todo : Working on setting up a captive portal for access point
-sudo apt install hostapd
-sudo apt install dnsmasq
-sudo apt-get install iptables
- 
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
+sudo sed -i "s/PASSWORD/$password/g" /etc/rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
 
@@ -133,7 +125,6 @@ rm -rf porcupine
 
 cd ~/LilL3x/
 
-cd vosk
 cd vosk
 wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 unzip vosk-model-small-en-us-0.15.zip
