@@ -25,8 +25,8 @@
           echo ' <a href="log">Logs</a><br>';
 //          echo ' <a href="LilL3x/">Browse directory</a><br>';
           echo ' <p><hr>';
-          echo ' <a href="config.php?txt">Configure (Developer Version)</a><br>';
-          echo ' <a href="config.php?vars">Configure variables (Developer Version)</a><br>';
+          echo ' <a href="config/?txt">Configure (Developer Version)</a><br>';
+          echo ' <a href="config/?vars">Configure variables (Developer Version)</a><br>';
           echo '</body></html>';
 
         }

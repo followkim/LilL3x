@@ -11,8 +11,9 @@ import pygame
 import warnings
 from config import cf
 from error_handling import *
-from globals import STATE
+from globals import STATE, HasInternet
 import requests
+import re
 
 LogInfo("Speech Engine Loading...")
 
@@ -34,29 +35,27 @@ class speech_generator:
     def __init__(self):
         self.engine_name = cf.g('SPEECH_ENGINE')
         self.engine = eval(self.engine_name+'_tts()')
+      
+        if HasInternet(): self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE')) # generate the error file in the current voice
         return
 
-    def say(self, txt, face=False, asyn=False):
-        filename = False
-        if txt:
+    def say(self, txt, face=False, asyn=False, inFilename=cf.g('SPEECH_FILE')):
+        if txt and re.search('[a-zA-Z0-9]', txt):
+            filename = False
+            if face: face.thinking()
             try:
-                if face: face.thinking()
-                try:
-                    filename = self.engine.tts(txt)
-                except Exception as e:
-                    LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
-                    filename = self.tts(txt)
-
-                if face: face.talking()
-                if filename: self.PlaySound(filename, watchState=True, asyn=asyn)
-                LogConvo(f"{cf.g('AINAME')}: '{txt}'")
+                filename = self.engine.tts(txt, filename=inFilename)
             except Exception as e:
-                if face: face.off()
-                LogError(f"speech_tools: tts error: {e.args}")
-                txt = f"There was a speech error {e.args}"
+                LogError(f"{cf.g('SPEECH_ENGINE')} returned error: {e.args}, using gTTS")
+            if not filename: filename = self.tts(txt) # play via gtts
+
+            if face: face.talking()
+            self.PlaySound(filename, watchState=True, asyn=asyn)
+            LogConvo(f"{cf.g('AINAME')}: '{txt}'")
+
         elif not asyn: # in the case where the last file sent has no data but is not asyn
             if face: face.talking()
-            while self.IsBusy(): sleep(0.5)
+            while self.IsBusy(): sleep(0.25)
         if face and not asyn: face.off()
         return txt
 
@@ -90,6 +89,7 @@ class speech_generator:
             self.engine.Close()
             self.engine = new_engine
             self.engine_name = engine_name
+            self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
             cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
             return True
         else:
@@ -99,10 +99,13 @@ class speech_generator:
         return False
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-        tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
-        tts.save(filename)
-        return filename
-
+        try:
+            tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
+            tts.save(filename)
+            return filename
+        except Exception as e:
+            LogError(f"Backup speech failed {e.args}")
+            return cf.g('ERROR_FILE')
     def Close(self):
         pygame.quit()
 
@@ -233,8 +236,8 @@ class amazon_tts:
                   return False
         else:
             # The response didn't contain audio data, exit gracefully
-            LogError(f"AWS returned error: {e.args}")
-
+            LogError(f"AWS returned error: No audio Stream")
+            return False
 
     def Close(self):
        return
@@ -324,7 +327,7 @@ if __name__ == '__main__':
     
     pygame.mixer.init()
     sr = speech_generator()
-    sr.SwitchEngine("pytts")
+#    sr.SwitchEngine("pytts")
     sr.say("the big red dog jumped over the lazy fox", asyn=True)
 #    cf.s('GOOGLE_LANG_CODE', 'en-AU')
 #    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')

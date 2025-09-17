@@ -63,7 +63,9 @@ class LEDS:
         thisColor = self.color.copy()          # keep track of the current color/brightness
         brightDelta = 1
         has_error = False
+        dt = False
         while not self.should_quit:
+            dt = datetime.now()
             try:
                 self.color[3] = cf.g('BRIGHTNESS') # set now but might be reset below
                 if self.is_idle:
@@ -100,7 +102,8 @@ class LEDS:
                         else: has_error = True
                         self.off()
                 if self.is_thinking: sleep(0.01)
-                else: sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+#                else: sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+                else: sleep(max((1-(min(cf.g('LIGHT_SPEED'),99.5)/100))  - (datetime.now()-dt).microseconds/1000000, 0))
             except Exception as e:
                 LogError(f"LEDS:LedThread exception: {str(e)}:{e.args}")
                 if has_error: self.should_quit = True

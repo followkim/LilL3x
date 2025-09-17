@@ -28,7 +28,6 @@ class AI_openAI(AI):
     memory = []
     last_convo_load = datetime.now()
     use_temp = True
-    needsSave = False
     def __init__(self):
         AI.__init__(self)
         self.client = openai.Client(api_key=self.api_key,)
@@ -52,7 +51,6 @@ class AI_openAI(AI):
         write_convo_thread = threading.Thread(target=self.WriteConvo, daemon=True)
         write_convo_thread.name = f"{GetHostname()} WriteConvoThread"
         write_convo_thread.start()
-        self.needsSave = True
         return ret
 
 
@@ -279,7 +277,6 @@ class AI_openAI(AI):
 #        return self.memory
         slice = -1 * min(len(self.memory)-2, cf.g('HISTORY_LOOKBACK'))
         if self.memory[0]['role']!='system':
-            LogError("First memory NOT system!!")
             self.memory = self.InitMemory() + self.memory
         return self.memory[:3] + self.memory[slice:]
 
@@ -306,9 +303,7 @@ class AI_openAI(AI):
 #            self.face.thinking()
 #            self.memory = self.LoadConvo(read=False)
 #            self.face.off()
-        if self.needsSave: 
             #self.SaveMemories()
-            self.needsSave = False
         return AI.Think(self)
 
     def IsConvoDirty(self):
@@ -397,32 +392,20 @@ class AI_openAI(AI):
     def SetEvent(self, event):  # DOTO maek this generic.  Allow push into messages
         return "!"+AI.SetEvent(self, event)
 
-    def SaveMemories(self, memory=False):  # called on close
-        if not memory:
+    def SaveMemories(self):  # called on close
+        if len(self.memory) > 3:
             self.memory = self.memory[3:]
-        else: self.memory = memory
-        memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
-        memStr = ''.join(memStr.splitlines())
-        cf.w('HISTORY', memStr)
+            memStr = self.ai_respond(f"^{cf.g('HISTORY_STR').format(cf.g('USERNAME'))}")
+            memStr = ''.join(memStr.splitlines())
+            cf.w('HISTORY', memStr)
+            self.memory = self.InitMemory() + self.memory
+        else: memStr = cf.g('HISTORY')
         return memStr
 
-    def SumMemory(self, memory=False): # unused
-        if not memory: memory = self.memory[2:]  # skip system instructions when using own memory
-
-        memory.append({"role": "user", "content": f"Summarize the above {len(memory)} items, focusing on facts (namely about the user), upcoming events, current and future projects, and frequent topics.  Be detailed and comprehensive.  This will be saved to reshresh your memory the next time you talk."})
-        args = {
-            'model': self.model(),
-            'messages': memory,
-        }
-#        sum = self.reply_sync(args, False) # don't strip response
-        response = self.client.chat.completions.create(**args)
-        if response.choices:
-            return response.choices[0].message.content
-
     def Close(self):
-       AI.Close(self)
-#       self.WriteConvo()
        self.SaveMemories()  # don't save into converstaion file
+       self.WriteConvo()
+       AI.Close(self)
        return
 
 class AI_ChatGPT(AI_openAI):
@@ -481,15 +464,15 @@ if __name__ == '__main__':
 #    from camera_tools import Camera
     from speech_tools import DummySpeech
     from face import DummyFace
-    import pygame
+#    import pygame
 
-    pygame.mixer.init()
+#    pygame.mixer.init()
  #   eyes = Camera()
 
     global STATE
     SetErrorLevel(4)
     STATE.ChangeState('Idle')
-    ai = AI_Llama()
+    ai = AI_ChatGPT()
     ai.face = DummyFace()
   #  ai.eyes = eyes
     ai.mouth = DummySpeech()

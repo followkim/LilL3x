@@ -253,11 +253,11 @@ class lill3x:
 
     def EvalCode(self):
         '''EvalCode: Runs the commands stored in the STATE.data field.  
-                 Used to make changes such as chaning AI, wake work, or speech generator.
+                 Used to make changes such as chaning AI, wake word, or speech generator.
                  Called from config thread.'''
-        LogDebug(f"EvalCode: {STATE.data}")
         for cmd in STATE.data:
             try:
+                LogDebug(f"EvalCode: {cmd}")
                 eval(cmd)
             except Exception as e:
                 LogError(f"EvalCode failed.\n\tcmd:{cmd}\n\tErr: {e.args}")
@@ -363,7 +363,7 @@ class lill3x:
        if self.face: self.face.Close()
        cf.Close()
        self.WaitThreads()
-       CloseLog()
+       CloseLog(STATE.GetState())
 
     def Restart(self):
        self.Quit()

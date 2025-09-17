@@ -22,7 +22,6 @@ BRIGHTNESS|50|int|
 BRIGHT_SPEED|2|int|1
 LIGHT_SPEED|75|int|1
 LISTEN_LED|green|str|1
-THINK_LED|purple|str|1
 TALK_LED|red|str|1
 LOOK_LED|white|str|1
 ICU_THRESH|2|int

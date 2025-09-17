@@ -16,10 +16,12 @@ git pull >> ./log/git_$(date +"%Y-%m-%d").txt
 echo "Run update.sh..."
 . $HOME/LilL3x/install/update.sh >> ./log/update_$(date +"%Y-%m-%d").txt
 
+#pactl set-default-sink 80
+
 echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
 
 echo "Starting LilL3x..."
-/home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt
+/home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt 2>&1
 
 echo "Done."

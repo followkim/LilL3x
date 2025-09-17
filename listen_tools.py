@@ -60,7 +60,7 @@ class SpeechRecognition_listener:
         self.speech.pause_threshold = cf.g('MIC_LIMIT')
         self.speech.dynamic_energy_threshold = cf.g('ENERGY_DYNAMIC')==1
 
-        if self.speech.dynamic_energy_threshold:  # vut 
+        if self.speech.dynamic_energy_threshold:
             self.speech.dynamic_energy_adjustment_ratio = 1 + (cf.g('DYNAMIC_RATIO')/100.0)
             LogInfo(f"SR Update: Using dynamic: ratio = {1 + (cf.g('DYNAMIC_RATIO')/100.0)}")
         else:
@@ -156,6 +156,7 @@ class SpeechRecognition_listener:
                         pass
                     except Exception as e:
                         RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
+                        imp = "transerror" # let AI_class deal with it
                     self.audio=False
                     while updt_thrd.is_alive(): sleep(0.25)
 
@@ -174,19 +175,18 @@ class SpeechRecognition_listener:
 
     def Evesdrop(self):
         return self.listen(True)
- 
-    ####### Engines in here
 
+    ####### Engines in here
     def _recognize_default(self, audio):
         try:
             return self.speech.recognize_google(audio)
         except sr.RequestError as e:
             LogError("SR: Default (google) RequestError; {0}".format(e))
-        return ""
+        return "transerror"
 
     def recognize_vosk(self, audio):
         try:
-            response =  self.speech.recognize_vosk(audio)
+            response =  self.speech.recognize_vosk(audio) #, path=cf.g('VOSK_PATH')+"vosk-model-small-en-us-0.15")
             d = json.loads(response)
             return d['text']
 
@@ -270,7 +270,7 @@ class SpeechRecognition_listener:
                     continue
                 if not exclude:
                     newStr += s
-                elif exclude: action_str += s
+                else: action_str += s
 
             if action_str: LogInfo(f"Heard action {action_str}")
             newStr = " ".join(newStr.split())
@@ -284,18 +284,11 @@ if __name__ == '__main__':
     pygame.mixer.init()
     sg = SpeechRecognition_listener()
     sg.update()
-#    sg.engine="whisper"
-#    while True:
-#        print("Can I hear you?", end="")
-#        print(sg.CanIHearYou())
+
     txt = ""
     while txt.lower().replace(".", '') != 'quit':
         dt  = datetime.now()
-#        print("Timeout: ", end="")
-#        to = input()
-#        print("Phrase Limit: ", end="")
-#        pl = input()
-        cf.s('INTERPRET_ENGINE', 'vosk')
+        SetErrorLevel(4)
         print("Speak")
         txt = sg.listen()
         print(txt)
