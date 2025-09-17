@@ -101,7 +101,6 @@ HEADER|LEDs|2
 BRIGHTNESS|Brightness|The brightness of the LEDs
 LIGHT_SPEED|LED Speed|How fast the LEDs will animate.  Should be 1-100
 LISTEN_LED|Listening Color|What color the LEDS will show when the AI is Listening.
-THINK_LED|Thinking Color|What color the LEDS will show when the AI is thinking.
 TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to you.
 LOOK_LED|Looking Color|What color the LEDS will show when the AI is looking at you.
 
