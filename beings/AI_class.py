@@ -418,7 +418,7 @@ class AI:
     def InitiateConvo(self, mood=""):
         self.is_spontanous = True
         if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
-        elif self.has_vision and random.randint(0, 2) == 1:
+        elif self.has_vision and random.randint(0, 5) == 1:
             path = self.TakePicture(0, selfie=True)
             if path:
                 url  = self.eyes.UploadPicture(path)
@@ -432,7 +432,7 @@ class AI:
         return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     def Intruder(self):
-        self.is_spontanous = True
+    #    self.is_spontanous = True
         AI.Intruder(self)
         return self.respond(f"!{cf.g('INTRUDER_STR')}")
         #email URL
