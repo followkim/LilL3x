@@ -71,10 +71,23 @@ arecord -D "plughw:1,0" -f S16_LE -r 16000 -d 2 -t wav test.wav;aplay -D "plughw
 # system changes
 (crontab -l; echo "@reboot sh /home/el3ktra/LilL3x/launch.sh >> /home/el3ktra/LilL3x/log/cronlog") | crontab -
 
-echo "Enter a password (8 letters): "
-read password
+#echo "Enter a password (8 letters): "
+#read password
+
+sudo nmcli connection add \
+ type wifi \
+ con-name $HOSTNAME \
+ ifname wlan0 \
+ autoconnect yes \
+ wifi.mode ap \
+ wifi.ssid $HOSTNAME \
+ wifi.band b \
+ wifi.channel 1 \
+ ipv4.method shared \
+ ipv6.method shared
+
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
-sudo sed -i "s/PASSWORD/$password/g" /etc/rc.local
+##sudo sed -i "s/PASSWORD/$password/g" /etc/rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
 
