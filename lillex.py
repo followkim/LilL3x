@@ -40,6 +40,7 @@ from AI_Kindroid import AI_Kindroid
 from AI_Gemini import AI_Gemini
 from AI_Claude import AI_Claude
 from AI_Nomi import AI_Nomi
+from AI_Offline import AI_Offline
 
 sys.path.insert(0, currentdir+'/raspberryPi/')
 from button import Button
@@ -61,9 +62,9 @@ class lill3x:
     wifi = True
 
     def __init__(self):
-        isRestart = False
+        isSilient = False
         if '--restart' in sys.argv:       # if restart, don't say hello or play the welcome bell
-            isRestart = True
+            isSilient = True
             LogInfo("Resuming after restart")
 
         pygame.mixer.init()
@@ -90,7 +91,7 @@ class lill3x:
             STATE.ChangeState('Quit')
             return # fatal
 
-        if not isRestart: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
+        if not isSilient: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
 
 
         try:
@@ -109,26 +110,24 @@ class lill3x:
         except Exception as e:
             RaiseError(f"Init():Could not init Purring. {e.args}")
 
-        while not HasInternet():
-            LogInfo("Waiting for Internet...")
-            sleep(5)
-
-
         # get AI
         try:
-            self.ai = eval(f"AI_{cf.g('AI_ENGINE')}()")
+            if HasInternet(): self.ai = eval(f"AI_{cf.g('AI_ENGINE')}()")
+            else: 
+                self.ai = AI_Offline()  # dummy AI, does nothing
+                self.wifi = False
             self.ai.SetBody(self.ears, self.mouth, self.face)
         except Exception as e:
-            RaiseError(f"Unable to create AI: {e.args}")
+            RaiseError(f"Exception creating AI: {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
 
         if not self.ai:
             RaiseError("Unable to create AI: init failed")
             STATE.ChangeState('Quit')
-            return
+            return # fatal
 
-
+        # TODO: Fallback AI
 
         
         # THREADS : WW and config
@@ -136,7 +135,7 @@ class lill3x:
         config_thread.name = f"{GetHostname()} ConfigThread"
         config_thread.start()
 
-        if isRestart:
+        if isSilient:
             try: self.ai.last_ai_interaction = datetime.strptime(cf.g('LAST_INTERACTION'), cf.g('CONFIG_DT_FORMAT'))
             except: self.ai.last_ai_interaction = datetime.now()
             LogInfo(f"Last Interaction:  {self.ai.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
@@ -168,12 +167,85 @@ class lill3x:
         # call the Quit function
         eval("self."+STATE.GetState()+"()")
 
+
+    # Hello: Give a greeting to the user:
+    def Hello(self):
+        '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
+        STATE.ChangeState('Active')
+        self.ai.say(self.ai.Hello())  #TODO - give a greeting at first meet
+        return
+
+    # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
+    def Wake(self):
+        '''Wake: called when the STATE is changed to Wake by wake_word or button threads'''
+        STATE.ChangeState('Active')
+
+        # check for connectivity
+        self.face.thinking()  # turn on while we check for connectivity
+        if self.wifi or self.WifiOn():
+            if cf.g('SHOULD_GREET'): self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
+        else:
+            self.mouth.PlaySound(cf.g('ERROR_FILE'))
+            STATE.ChangeState('SleepState')
+            self.face.off()
+
+    def Active(self):
+        ''' Active: User is present and activly talking to ai without need for wakeword
+        ''          AI can: listen and respond to user'''
+        user_input = self.ai.listen()
+        if user_input:
+            self.ai.say(self.ai.respond(user_input))
+        else:
+            STATE.ChangeState('SleepState')
+
+    def SleepState(self):
+        ''' Sleep: Lights are off.  AI Hardware is turned off.
+        ''         AI can: machine learning, check lights/sound '''
+        if self.wifi and STATE.StateDuration() > 60 * cf.g('WIFI_OFF'):
+            self.WifiOff()
+            SleepOn(step=1) #sleep until state change
+        else:
+            SleepOn(secs=(60*cf.g('WIFI_OFF'))+1, step=1)  # sleep until the wifi needs to be shut off
+
+    def Quit(self):
+
+       if self.wifi or self.WifiOn(): LogDebug("Wifi on")
+       else: LogError("Wifi could not be turned on")
+
+       if self.ai: self.ai.Close()
+       if self.mouth: self.mouth.Close()
+       if self.ears: self.ears.Close()
+       if self.purr: self.purr.Close()
+       if self.face: self.face.Close()
+       cf.Close()
+       self.WaitThreads()
+       CloseLog(STATE.GetState())
+
+    def Restart(self):
+       self.Quit()
+       try:
+           python = sys.executable
+           args = [sys.argv[0], "--restart"]
+           cmd = [python] + args
+           LogDebug(f"Restart cmd: {cmd}")
+           process = subprocess.Popen(cmd, start_new_session=True)
+#       with open('process_output.txt', 'w') as outfile:
+#           process = subprocess.Popen(cmd, stdout=outfile, stderr=outfile)
+#           process.wait()
+ #      LogDebug(f"Popen returned {process.returncode}")
+           sleep(10)
+       except Exception as e:
+           LogError(f"Unable to restart.  {e.args}")
+    def Reboot(self):
+       self.Quit()
+       os.system("sudo reboot")
+
     def ChangeAI(self):  
         '''Called via a ChangeState'''
         LogInfo(f"Changing AI to {STATE.data}.")
         if self.SwitchAI(STATE.data):
             STATE.ChangeState('Hello')
-            cf.WriteConfig()
+#            cf.WriteConfig()
             return True
         else: STATE.RevertState()
   
@@ -237,77 +309,6 @@ class lill3x:
         STATE.data = ""
         STATE.RevertState()
 
-    # Hello: Give a greeting to the user:
-    def Hello(self):
-        '''Hello: called at the very start of a reboot.  Skipped on restart.  Greets the user'''
-        self.ai.say(self.ai.Hello())  #TODO - give a greeting at first meet
-        STATE.ChangeState('Active')
-        return
-
-    # Wake: AI has just been summoned by user at any time.  Also the entry point into the loop
-    def Wake(self):
-        '''Wake: called when the STATE is changed to Wake by wake_word or button threads'''
-        self.face.thinking()
-        STATE.ChangeState('Active')
-
-        # check for connectivity
-        if self.wifi or self.WifiOn():
-            if cf.g('SHOULD_GREET'): self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
-        else:
-            self.mouth.PlaySound(cf.g('ERROR_FILE'))
-            STATE.ChangeState('SleepState')
-            self.face.off()
-
-    def Active(self):
-        ''' Active: User is present and activly talking to ai without need for wakeword
-        ''          AI can: listen and respond to user'''
-        user_input = self.ai.listen()
-        if user_input:
-            self.ai.say(self.ai.respond(user_input))
-        else:
-            STATE.ChangeState('SleepState')
-
-    def SleepState(self):
-        ''' Sleep: Lights are off.  AI Hardware is turned off.
-        ''         AI can: machine learning, check lights/sound '''
-        if STATE.StateDuration() > 60 * cf.g('WIFI_OFF'):
-            self.WifiOff()
-            SleepOn(step=1) #sleep until state change
-        else:
-            SleepOn(secs=(60*cf.g('WIFI_OFF'))+1, step=1)  # deep sleep
-
-    def Quit(self):
-
-       if self.wifi or self.WifiOn(): LogDebug("Wifi on")
-       else: LogError("Wifi could not be turned on")
-
-       if self.ai: self.ai.Close()
-       if self.mouth: self.mouth.Close()
-       if self.ears: self.ears.Close()
-       if self.purr: self.purr.Close()
-       if self.face: self.face.Close()
-       cf.Close()
-       self.WaitThreads()
-       CloseLog(STATE.GetState())
-
-    def Restart(self):
-       self.Quit()
-       try:
-           python = sys.executable
-           args = [sys.argv[0], "--restart"]
-           cmd = [python] + args
-           LogDebug(f"Restart cmd: {cmd}")
-           process = subprocess.Popen(cmd, start_new_session=True)
-#       with open('process_output.txt', 'w') as outfile:
-#           process = subprocess.Popen(cmd, stdout=outfile, stderr=outfile)
-#           process.wait()
- #      LogDebug(f"Popen returned {process.returncode}")
-           sleep(10)
-       except Exception as e:
-           LogError(f"Unable to restart.  {e.args}")
-    def Reboot(self):
-       self.Quit()
-       os.system("sudo reboot")
 
     def WaitThreads(self):
        start = datetime.now()
@@ -337,9 +338,12 @@ class lill3x:
             # Command to bring down the wlan0 interface
             cmd = 'sudo ifconfig wlan0 down'
             os.system(cmd)
-            self.wifi = False
+            self.wifi = HasInternet()  # check success
         except Exception as e:
-            LogError(f"Error turning off Wi-Fi: {e}")
+            LogError(f"Exception turning off Wi-Fi: {e.args}")
+
+        if self.wifi: LogError("Still able to reach internet after turning on wifi.")
+        return not self.wifi
 
     def WifiOn(self):
         """Turns on the Wi-Fi interface (wlan0) on a Raspberry Pi."""
@@ -349,11 +353,14 @@ class lill3x:
             os.system(cmd)
             LogInfo("Wi-Fi turned on.")
         except Exception as e:
-            LogError(f"Error turning on Wi-Fi: {e.args}")
+            LogError(f"Exception turning on Wi-Fi: {e.args}")
 
-        wait = datetime.now() + timedelta(seconds=60)  # wait for the internet for 60 secondss
+        dt = datetime.now()
+        wait = dt + timedelta(seconds=5)  # wait for the internet for 30 secondss
         while not HasInternet() and wait > datetime.now():
-            sleep(2)
+            sleep(max(0, 5 - (datetime.now()-dt).microseconds/1000000))
+            dt = datetime.now()
+            if not self.wifi: LogDebug("Waiting for Wifi.")
         self.wifi = HasInternet()
         if not self.wifi: LogError("Not able to reach internet after turning on wifi.")
         return self.wifi
