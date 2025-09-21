@@ -407,14 +407,14 @@ class Config:
                     UploadLog()
 
                 if self.IsConfigDirty(): self.LoadConfig()
-
+                error = False
                 # check the file every 10s, unless it's been recently edited, then watch every 1s (as user is messing around)
                 if (self.today-self.lastLoad).total_seconds()<60:  SleepOn(60, self.config_wake, 1)
                 else:  SleepOn(-1, self.config_wake, 10)
             except  Exception as e:
                 LogError(f"ConfigThread exception {e.args}")
                 if error: self.should_quit = True
-                else: self.error = True                    # prevent runaway exceptions
+                else: error = True                    # prevent runaway exceptions
         LogInfo("Config thread ended.")
         self.WriteConfig()
 
@@ -422,6 +422,7 @@ class Config:
     def NewDay_dirty(self):
         if datetime.now().date() != self.today.date(): #new day
             CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
+            CleanDirs("./log", "\.(log|txt)$", 30*24)
             CloseLog("It's a New Day")
             InitLogFile()
             self.today = datetime.now()
