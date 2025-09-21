@@ -8,6 +8,7 @@ import time
 import threading
 import socket
 import requests
+#from globals import HasInternet
 
 err_level = {
     0: "Errors Only",
@@ -46,11 +47,13 @@ def LnFile():
 
     if log_file_name == "": return False
 
-    #Check the link file
+    #Check the link file points to the correct file
     try:
         if os.path.exists(log_file_ln) and os.readlink(log_file_ln) != log_file_name:
             os.remove(log_file_ln)
     except: pass
+
+    # create the link file if it doesn't exsist
     try:
         if not os.path.exists(log_file_ln):
             os.symlink(log_file_name, log_file_ln)
@@ -153,7 +156,9 @@ def CloseLog(reason="unk"):
     Log(Color(f"{'*' * 10} LOG ENDED {reason} {'*' * 10}\n\n\n\n", 'cyan'))
     UploadLog()
 
-def UploadLog(filename=log_file_name):
+def UploadLog(filename=False):
+    if not HasInternet(): return False
+    if not filename: filename = log_file_name
     try:
         url = False
         ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
@@ -164,7 +169,7 @@ def UploadLog(filename=log_file_name):
         LogInfo(f"Uploaded log: URL: {url}")
         return url
     except Exception as e:
-        LogError(f"Unable to upload logFile {log_file_name} {e.args}")
+        LogError(f"Unable to upload logFile {filename} {e.args}")
         return False
 
 def CleanDirs(dir, path="", hours=30*24):   # 30 days is the default
@@ -178,7 +183,17 @@ def CleanDirs(dir, path="", hours=30*24):   # 30 days is the default
                     if os.path.getctime(file_path) < time_in_secs:
                        os.remove(file_path)
 
-CleanDirs("./log", "\.(log|txt)$", 30*24)
+
+def HasInternet():
+    try:
+        # Attempt to get a response from a reliable website
+        requests.get("https://www.google.com", timeout=5)
+        return True
+    except requests.ConnectionError:
+        return False
+    except requests.Timeout:
+        return False
+
 
 if __name__ == '__main__':
 
@@ -196,7 +211,7 @@ if __name__ == '__main__':
         Log("test")
         SetErrorLevel(4)
         s = ""
-        UploadLog("config.py")
+        UploadLog()
         while s != 'quit':
             s=input("input: ")
             LogInfo(s)
