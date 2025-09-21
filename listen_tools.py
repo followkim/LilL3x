@@ -138,8 +138,8 @@ class SpeechRecognition_listener:
                 self.audio = None  # don't try to use the mic again (was returned)
 
             if not beQuiet:
-                self.end_mp3.play()
                 if self.face: self.face.thinking()
+                self.end_mp3.play()
             STATE.RevertWake()  # If Wake state while listening, user pushed button.  If not Wake State, this does nothing. 
 
             if self.audio:
