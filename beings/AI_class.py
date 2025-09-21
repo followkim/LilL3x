@@ -202,13 +202,6 @@ class AI:
             else:
                 cf.s(key, val)
                 return f"{key} is set to {cf.g(key)}."
-#
-#        if re.search(r"^set (.*) to (.*)$", search_txt):
-#             return self.SetKey(txt)
-        # perform Interactions (belo)
-        # switch speech/listening enginespicture
-        # reinstall software
-        # reboot
 
         return False # unable to match string, have child do it
     
