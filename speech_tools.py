@@ -11,7 +11,7 @@ import pygame
 import warnings
 from config import cf
 from error_handling import *
-from globals import STATE, HasInternet
+from globals import STATE, HasInternet, GetHostname
 import requests
 import re
 
@@ -35,7 +35,7 @@ class speech_generator:
     def __init__(self):
         self.engine_name = cf.g('SPEECH_ENGINE')
         self.engine = eval(self.engine_name+'_tts()')
-        if HasInternet(): self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
+        self.gen_error_files()
         return
 
     def say(self, txt, face=False, asyn=False, inFilename=cf.g('SPEECH_FILE')):
@@ -102,7 +102,7 @@ class speech_generator:
             self.engine.Close()
             self.engine = new_engine
             self.engine_name = engine_name
-            self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
+            self.gen_error_files(self)
             cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
             return True
         else:
@@ -110,6 +110,12 @@ class speech_generator:
 
         cf.s('SPEECH_ENGINE', self.engine_name) # if we are here we weren't able to switch to teh new engine.
         return False
+
+    def gen_error_files(self):
+        if HasInternet():
+            self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE')) # if no internet leave file as is
+            self.engine.tts(cf.g('WIFI_STR').format(GetHostname()), filename=cf.g('WIFI_FILE')) # if no internet leave file as is
+
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
         try:
@@ -120,6 +126,7 @@ class speech_generator:
             LogError(f"Backup speech failed {e.args}")
             return cf.g('ERROR_FILE')
  
+
     def Close(self):
         pygame.quit()
 
