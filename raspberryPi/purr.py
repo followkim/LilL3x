@@ -6,8 +6,10 @@ from time import sleep
 from datetime import datetime, timedelta
 import RPi.GPIO as GPIO
 import gpiozero
+import inspect 
 
-sys.path.insert(0, '..')
+#sys.path.insert(0, '..')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 from globals import STATE, SleepOn
 from config import cf
 from error_handling import *
@@ -50,7 +52,7 @@ class Purr:
                 startPet = datetime.now()
                 lastPet = startPet
                 while is_petting == True:
-                    while notGPIO.input(waitFsr) and is_petting and not self.should_quit:
+                    while not GPIO.input(waitFsr) and is_petting and not self.should_quit:
                         if lastPet + timedelta(seconds=cf.g('STROKE_TO')) < datetime.now() or self.should_quit:
                             is_petting = False
                             self.is_purring = False
@@ -79,16 +81,17 @@ class Purr:
         # play purring
         startPurr = datetime.now()
         purr_channel = self.audio.PlaySound(cf.g('PURR_MP3'), asyn=True, loop=True)
+        self.audio.SetChannelVolume(purr_channel, 0)
 
         # Define sine wave parameters
-        frequency = 0.5  # Hz (determines how fast the sine wave cycles)
+        frequency = 0.25  # Hz (determines how fast the sine wave cycles)
         amplitude = 0.5  # Controls the range of brightness (0 to 1)
         offset = 0.5     # Shifts the sine wave up to ensure values are positive (0 to 1)
 
         # Loop to continuously update LED brightness
         t = 0
         while self.is_purring and not self.should_quit:
-            volume = (min((datetime.now() - startPurr).total_seconds() / (10 * 60), 1) * 0.75) + 0.25
+            volume = (min((datetime.now() - startPurr).total_seconds() / (10 * 60), 1) * 0.50) + 0.50
             self.audio.SetChannelVolume(purr_channel, volume)
             # Calculate sine wave value (scaled and offset for brightness)
             brightness = amplitude * sin(2 * pi * frequency * t) + offset
@@ -114,18 +117,25 @@ class Purr:
 
 if __name__ == '__main__':
     class A:
-        def PlaySound(s):
+        def PlaySound(self, s, asyn, loop):
             print(s)
-        def IsBusy():
+            return s
+        def IsBusy(self):
             return False
+        def SetChannelVolume(self, c, v):
+            pass
     a = A()
 
     class B:
-        def loving():
-            print(s)
-        def off():
+        def loving(self):
+            pass
+        def off(self):
             return False
     b = B()
 
     p = Purr()
     p.PurrThread(a, b)
+#    p.audio = a
+#    p.face = b
+#    p.is_purring = True
+#    p.purr_motor_thread()

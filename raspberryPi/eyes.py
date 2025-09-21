@@ -69,23 +69,26 @@ class LEDS:
 
     def LEDThread(self):
         LogInfo("LEDThread started")
-        r = 0
-#        thisColor = self.color.copy()          # keep track of the current color/brightness
+        r = 0    # r for rainbow cycle
         brightDelta = 1
-        br = 0
+        br = 0   # brightness for pulsing
         has_error = False
-        cycle_index = 0
+        cycle_index = 0  # for cycling through solid colors
         while not self.should_quit:
             try:
 #                LogDebug(f"Eye state = {self.state}")
                 if not self.state or self.state == "idle":
-                    br = 0
+
+                    #reset other states
+                    br = 0  # reset brightness for pulsing to off 
+                    brightDelta = 1
+
                     # If sleeping, dim the lights
                     self.pixels.fill((0, 0, 0)) # Sets all pixels to black
                     self.pixels.show()          # Updates the strip to show the change
                     while self.state == "idle" and not self.should_quit:
                         if STATE.IsSleeping(): sleep(1)
-                        else: sleep(0.1)
+                        else: sleep(0.1)  # brief stay in idle, be ready 
 
                 elif self.state == "thinking":
                     r = self.rainbow_cycle(r)
@@ -106,8 +109,7 @@ class LEDS:
                     talk = self.SetColor(cf.g('LISTEN_LED'))
                     self.pixels.fill((int(talk[0] * br), int(talk[1] * br), int(talk[2] * br)))
                     self.pixels.show()
-
-                #sleep(0.01)  #sleep(1-(min(cf.g('LIGHT_SPEED'),99.5)/100))
+                    has_error = False
             except Exception as e:
                 LogError(f"LEDS:LedThread exception: {str(e)}:{e.args}")
                 if has_error: self.should_quit = True
