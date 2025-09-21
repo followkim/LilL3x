@@ -13,9 +13,9 @@ def SleepOn(secs=-1, varf=STATE.GetState, step=0.5, watchState=True, wakeOn=None
 
     haveWake = wakeOn!=None
 
-    if watchState:
-        thisState = STATE.GetState()
+    if watchState:              # some threads don't care about state, ie LEDs
         if STATE.ShouldWake(): return
+        thisState = STATE.GetState()
 
     # starting condition
     var = varf()
