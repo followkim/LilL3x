@@ -95,7 +95,7 @@ class AI:
             self.face.message(ips.split()[0].decode())
             return "My IP address is " + ips.split()[0].decode()
 
-        if re.search(r"(watch the house|(your|you're) in charge|hold down the fort)", search_txt):
+        if re.search(r"(watch the house|(your|youre|you are) in charge|hold down the fort)", search_txt):
             STATE.ChangeState('Surveil')
 #            return f"!{self.GetString('SURVEIL_STR').format(cf.g('USERNAME'))}"
             return False # let AI handle user_input
@@ -155,7 +155,7 @@ class AI:
             '''
             desc = cf.g('CAMERA_STR')
             selfie = False
-            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'), selfie=selfie)
+            path = self.TakePicture(0, selfie=False) #cf.g('CAMERA_PICT_SEC'), selfie=selfie)  # delay will come from the response wait
 
             if path:
                 url  = self.eyes.UploadPicture(path)
@@ -303,12 +303,6 @@ class AI:
             f.write(f"{datetime.now().strftime('%y-%m-%d %H:%M:%S')}|{user_input}|{reply}")
             f.close()
 
-    def Intruder(self):
-        url = self.eyes.SendPicture()
-        LogConvo(f"{cf.g('AINAME')}: INTRUDER!!! {url}")
-        #email URL
-        return
-
     def CanIHearYou(self, duration=cf.g('AMBIENT')):
         start = datetime.now()
         avg = [STATE.volume]
@@ -418,7 +412,7 @@ class AI:
     def InitiateConvo(self, mood=""):
         self.is_spontanous = True
         if mood: return self.respond(f"!{cf.g('MOOD_STR').format(mood)}")
-        elif self.has_vision and random.randint(0, 2) == 1:
+        elif self.has_vision and random.randint(0, 5) == 1:
             path = self.TakePicture(0, selfie=True)
             if path:
                 url  = self.eyes.UploadPicture(path)
@@ -432,8 +426,8 @@ class AI:
         return self.respond(f"!{cf.g('HELLO_STR').format(cf.c('USERNAMEP', 'USERNAME'))}")
 
     def Intruder(self):
-        self.is_spontanous = True
-        AI.Intruder(self)
+        url = self.eyes.SendPicture()
+        LogInfo(f"Intruder: {url}")
         return self.respond(f"!{cf.g('INTRUDER_STR')}")
         #email URL
 
@@ -447,9 +441,9 @@ class AI:
             resp =  "morning"
         elif hour in range (12, 18):
             resp =  "afternoon"
-        elif hour in range (18, 21):
+        elif hour in range (18, 22):
             resp =  "evening"
-        elif hour in range (21, 24) or hour in range(0,5):
+        elif hour in range (22, 24) or hour in range(0,5):
             resp =  "night"
         return resp
       
@@ -546,23 +540,3 @@ if __name__ == '__main__':
         user_inp = input()
         out = ai.respond(ai.StripActions(user_inp))
         print(f'AI: {out}')
-'''
-    ai.say("Hello!  ")
-    imp = ai.listen()
-    ai.say(f'You said {imp}')
-
-    print(f"Can I see you? {ai.LookForUser()}")
-    print(f'Evesdrop: {ai.Interact(2)}') # set evesdrop
-    print(f'Return Message? {ai.Interact(2)}') # set evesdrop
-    print(f'Evesdrop: {ai.Interact(2)}') # set evesdrop
-    print(f'Return Evesdrop: {ai.Interact(3)}') # set evesdrop
-    print(f'Init Convo: {ai.Interact(3)}') # set evesdrop
-
-
-
-    ai.Interact(2) # shjould return evesdrop message
-    ai.Interact(2) # evesdrop
-    ai.Interact(3) # shjould return evesdrop message
-    ai.Interact(3) # should init convo
-
-'''
