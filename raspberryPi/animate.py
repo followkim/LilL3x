@@ -172,6 +172,7 @@ class Screen:
 
                 if self._message: # draw in any state - lower center
                     self.DrawText(draw, self._message, 'lc', font)
+
                 # Display image.
 #                self.disp.image(image.transpose(Image.ROTATE_180))
                 self.disp.image(image)
