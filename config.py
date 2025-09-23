@@ -419,6 +419,7 @@ class Config:
         if datetime.now().date() != self.today.date(): #new day
             CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
             CleanDirs("./log", "\.(log|txt)$", 30*24)
+            CleanDirs("./picts", "\.jpg$")
             CloseLog("It's a New Day")
             InitLogFile()
             self.today = datetime.now()
