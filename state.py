@@ -109,7 +109,7 @@ class MicStatus:
 
     def TakeMic(self, timeout=3):
         self.request_mic = True
-        if timeout: ud = datetime.now() + timedelta(seconds=timeout)
+        ud = datetime.now() + timedelta(seconds=timeout)
         while not self.mic_free:
             self.request_mic = True    ## ask WW for the mic 
             if timeout and datetime.now() > ud:

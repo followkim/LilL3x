@@ -126,7 +126,6 @@ class Camera:
                             else: success = False
 
                         if not success: # lost face
-                            LogDebug("Camera: Lost face")
                             tracker = None
                             STATE.cx=0
                             STATE.cy=0
@@ -160,7 +159,7 @@ class Camera:
                         mood_thrd.name = f"{GetHostname()} GetEmotionThread"
                         mood_thrd.start()
                     '''
-                    if self.show_view: self.__whatISee(img)
+                    if self.show_view: self._whatISee(img)
                     if self.take_picture: self._take_picture(image=img, filename=self.take_picture, beQuiet=self.be_quiet)
                 # END if should_wake or not.STATEIsInteractive()
 
@@ -243,7 +242,7 @@ class Camera:
         RemoveFile(cf.g('WIS_FILE'))
         return
 
-    def __whatISee(self, img=False, filename=cf.g('WIS_FILE')):
+    def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
         if isinstance(img, bool): img = self.__read_camera_buffer()
 
 #        gmi = cv2.flip(img, 1)
@@ -284,7 +283,7 @@ class Camera:
             if not beQuiet:
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
-                    self.__whatISee(image)    # show_view is set outside the loop
+                    self._whatISee(image)    # show_view is set outside the loop
                     while self.show_view: sleep(0.25)
             if seeUser: self.take_portrait = False
             else: self.take_picture = False
@@ -292,7 +291,7 @@ class Camera:
         except Exception as e:
             LogError(f"_take_picture: Couldn't take pict '{filename}': {e.args}")
             return False
-    
+
     def SendPicture(self):
         path = self.TakePicture()
         if path:

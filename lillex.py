@@ -5,10 +5,6 @@ import sys
 import re
 import subprocess
 import pygame
-
-os.chdir(f"{os.getenv('HOME')}/LilL3x/")
-sys.path.append(f"{os.getenv('HOME')}/LilL3x/")
-
 import inspect
 from pathlib import Path
 import logging
@@ -18,6 +14,9 @@ from time import sleep
 from datetime import datetime, timedelta
 from multiprocessing import Process
 import signal
+
+os.chdir(f"{os.getenv('HOME')}/LilL3x/")
+sys.path.append(f"{os.getenv('HOME')}/LilL3x/")
 
 # START LILL3X modules
 from error_handling import *
@@ -65,23 +64,23 @@ class lill3x:
         if '--restart' in sys.argv:       # if restart, don't say hello or play the welcome bell
             isRestart = True
             LogInfo("Resuming after restart")
+        LogInfo(f"Starting {GetHostname()}")
 
         pygame.mixer.init()
 
-#        InitLogFile()  This is done above to capture log messages while loading externals
-        LogInfo(f"Starting {GetHostname()}")
         # create the hardware objects
         try:
-            self.eyes = Camera()
-        except Exception as e:
-            RaiseError(f"Init():Could not init camera. {e.args}")
-
-        try:
             self.mouth = speech_generator()
+            if not isRestart: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
         except Exception as e:
             RaiseError(f"Init():Could not init speech generator. {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
+
+        try:
+            self.eyes = Camera()  # spawns own thread
+        except Exception as e:
+            RaiseError(f"Init():Could not init camera. {e.args}")
 
         try:
             self.face = Face() # note this spawns two threads: animate and led threads.  The face will appear here.
@@ -90,21 +89,21 @@ class lill3x:
             RaiseError(f"Init():Could not init Display. {e.args}")
 
         try:
-            self.ears = eval(f"{cf.g('LISTEN_ENGINE')}_listener(self.face)")
-#            self.ears = SpeechRecognition_listener()
-        except Exception as e:
-            RaiseError(f"Init():Could not init listener. {e.args}")
-            STATE.ChangeState('Quit')
-            return # fatal
-
-        if not isRestart: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
-        try:
             self.button = Button()
             button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
             button_thread.name = f"{GetHostname()} ButtonThread"
             button_thread.start()
         except Exception as e:
             RaiseError(f"Init():Could not init Button. {e.args}")
+
+        # Get listener last  - needs face
+        while self.mouth.IsBusy(): sleep(0.1)
+        try:
+            self.ears = eval(f"{cf.g('LISTEN_ENGINE')}_listener(self.face)")
+        except Exception as e:
+            RaiseError(f"Init():Could not init listener. {e.args}")
+            STATE.ChangeState('Quit')
+            return # fatal
 
         # get AI
         try:
@@ -119,9 +118,6 @@ class lill3x:
             RaiseError("Unable to create AI: init failed")
             STATE.ChangeState('Quit')
             return
-
-
-
         
         # THREADS : WW and config
 
@@ -156,7 +152,7 @@ class lill3x:
                     RaiseError(f"Heat error: {STATE.temp}.  Quitting.")
                     STATE.ChangeState('Quit')
                 else:
-                    RaiseError(f"Temp Warning: {STATE.temp}")
+                    RaiseError(f"Temp Warning: {STATE.temp}, throttling")
                     sleep(2)
             try:
                 eval("self."+STATE.GetState()+"()")
@@ -166,7 +162,7 @@ class lill3x:
                 if last_err: STATE.ChangeState('Quit')
                 else: last_err = True
 
-        # call the Quit function
+        # call the quit/restart/reboot function
         eval("self."+STATE.GetState()+"()")
 
     def ChangeAI(self):  
@@ -349,7 +345,7 @@ class lill3x:
                 self.ai.say(self.ai.respond(user_input))
                 STATE.ChangeState('Active')
             else:
-                self.Sleep(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_LOOK minuntes
+                SleepOn(cf.g('SURVEIL_LOOK')*60)  # don't send another notice for SURVEIL_LOOK minuntes
         else:
             SleepOn(varf=self.eyes.IsUserMoving, wakeOn=True)
         return
@@ -389,21 +385,9 @@ class lill3x:
                else: numThreads = numThreads - 1
            sleep(2)
 
-     # A version of sleep that will break out if the state changes by WakeWord.   Avoids long period of uninterruptable sleep.
-    def Sleep(self, secs):
-        global STATE
-        curr_state = STATE.GetState()
-        target_time = datetime.now() + timedelta(seconds=secs)
-        sleep_for = min(cf.g('SLEEP_DURATION'), secs)
-        while (datetime.now() < target_time) and STATE.CheckState(curr_state) and not (STATE.ShouldQuit() or  STATE.IsInteractive()):
-            sleep(sleep_for)
+if __name__ == '__main__':
 
-
-## THREADING INFO
-#os.chdir('/home/el3ktra/LilL3x/')
-# Get the current working directory
-
-print(f"{GetHostname()} started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
-l3x = lill3x()
-l3x.Loop()
-print(f"{GetHostname()} exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
+    print(f"{GetHostname()} started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
+    l3x = lill3x()
+    l3x.Loop()
+    print(f"{GetHostname()} exited at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")

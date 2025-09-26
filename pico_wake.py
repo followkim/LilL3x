@@ -98,8 +98,8 @@ class pico_wake:
         try:
             recorder = PvRecorder(frame_length=self.ww_listener.frame_length, device_index=self.audio_device_index)
         except Exception as e:
-            return RaiseError(f"pico listen_loop: Exception when creating recorder: {str(e)})")
-        if not recorder: return RaiseError(f"pico listen_loop: Unable to create recorder.")
+            return LogError(f"pico listen_loop: Exception when creating recorder: {str(e)})")
+        if not recorder: return LogError(f"pico listen_loop: Unable to create recorder.")
 
         recorder.start()
         while not (self.should_quit or STATE.IsInteractive()) and not MIC_STATE.MicRequested():

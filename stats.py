@@ -97,11 +97,10 @@ while (not btn.is_pressed) and (datetime.now()-start).total_seconds() < (60*10):
     try:
         cmd = "/usr/sbin/iwgetid -r"
         SSID = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        if SSID in ("", hostname) and IP.count(".")<3:
-            start = datetime.now()  # don't time out if wainting for IP
-            SSID=hostname
-    except:
-        pass
+#        if SSID in ("", False, None, hostname) and IP.count(".")<3:
+    except Exception as e:
+        start = datetime.now()  # don't time out if wainting for IP
+        SSID=hostname
 
     # Write four lines of text.
 
@@ -114,8 +113,8 @@ while (not btn.is_pressed) and (datetime.now()-start).total_seconds() < (60*10):
         draw.text((x, top + ((height/4)*3)), " ", font=font, fill=255)
 
     elif SSID == hostname:
-        draw.text((x, top + ((height/4)*2)), "Logon to local wifi.", font=font, fill=255)
-        draw.text((x, top + ((height/4)*3)), "Goto wifi.php", font=font, fill=255)
+        draw.text((x, top + ((height/4)*2)), f"Sign onto {hostname}", font=font, fill=255)
+        draw.text((x, top + ((height/4)*3)), "to select wifi", font=font, fill=255)
     else:
         draw.text((x, top + ((height/4)*2)), f"Welcome to {hostname}!", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "Press The Button", font=font, fill=255)

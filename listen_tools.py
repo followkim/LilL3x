@@ -43,7 +43,7 @@ class SpeechRecognition_listener:
 
     def SetQuiet(self):
         self.quiet = self.update()
-        return
+        return self.quiet
 
     def GetQuiet(self):
         return self.quiet * (1 + (cf.g('QUIET_BOOST') / -100))
