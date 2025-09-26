@@ -121,7 +121,7 @@ while (not btn.is_pressed) and (datetime.now()-start).total_seconds() < (60*10):
 
     disp.image(image)
     disp.show()
-    time.sleep(1)
+    time.sleep(0.1)
 
 # Clear display.
 disp.fill(0)
