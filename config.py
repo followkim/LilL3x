@@ -60,7 +60,6 @@ class Config:
     config= {}
     configDef= {}
     lastLoad =  datetime.now()
-    lastGit =  datetime.now()
     should_quit = False
     block_file =  False
     config_changed = False
@@ -268,58 +267,6 @@ class Config:
         LogDebug("Wrote to config File.")
         return ret
 
-    def CheckGit(self):
-        if not HasInternet():
-            LogDebug("Can't check GIT, no Internet")
-            return
-        self.lastGit = datetime.now()
-        update_files = -1
-        try:
-            repo = git.Repo(f"/home/el3ktra/LilL3x/")
-            diff = self.GitDiff(repo)
-            update_files = len(diff)
-            if update_files>0:
-                LogInfo(f"Local branch {repo.active_branch.name} out of date by {update_files} file(s).")
-
-                # first see if we can pull the files
-                try: 
-                    orgin = repo.remote(name='origin')
-                    orgin.pull()
-                except Exception as e: LogError(f"Error pulling from Git: {e.args}")
-
-                chk = self.GitDiff(repo) # see if we were successful
-                chk_files = len(chk)
-                update_files = update_files - chk_files
-                LogInfo(f"Updated {update_files} file(s) at at {datetime.now().strftime('%H:%M')}") ## double check the pull
-                if chk_files: LogWarn(f"Unable to update {chk_files} file(s).") ## TODO: determine which files
-
-                for file in diff:
-                    file_updated = not file in chk
-                    if file_updated: LogInfo(f"\t[{file.change_type}]:{file.a_path}")
-                    else: LogError(f"File not updated:  [{file.change_type}]:{file.a_path}")
-
-                    if re.search(r"update.sh$$",  file.a_path) and file_updated: os.system(f"bash {file.a_path} &")
-                    if file.a_path[-3:] == ".py" and file_updated: STATE.ChangeState('Restart')
-                    if file.a_path[-4:] == ".ppm" and file_updated:
-                        STATE.ChangeState('EvalCode')  # note that this will fail if we need to restart, which is fine.  Changed will happen on restart
-                        STATE.data = ["self.face.screen.LoadFrames()"]
-#                    if re.search(r"config.default$", file.a_path) and file_updated: self.CheckDefaults()
-#                    if re.search(r"config.(vars|default)$",  file.a_path) and file_updated: self.LoadConfig()
-
-            else: LogInfo(f"Local branch {repo.active_branch.name} up-do-date at {datetime.now().strftime('%H:%M')}")
-        except Exception as e: LogError(f"Error Updating Git: {e.args}")
-        return update_files
-
-    def GitDiff(self, repo):
-        try:
-            repo.remotes.origin.fetch()
-            remote_head = repo.remotes.origin.refs[repo.active_branch.name].commit
-            local_head = repo.head.commit
-            diff = local_head.diff(remote_head)
-            return diff
-        except Exception as e: LogError(f"Error pulling from Git: {e.args}")
-        return False
-
     def CheckFiles(self):
         # check if we were asked to reboot or reset
         if os.path.exists(".restart"):
@@ -332,8 +279,6 @@ class Config:
             STATE.ChangeState('Quit')
             os.remove('.quit')
         return STATE.ShouldQuit() 
-
-
 
     def g(self, key, default=False):
 #        if self.IsConfigDirty(): self.LoadConfig()
@@ -392,7 +337,6 @@ class Config:
             return False
 
     def Close(self):
-        self.CheckGit()
         self.should_quit = True
 
     today = datetime.now()
@@ -401,10 +345,10 @@ class Config:
         while not self.should_quit:
             self.today = datetime.now()
             try:
-                if (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
-                    if self.config_changed: self.WriteConfig() # periodically write just in case
-                    self.CheckGit() # will update then change state to restart!!
-                    UploadLog()
+#                if (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+#                    if self.config_changed: self.WriteConfig() # periodically write just in case
+#                    self.CheckGit() # will update then change state to restart!!
+#                    UploadLog()
 
                 if self.IsConfigDirty(): self.LoadConfig()
                 error = False
@@ -430,7 +374,7 @@ class Config:
         return False
 
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.NewDay_dirty() or self.CheckFiles() or self.should_quit
+        return  self.IsConfigDirty() or self.NewDay_dirty() or self.CheckFiles() or self.should_quit
 
 # we want to Load config here so that just including will load config
 cf = Config()
