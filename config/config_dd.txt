@@ -4,6 +4,7 @@ USEREMAIL|Email|Your email
 
 HEADER|AI Information|2
 AINAME|Cat Name|Your Cat's name
+AINAMEP|Pronunciation|How you say your cats name
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Write in the second person.  Be creative!
 WAKEPHRASE|Wake Prompt|The prompt to send to the AI model when you touch your cat's nose
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
