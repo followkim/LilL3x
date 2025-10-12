@@ -102,7 +102,7 @@ class speech_generator:
             self.engine.Close()
             self.engine = new_engine
             self.engine_name = engine_name
-            self.gen_error_files(self)
+            self.gen_error_files()
             cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
             return True
         else:
@@ -209,7 +209,8 @@ class elevenLabs_tts:
 
         response = requests.post(url, json=data, headers=self.headers)
         if response.status_code != 200:
-            raise Exception(f"elevenLabs_tts returned error {response.status_code}")
+            print(response)
+            raise Exception(f"elevenLabs_tts returned error {response.status_code}: {response.reason}")
         else:
             with open(filename, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=self.CHUNK_SIZE):
