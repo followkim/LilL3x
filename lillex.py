@@ -25,9 +25,18 @@ InitLogFile()
 from globals import STATE, SleepOn, HasInternet
 from config import cf
 
+from face import Face
+gFace = None
+try:
+    gFace = Face() # note this spawns two threads: animate and led threads.  The face will appear here.
+except Exception as e:
+    RaiseError(f"Init():Could not init Eyes. {e.args}")
+gFace.thinking()
+
+
+
 from listen_tools import SpeechRecognition_listener
 from speech_tools import speech_generator
-from face import Face
 
 currentdir = os.getcwd()
 
@@ -71,6 +80,7 @@ class lill3x:
 
 #        InitLogFile()  This is done above to capture log messages while loading externals
         LogInfo(f"Starting {GetHostname()}")
+        self.face = gFace
 
         try:
             self.mouth = speech_generator()
@@ -79,10 +89,7 @@ class lill3x:
             STATE.ChangeState('Quit')
             return # fatal
 
-        try:
-            self.face = Face() # note this spawns two threads: animate and led threads.  The face will appear here.
-        except Exception as e:
-            RaiseError(f"Init():Could not init Eyes. {e.args}")
+        if not isSilient: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
 
         try:
             self.ears = eval(f"{cf.g('LISTEN_ENGINE')}_listener(self.face)")
@@ -90,8 +97,6 @@ class lill3x:
             RaiseError(f"Init():Could not init listener. {e.args}")
             STATE.ChangeState('Quit')
             return # fatal
-
-        if not isSilient: self.mouth.PlaySound(cf.g('STARTUP_MP3'), asyn=True)  # play the startup tone
 
 
         try:
@@ -104,16 +109,16 @@ class lill3x:
 
         try:
             self.purr = Purr()
-            purr_thread = threading.Thread(target=self.purr.PurrThread, args=(self.mouth,self.face,), daemon=True)
+            purr_thread = threading.Thread(target=self.purr.PurrThread, args=(self.mouth,), daemon=True)
             purr_thread.name = f"{GetHostname()} PurrThread"
             purr_thread.start()
         except Exception as e:
-            RaiseError(f"Init():Could not init Purring. {e.args}")
+            LogError(f"Init():Could not init Purring. {e.args}")
 
         # get AI
         try:
             if HasInternet(): self.ai = eval(f"AI_{cf.g('AI_ENGINE')}()")
-            else: 
+            else:
                 self.ai = AI_Offline()  # dummy AI, does nothing
                 self.wifi = False
             self.ai.SetBody(self.ears, self.mouth, self.face)
@@ -140,6 +145,7 @@ class lill3x:
             except: self.ai.last_ai_interaction = datetime.now()
             LogInfo(f"Last Interaction:  {self.ai.last_ai_interaction.strftime('%B %d, %Y %I:%M %p')}.")
             STATE.ChangeState('SleepState')
+            self.face.off()
         else:
             STATE.ChangeState('Hello')
 
@@ -183,7 +189,9 @@ class lill3x:
         # check for connectivity
         self.face.thinking()  # turn on while we check for connectivity
         if self.wifi or self.WifiOn():
-            if cf.g('SHOULD_GREET'): self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
+            if cf.g('SHOULD_GREET'):
+              if STATE.temp >= cf.g('CPU_MAX_TEMP'):  self.ai.say(self.ai.respond(cf.g('HOTPHRASE')))
+              else: self.ai.say(self.ai.respond(cf.g('WAKEPHRASE')))
         else:
             self.mouth.PlaySound(cf.g('ERROR_FILE'))
             STATE.ChangeState('SleepState')
@@ -229,10 +237,6 @@ class lill3x:
            cmd = [python] + args
            LogDebug(f"Restart cmd: {cmd}")
            process = subprocess.Popen(cmd, start_new_session=True)
-#       with open('process_output.txt', 'w') as outfile:
-#           process = subprocess.Popen(cmd, stdout=outfile, stderr=outfile)
-#           process.wait()
- #      LogDebug(f"Popen returned {process.returncode}")
            sleep(10)
        except Exception as e:
            LogError(f"Unable to restart.  {e.args}")
@@ -347,6 +351,7 @@ class lill3x:
 
     def WifiOn(self):
         """Turns on the Wi-Fi interface (wlan0) on a Raspberry Pi."""
+        LogInfo("Turning on Wi-Fi...")
         try:
             # Command to bring up the wlan0 interface
             cmd = 'sudo ifconfig wlan0 up'
@@ -358,9 +363,9 @@ class lill3x:
         dt = datetime.now()
         wait = dt + timedelta(seconds=5)  # wait for the internet for 30 secondss
         while not HasInternet() and wait > datetime.now():
+            LogDebug("Waiting for Wifi.")
             sleep(max(0, 5 - (datetime.now()-dt).microseconds/1000000))
             dt = datetime.now()
-            if not self.wifi: LogDebug("Waiting for Wifi.")
         self.wifi = HasInternet()
         if not self.wifi: LogError("Not able to reach internet after turning on wifi.")
         return self.wifi
@@ -368,6 +373,8 @@ class lill3x:
 ## THREADING INFO
 #os.chdir('/home/el3ktra/LilL3x/')
 # Get the current working directory
+
+os.system("sudo /usr/sbin/alsactl --file config/alsasound.state restore")
 
 print(f"{GetHostname()} started at {datetime.now().strftime('%B %d, %Y %I:%M %p')}")
 l3x = lill3x()
