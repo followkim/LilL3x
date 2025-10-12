@@ -86,6 +86,5 @@ TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to y
 
 HEADER|Developer Tools|2
 DEBUG|Logging Level|Set debug level messages
-CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 
 
