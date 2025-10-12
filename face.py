@@ -84,95 +84,13 @@ class DummyFace:
 if __name__ == '__main__':
     from time import sleep
     from globals import STATE
-    import threading
-    global STATE
+    import os
 
-
-    def dummy():
-        pass
     face = Face() #main
-
-#    ww = pico_wake.pico_wake()
-#    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
-#    ww_thread.name = f"{GetHostname()} WakeWordThread"
-#    ww_thread.start()
-
-
-#    sleep(20)
-    # state test
-#    LogDebug("talking")
-#    face.talking()
-#    sleep(2)
-
-#    LogDebug("listening")
-#    face.listening()
-#    sleep(2)
-
-    LogDebug("thinking")
     face.thinking()
-    sleep(10)
-
-    LogDebug("idle")
-    face.idle()
-    sleep(2)
-
-    LogDebug("loving")
-    face.loving()
-    sleep(60)
-
+    os.system(f"touch .running")
+    while (os.path.exists(".running")): sleep(0.1)
+    face.off()
+    sleep(0.25)
     face.Close()
-    sleep(2)
-#    b = 0
-#    while b >= 0:
-#        b = int(input("Brightness: 0-100: "))
-#        cf.s('BRIGHTNESS', b)
-
-#    b = 0
-#    while b >= 0:
-#        b = int(input("Speed: 1-10: "))
-#        cf.s('LIGHT_SPEED', b)
-
-# showview test
-#    face.looking()
-#    sleep(600)
-        
-#    animate_thread = threading.Thread(target=face.screen.AnimateThread)
-#    animate_thread.start()
-#    face.idle()
-#    STATE.ChangeState('Looking')
-#    sleep(5)
-#    STATE.ChangeState('Surveil')
-#    sleep(5)
-
     
-#    face.looking()
-#    sleep(10)
-#    face.listening()
-#    sleep(10)
-#    cf.s('SCREEN_DEBUG', True)
-#    face.idle()
-##    face.message("Hi there!")
-    '''
-    STATE.ChangeState('Active')
-#    face.looking()
-#    sleep(360)
-    STATE.ChangeState('Idle')
-    sleep(10)
-    STATE.ChangeState('SleepState')
-    sleep(10)
-    STATE.ChangeState('ActiveIdle')
-    sleep(10)
-    face.Close()
-    '''
-    '''
-    while face:
-        try:
-            STATE.cx = int(input("x"))
-            STATE.cy = int(input("y"))
-        except Exception as e:
-            print(e.args)
-            STATE.ChangeState('Quit')
-            sleep(5)
-            face.Close()
-            break
-    '''
