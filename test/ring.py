@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
 # SPDX-License-Identifier: MIT
 
+# https://github.com/adafruit/Adafruit_CircuitPython_NeoPixel
+
 # Simple test for NeoPixels on Raspberry Pi
 import time
 
@@ -13,7 +15,7 @@ import neopixel
 pixel_pin = board.D12
 
 # The number of NeoPixels
-num_pixels = 30
+num_pixels = 48
 
 # The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
 # For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
