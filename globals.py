@@ -1,11 +1,10 @@
 from socket import gethostname
 from datetime import datetime, timedelta
-from state import State, MicStatus
+from state import State
 from time import sleep
 from subprocess import check_output
 import requests
 
-MIC_STATE = MicStatus()
 STATE = State()
 
 # A version of sleep that will break out if a function return changes (or STATE changes).   Avoids long period of uninterruptable sleep.
