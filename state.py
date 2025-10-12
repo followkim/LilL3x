@@ -102,42 +102,6 @@ class State:
     def GetVolume(self):
         return self.volume
 
-class MicStatus:
-    def __init__(self):
-        self.mic_free = True
-        self.request_mic = False
-
-    def TakeMic(self, timeout=3):
-        self.request_mic = True
-        if timeout: ud = datetime.now() + timedelta(seconds=timeout)
-        while not self.mic_free:
-            self.request_mic = True    ## ask WW for the mic 
-            if timeout and datetime.now() > ud:
-                LogError("Unable to get mic (timeout)")
-                return False
-            continue
-        self.mic_free = False
-        self.request_mic = False
-        return True
-
-    def ReturnMic(self):
-        self.request_mic = False
-        self.mic_free = True
-        return True
-
-    def MicRequested(self):
-        return self.request_mic
-
-    def MicFree(self):
-        return self.mic_free
-
-    def WaitMic(self):
-        while not self.mic_free:
-            sleep(0.25)
-        return self.mic_free
-
-    def CanUse(self):
-        return (not self.request_mic and self.mic_free)
 
 if __name__ == '__main__':
 
