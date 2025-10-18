@@ -48,7 +48,7 @@ sudo pip3 install rpi_ws281x adafruit-circuitpython-neopixel  --break-system-pac
 sudo python3 -m pip install --force-reinstall adafruit-blinka  --break-system-packages
 
 #Speech regognition
-ln -s lib/python3.11/site-packages/speech_recognition/__init__.py sr.py
+ln -s /usr/local/lib/python3.11/dist-packages/speech_recognition/__init__.py sr.py
 nano sr.py
 
 # LEDS
