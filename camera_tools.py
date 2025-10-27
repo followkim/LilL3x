@@ -308,7 +308,7 @@ class Camera:
                 r = requests.post(ul_url, data=payload, files=files)
                 url = r.text
                 LogInfo(f"Uploaded pict: URL: {url}")
-            except:
+            except Exception as e:
                 LogError(f"Exception uploading image {e.args}")
         else: LogWarn(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
