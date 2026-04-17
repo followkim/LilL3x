@@ -3,9 +3,9 @@
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
 	ini_set('display_errors', true);
-        include '/home/el3ktra/LilL3x/config/html/utils.php';
+        include 'html/utils.php';
 
-	const CONFIG_PATH =  "/home/el3ktra/LilL3x/config/";
+	const CONFIG_PATH =  __DIR__ . "/";
 	const CONFIG_ROOT =  "config.txt";
 	const CONFIG_DD =  CONFIG_PATH . "config_dd.txt";
 	const CONFIG_FILE =  CONFIG_PATH . CONFIG_ROOT;
@@ -51,7 +51,7 @@
 		if (sizeof(array_keys($_GET))>0) {
 			$a =  array("restart", "reboot", "quit");
 	                if (!(isset($POST) or count($_POST) > 0) and (in_array(array_keys($_GET)[0], array("restart", "reboot", "quit")))) {
-				$filename = '/home/el3ktra/LilL3x/.tst_'.array_keys($_GET)[0];
+				$filename = '../.'.array_keys($_GET)[0];
 				fclose(fopen($filename , "w"));
 				chmod($filename, 0664);
 				echo "<br>requested " . array_keys($_GET)[0];
@@ -210,9 +210,9 @@
 		echo "<td id='rightHand' >";
 		echo "<table><tr><td><select id='".$name."' class=\"".$name."\" name=\"".$name."\" value=".$value.">\n";
 	
-		foreach (scandir('/home/el3ktra/LilL3x/beings') as $file) {
+		foreach (scandir('../beings') as $file) {
 			if (preg_match("/^AI_[A-Z]/", $file)) {
-				$pyfile = fopen('/home/el3ktra/LilL3x/beings/'.$file, "r");
+				$pyfile = fopen('../beings/'.$file, "r");
 				while(!feof($pyfile)) {
 					$line = fgets($pyfile);  // ((AI_[A-Z]*.)\)
 					if (preg_match_all("/class AI_([A-Z].*)\((.*)\):/", $line, $matches)) {
@@ -232,7 +232,7 @@
 		echo "<tr class='".$class."' ><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<table><td><tr><select id='".$name."' name=\"".$name."\" value=".$value.">";
-		$pyfile = fopen('/home/el3ktra/LilL3x/listen_tools.py', "r");
+		$pyfile = fopen('../listen_tools.py', "r");
 		$engines = [];
 		while(!feof($pyfile)) {
 			$line = fgets($pyfile);
@@ -257,7 +257,7 @@
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<table><tr><td><select id='".$name."'  name=\"".$name."\" value=".$value.">";
-		$pyfile = fopen('/home/el3ktra/LilL3x/speech_tools.py', "r");
+		$pyfile = fopen('../speech_tools.py', "r");
 		while(!feof($pyfile)) {
 			$line = fgets($pyfile);
 			if (preg_match_all("/class (.*)_tts:/", $line, $matches)) {
@@ -275,7 +275,7 @@
                 echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
                 echo "<td id='rightHand' >";
                 echo "<table><tr><td><select id='".$name."'  name=\"".$name."\" value=".$value.">";
-                $pyfile = fopen('/home/el3ktra/LilL3x/lillex.py', "r");
+                $pyfile = fopen('../lillex.py', "r");
                 while(!feof($pyfile)) {
                         $line = fgets($pyfile);
                         if (preg_match_all("/from .* import (.*)_listener/", $line, $matches)) {
@@ -294,7 +294,7 @@
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
 		echo "<table><tr><td><select name=\"".$name."\" value=".$value.">";
-		$pyfile = fopen('/home/el3ktra/LilL3x/error_handling.py', "r");
+		$pyfile = fopen('../error_handling.py', "r");
 		while(!feof($pyfile)) {
 			$line = fgets($pyfile);
 			if (preg_match_all("/(.*): \"(.*)\"/", $line, $matches)) {
@@ -325,10 +325,10 @@
                 echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
                 echo "<td id='rightHand' >\n";
                 echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
-                foreach (scandir('/home/el3ktra/LilL3x/wake/') as $file) {
+                foreach (scandir('../wake/') as $file) {
                         if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                 $filename = ucwords($matches[1][0]);
-                                $filepath = '/home/el3ktra/LilL3x/wake/'.$file;
+                                $filepath = __DIR__ . '/../wake/'.$file;
                                 echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
@@ -341,7 +341,7 @@
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<table><tr><td><select  id='".$name."'  name=\"".$name."\" value=".$value.">\n";
-		foreach (scandir('/home/el3ktra/LilL3x/') as $file) {
+		foreach (scandir('../') as $file) {
 			if (preg_match_all("/^([a-z]*)_wake.py/", $file, $matches)) {
 				$wake_word_eng = $matches[1][0];
 				echo "<option value=\"" . $wake_word_eng  . "\" " . (($wake_word_eng == $value)?"selected":"") . ">" . ucwords($wake_word_eng) . "</option>";
@@ -355,10 +355,10 @@
                 echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
                 echo "<td id='rightHand' >\n";
                 echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
-                foreach (scandir('/home/el3ktra/LilL3x/frames/welcome/') as $file) {
+                foreach (scandir('../frames/welcome/') as $file) {
                         if (preg_match_all("/^([A-Za-z1-9_]*).ppm$/", $file, $matches)) {
                                 $filename = str_replace("_", " ", ucwords($matches[1][0]));
-                                $filepath = './frames/welcome/'.$file;
+                                $filepath =  __DIR__ . '/../frames/welcome/'.$file;
                                 echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
@@ -398,7 +398,7 @@
 
         function GetFuncList() {
 		$func_list = [];
-		$php_file = fopen('/home/el3ktra/LilL3x/config/config_tools.php', "r");
+		$php_file = fopen('../config/config_tools.php', "r");
 		while(!feof($php_file)) {
 		        $line = fgets($php_file);
 		        if (preg_match_all("/function Print_(.*)\(/", $line, $matches)) {
