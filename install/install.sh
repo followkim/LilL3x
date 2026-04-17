@@ -21,7 +21,6 @@ sudo apt install -y python3-libcamera python3-kms++ libcap-dev
 
 pip install opencv-contrib-python
 pip install pygame
-pip install SpeechRecognition
 pip install pyttsx3
 pip install openai
 pip install openai-whisper
@@ -54,8 +53,7 @@ pip install PyCharacterAI
 pip install characterai
 
 #Speech regognition
-ln -s lib/python3.11/site-packages/speech_recognition/__init__.py sr.py
-nano sr.py
+pip install git+https://github.com/followkim/speech_recognition.git
 
 # seeed voicecard
 cd ~
