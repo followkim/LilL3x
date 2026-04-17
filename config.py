@@ -256,7 +256,8 @@ class Config:
                     self.LockFile()
                     try:
                         os.rename(tempFile, self.configFile)
-                        os.system(f"sudo chown el3ktra:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
+                        LogDebug(f"sudo chown {os.getenv('USERNAME')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
+                        os.system(f"sudo chown {os.getenv('USERNAME')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
                         self.lastLoad = datetime.now()  # theself.configfile is up to date
                         LogInfo(f"Config File written {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
                         self.config_changed = False
