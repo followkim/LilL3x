@@ -3,7 +3,7 @@
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
 	ini_set('display_errors', true);
-        include 'html/utils.php';
+  include __DIR__ . '/html/utils.php';
 
 	const CONFIG_PATH =  __DIR__ . "/";
 	const CONFIG_ROOT =  "config.txt";

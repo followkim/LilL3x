@@ -2,7 +2,7 @@
        // turn on error reporting
         error_reporting(E_ALL ^ E_NOTICE);
         ini_set('display_errors', true);
-        include '/home/el3ktra/LilL3x/config/html/utils.php';
+        include __DIR__ . '/config/html/utils.php';
 
 
         function HTMLHead() {
