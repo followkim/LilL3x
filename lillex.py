@@ -43,6 +43,7 @@ from AI_Kindroid import AI_Kindroid
 from AI_Gemini import AI_Gemini
 from AI_Claude import AI_Claude
 from AI_Nomi import AI_Nomi
+from AI_Eliza import AI_Eliza
 
 sys.path.insert(0, currentdir+'/raspberryPi/')
 from button import Button
