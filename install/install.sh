@@ -7,6 +7,8 @@ source LilL3x/bin/activate
 echo "source LilL3x/bin/activate" | sudo tee -a ~/.bashrc
 echo "cd ~/LilL3x/" | sudo tee -a ~/.bashrc
 
+echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
+
 cd ~/LilL3x/
 
 sudo apt-get update
@@ -74,7 +76,7 @@ sudo -E env PATH=$PATH python3 raspi-blinka.py
 pip install adafruit-circuitpython-ssd1306
 
 # system changes
-(crontab -l; echo "@reboot sh /home/el3ktra/LilL3x/launch.sh >> /home/el3ktra/LilL3x/log/cronlog") | crontab -
+(crontab -l; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
 
 #echo "Enter a password (8 letters): "
 #read password
@@ -110,24 +112,26 @@ sudo rm /var/www/html/*
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
 
-sudo usermod -a -G www-data el3ktra
+sudo usermod -a -G www-data $USER
 sudo usermod -a -G www-data www-data
 
 sudo chmod a+x /var/www/html/*.sh
 sudo chown root:root /var/www/html/*.sh
-sudo chown el3ktra:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
+sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
 sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
 echo "%www-data ALL=NOPASSWD: /var/www/html/listwifi.sh" | sudo tee -a /etc/sudoers
 echo "%www-data ALL=NOPASSWD: /var/www/html/setwifi.sh" | sudo tee -a /etc/sudoers
  #use dedicated sudoers.d file
-echo "%www-data ALL=NOPASSWD: /home/el3ktra/LilL3x/config/html/listwifi.sh" | sudo tee /etc/sudoers.d/lill3x
-echo "%www-data ALL=NOPASSWD: /home/el3ktra/LilL3x/config/html/setwifi.sh" | sudo tee -a /etc/sudoers.d/lill3x
+echo "%www-data ALL=NOPASSWD: /home/$USER/LilL3x/config/html/listwifi.sh" | sudo tee /etc/sudoers.d/lill3x
+echo "%www-data ALL=NOPASSWD: /home/$USER/LilL3x/config/html/setwifi.sh" | sudo tee -a /etc/sudoers.d/lill3x
 
-sudo rm /etc/apache2/sites-enabled/000-default.conf
-sudo cp -l ~/LilL3x/install/apache_default.conf /etc/apache2/sites-enabled/000-default.conf
-sudo chown root:root /etc/apache2/sites-enabled/000-default.conf
-sudo chmod a+rwx /etc/apache2/sites-enabled/000-default.conf
-sudo chmod a+rx /home/el3ktra
+#sudo rm /etc/apache2/sites-available/000-default.conf
+sudo cp -l ~/LilL3x/install/apache_default.conf /etc/apache2/sites-available/lill3x.conf
+sudo chown root:root /etc/apache2/sites-available/lill3x.conf
+sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
+sed "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
+sudo a2ensite lill3x.conf
+sudo chmod a+rx ~
 sudo systemctl restart apache2
 
 # get default wakewords -- #TODO: just grab directory not entire repo!!
