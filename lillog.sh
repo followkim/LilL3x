@@ -1,2 +1,2 @@
-tail -f /home/el3ktra/LilL3x/$HOSTNAME.log
+tail -f /home/$USER/LilL3x/$HOSTNAME.log
 

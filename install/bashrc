@@ -3,4 +3,4 @@
 # LilL3x: 
 cd LilL3x
 . bin/activate
-alias log='. /home/el3ktra/LilL3x/lillog.sh'
+alias log='. /home/$USER/LilL3x/lillog.sh'
