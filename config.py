@@ -77,7 +77,7 @@ class Config:
         currWWe = ''
         newConfig = {}
 
-        # variables that would cause a hardware change
+        # variables that would cause a class change
         currAI = self.g('AI_ENGINE')
         currListen = self.g('LISTEN_ENGINE')
         currSpeech = self.g('SPEECH_ENGINE')
@@ -190,9 +190,9 @@ class Config:
         req = False
         try:
             # Check for speacuial "REGEX entries"
-            m = re.search("^([A-Z|_]*)\|(.*)\|regex", line)
+            m = re.search(r"^([A-Z|_]*)\|(.*)\|regex", line)
             if m: return (m.group(1), m.group(2), "regex", False)
-            elif re.search("^[A-Z0-9_]*\|", line):
+            elif re.search(r"^[A-Z0-9_]*\|", line):
                 ret = (line.rstrip()).split('|')
                 if len(ret)>=3:
                     key = ret[0]
@@ -256,8 +256,7 @@ class Config:
                     self.LockFile()
                     try:
                         os.rename(tempFile, self.configFile)
-                        LogDebug(f"sudo chown {os.getenv('USERNAME')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
-                        os.system(f"sudo chown {os.getenv('USERNAME')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
+                        os.system(f"sudo chown {os.getenv('USER')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
                         self.lastLoad = datetime.now()  # theself.configfile is up to date
                         LogInfo(f"Config File written {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
                         self.config_changed = False
@@ -418,9 +417,9 @@ class Config:
     # this is "dirty" because it will always return false in order to prevent waking a loop.  TODO fix
     def NewDay_dirty(self):
         if datetime.now().date() != self.today.date(): #new day
-            CleanDirs(cf.g('TEMP_PATH'), "^[^\.]", 12)
-            CleanDirs("./log", "\.(log|txt)$", 30*24)
-            CleanDirs("./picts", "\.jpg$")
+            CleanDirs(cf.g('TEMP_PATH'), r"^[^\.]", 12)
+            CleanDirs("./log", r"\.(log|txt)$", 30*24)
+            CleanDirs("./picts", r"\.jpg$")
             CloseLog("It's a New Day")
             InitLogFile()
             self.today = datetime.now()
