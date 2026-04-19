@@ -33,4 +33,5 @@
 <li>A mounted Pi Camera will let the AI know when you are there, as well as comment on the surroundings</li>
 <li>Fully configurable via web interface</li>
 </ul>
+For more details see <a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/">this post</a>.
 </div>
