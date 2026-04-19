@@ -256,7 +256,7 @@ class AI_Eliza(AI):
     def __init__(self):
         AI.__init__(self)
         self.eliza = Eliza()
-        self.eliza.load('doctor.txt')
+        self.eliza.load("beings/doctor.txt")
         LogInfo("Welcome to Eliza!")
         return
 
@@ -278,7 +278,7 @@ class AI_Eliza(AI):
 
     #ON Startup
     def Hello(self):
-        return f"Hello there, the doctor is in!"
+        return self.eliza.initial()
 
     def Intruder(self):
         return "Don't you have something better to do?"
