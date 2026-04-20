@@ -7,9 +7,9 @@ AINAME|AI Name|Your AI's name
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Write in the second person.  Be creative!
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
-OPEN_AI_API_KEY|GPT Model|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
+OPEN_AI_API_KEY|OpenAI API Key|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
 CHATGPT_MODEL|GPT Model|Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
-CHATGPT_MODEL_SLOW|GPT Model|For longer prompts.  Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
+CHATGPT_MODEL_SLOW|Slow GPT Model|For longer prompts, use for some requests to save tokens.  Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
 LLAMA_KEY|Llama API Key|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
@@ -93,6 +93,7 @@ MURF_API_KEY|Murf API|See <a href="https://murf.ai/api/api-keys" target="blank">
 MURF_VOICE_ID|Murf Voice ID|Indicate the voice to use.  See <a href="https://murf.ai/api/api-keys" target="_blank">Murf AI API</a>|SPEECH_ENGINE_murf
 
 HEADER|Camera|2
+IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
 CAMERA_SLEEP_SEC|Camera Sleep|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
 IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
