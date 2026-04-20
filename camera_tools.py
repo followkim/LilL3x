@@ -19,6 +19,7 @@ from config import cf
 #from speech_tools import PlaySound
 #from deepface import DeepFace
 import re
+import pyimgur
 
 LogInfo("Camera Loading...")
 
@@ -257,6 +258,7 @@ class Camera:
 
     def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False, timeout=cf.g('CAMERA_PICT_SEC')):
         self.CheckCameraThread()
+        self.be_quiet = beQuiet
         if is_dir(fname):
             filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'
         else:
@@ -264,13 +266,14 @@ class Camera:
         if seeUser: self.take_portrait = filename
         else: self.take_picture = filename
 
-        self.be_quiet = beQuiet
-        cnt = 0
+        # wait for the picture to appear
         start_dt = datetime.now()
         target_time = datetime.now() + timedelta(seconds=timeout)
         while (not os.path.isfile(filename)) and (datetime.now() < target_time): sleep(0.25)
         if os.path.isfile(filename): return filename
-        else: return False
+        else:
+            LogError(f"TakePicture timed out after {timeout} seconds.")
+            return False
 
     def _take_picture(self, image, filename, beQuiet=False, seeUser=False):
         try:
@@ -301,16 +304,16 @@ class Camera:
     def UploadPicture(self, pict_path):
         url = False
         if pict_path and os.path.isfile(pict_path):
-            ul_url = 'http://el3ktra.el3ktra.net/upload.php'
-            files={'fileToUpload': open(pict_path,'rb')}
-            payload = {'submit': 'Upload Image'}
+
             try:
-                r = requests.post(ul_url, data=payload, files=files)
-                url = r.text
-                LogInfo(f"Uploaded pict: URL: {url}")
+                 im = pyimgur.Imgur(cf.g('IMGUR_ID'))
+                 LogDebug(f"Uploading Picture: {pict_path}")
+                 uploaded_image = im.upload_image(pict_path, title="From LilL3x Uploaded with PyImgur")
+                 url = uploaded_image.link
+                 LogDebug(f"Uploaded URL: {url}")
             except Exception as e:
                 LogError(f"Exception uploading image {e.args}")
-        else: LogWarn(f"Upload Pict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
+        else: LogWarn(f"UploadPict given bad path: {pict_path}: isfile={os.path.isfile(pict_path)}")
         return url
 
     def SharePicture(self, beQuiet=False):
@@ -380,6 +383,7 @@ if __name__ == '__main__':
 #        Thread.start()
         c.ShowView()
         while not c.CanISeeYou(): sleep(0.25)
+        sleep(10)
         print("user seen")
         print(c.TakePortrait())
         '''
