@@ -34,6 +34,7 @@ pip install gpiozero
 pip install rpi.gpio
 pip install boto3
 pip install GitPython
+pip install pyimgur
 
 pip install picamera2
 pip install deepface
