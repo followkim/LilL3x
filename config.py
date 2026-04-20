@@ -52,10 +52,10 @@ def will_except(tst):
         return True
 
 class Config:
-    configFileStatic = "./config/config.vars"
-    configFileDefault = "./config/config.default"
-    configFile = "./config/config.txt"
-    configFileLock = "./config/config.txt.LOCK"
+    configFileStatic = f"./config/config.vars"
+    configFileDefault = f"./config/config.default"
+    configFile = f"./config/config.txt"
+    configFileLock = f"./config/config.txt.LOCK"
 
     config= {}
     configDef= {}
@@ -262,7 +262,7 @@ class Config:
                         self.config_changed = False
                         ret = True
                     except Exception as e:
-                        LogError(f'WriteConfig caught exception: ({e.args}) writing to {self.configFile}')
+                        LogError(f'WriteConfig caught exception: ({e.args}) writing to {os.getcwd()}')
                     self.UnlockFile()
                 else: LogError(f"WriteConfig: temp file {tempFile} is empty!")
             else: LogError(f"WriteConfig: unable to read {self.configFileDefault}")
@@ -400,7 +400,7 @@ class Config:
                 if (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                     if self.config_changed: self.WriteConfig() # periodically write just in case
                     self.CheckGit() # will update then change state to restart!!
-                    UploadLog()
+                    #UploadLog()
 
                 if self.IsConfigDirty(): self.LoadConfig()
 
