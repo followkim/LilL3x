@@ -1,5 +1,5 @@
 #!/bin/bash
-source /home/$USER/LilL3x/bin/activate
+source /home/el3ktra/LilL3x/bin/activate
 
 pip install pyimgur
 #pip install gpiozero
