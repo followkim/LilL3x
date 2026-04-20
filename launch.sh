@@ -8,7 +8,7 @@ date
 cd $HOME/LilL3x
 
 echo "running stats..."
-/home/el3ktra/LilL3x/bin/python stats.py
+$HOME/LilL3x/bin/python stats.py
 
 echo "git pull..."
 git pull >> ./log/git_$(date +"%Y-%m-%d").txt
@@ -22,6 +22,6 @@ echo "set alsactl..."
 /usr/sbin/alsactl --file config/alsasound.state restore
 
 echo "Starting LilL3x..."
-/home/el3ktra/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt 2>&1
+$HOME/LilL3x/bin/python lillex.py >> ./log/launch_$(date +"%Y-%m-%d").txt 2>&1
 
 echo "Done."

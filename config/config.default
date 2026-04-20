@@ -1,11 +1,11 @@
 USERNAME|Friend|str|1
 USERNAMEP|Friend|str|
 USEREMAIL||str|
-AINAME|El3ktra|str|1
-AINAMEP|electra|str
-AI_ENGINE|El3ktra|str|1
+AINAME|LilL3x|str|1
+AINAMEP|lil lex|str
+AI_ENGINE|Eliza|str|1
 LAST_INTERACTION|2024-08-08 18:08:08|dt|1|
-BACKSTORY|You are a feisty AI with a touch of sass and snark who is a devoted companion and friend to the user.  Provide conversation, friendship and emotional support.  Keep your responses short, around 50 words or less.  You are speaking to the user through a Raspberry Pi setup that has a speaker and microphone.|blob|
+BACKSTORY|Provide conversation, friendship and emotional support.|blob|
 HISTORY||blob
 TEMPERATURE|1|int|
 SAVE_TOKENS|1|bool
