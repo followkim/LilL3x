@@ -52,6 +52,11 @@ pip install characterai
 #Speech regognition
 pip install git+https://github.com/followkim/speech_recognition.git
 
+#OpenAI Whisper workaround
+mkdir ~/pip_tmp
+TMPDIR=~/pip_tmp pip install openai-whisper
+rmdir ~/pip_tmp --ignore-fail-on-non-empty
+
 # screen
 # GPIO pins: SDA: 3, SCL 5
 cd ~
@@ -78,7 +83,7 @@ git clone http://github.com/Picovoice/porcupine.git
 cp porcupine/resources/keyword_files/raspberry-pi/* ~/LilL3x/wake
 rm -rf porcupine
 
-cd vosk
+cd ~/LilL3x/vosk
 wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 unzip vosk-model-small-en-us-0.15.zip
 
@@ -86,9 +91,8 @@ unzip vosk-model-small-en-us-0.15.zip
 # system changes
 (crontab -l; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
 
-
 cp /etc/skel/.bashrc ~/.bashrc
-cat install/bashrc >> ~/.bashrc
+cat ~/LilL3x/install/bashrc >> ~/.bashrc
 chmod +x ~/.bashrc
 
 # install website
@@ -143,3 +147,6 @@ sudo chown root:root /var/www/html/*.sh
 
 
 cd ~/LilL3x/
+echo Install finished.  Please remember to set your default audio device, then reboot.
+echo For bookworm use raspi-config
+echo for trixie use wpctl.  See https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/#Setting_the_audio_device

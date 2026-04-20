@@ -2,7 +2,7 @@ USERNAME|Friend|str|1
 USERNAMEP|Friend|str|
 USEREMAIL||str|
 AINAME|LilL3x|str|1
-AINAMEP|lil lex|str
+AINAMEP|little lax|str
 AI_ENGINE|Eliza|str|1
 LAST_INTERACTION|2024-08-08 18:08:08|dt|1|
 BACKSTORY|Provide conversation, friendship and emotional support.|blob|
@@ -47,8 +47,8 @@ ENERGY_DYNAMIC|1|bool|
 DYNAMIC_RATIO|50|int|
 QUIET_BOOST|0|int
 MAX_VOLUME|10000|int
-WAKE_WORD|/home/el3ktra/LilL3x/wake/el3ktra_en_raspberry-pi_v3_0_0.ppn|path|1
-WAKE_WORD_ENGINE|pico|str|1
+WAKE_WORD||path|1
+WAKE_WORD_ENGINE|vosk|str|1
 #WAKE_WORD_REGEX||regex
 WAKE_WORD_TRIES|0|int
 PICOVOICE_KEY||str|
@@ -79,7 +79,7 @@ MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|1
 SCREEN_DEBUG|0|bool|1
 SHOW_USER_CHECK|0|bool
-DEBUG|2|int|1
+DEBUG|4|int|1
 WELCOME_IMAGE|./frames/wlecome/el3ktra.ppm|path|1
 CHECK_GIT|30|int|1
 CONFIG_DT_FORMAT|%Y-%m-%d %H:%M:%S|str|1

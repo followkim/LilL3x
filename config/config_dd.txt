@@ -4,7 +4,6 @@ USEREMAIL|Email|Your email
 
 HEADER|AI Information|2
 AINAME|AI Name|Your AI's name
-AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)
 BACKSTORY|Backstory|Give a backstory for your AI companion.  Write in the second person.  Be creative!
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 OPEN_AI_API_KEY|OpenAI API Key|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
@@ -43,6 +42,7 @@ HEADER|Wake|2
 WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
 PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>|WAKE_WORD_ENGINE_pico
 WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
+AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)|WAKE_WORD_ENGINE_vosk
 
 
 HEADER|Behaviors|2
