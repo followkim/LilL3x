@@ -35,4 +35,8 @@
 <li>Fully configurable via web interface</li>
 </ul>
 For more details see <a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/">this post</a>.
+<h2>License</h2>
+  <img width="300" alt="image" src="https://github.com/user-attachments/assets/1cbd47fe-8717-471d-afa9-48b3b73a6557" />
+<br>Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial</a>
+
 </div>
