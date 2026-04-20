@@ -151,7 +151,7 @@ def DumpStack():
 def CloseLog(reason="unk"):
     Log(Color(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 'cyan'))
     Log(Color(f"{'*' * 10} LOG ENDED {reason} {'*' * 10}\n\n\n\n", 'cyan'))
-    UploadLog()
+    #UploadLog()
 
 def UploadLog(filename=False):
 
@@ -180,7 +180,7 @@ def CleanDirs(dir, path="", hours=30*24):   # 30 days is the default
                     if os.path.getctime(file_path) < time_in_secs:
                        os.remove(file_path)
 
-CleanDirs("./log", "\.(log|txt)$", 30*24)
+CleanDirs("./log", r"\.(log|txt)$", 30*24)
 
 if __name__ == '__main__':
 
