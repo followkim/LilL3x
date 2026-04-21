@@ -1,3 +1,6 @@
+# Eliza code Copyright (c) 2019 Wade Brainerd
+# https://github.com/wadetb/eliza
+
 import logging
 import random
 import re
