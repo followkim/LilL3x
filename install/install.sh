@@ -9,6 +9,32 @@ echo "cd ~/LilL3x/" | sudo tee -a ~/.bashrc
 
 echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
 
+# install the website first
+sudo apt-get install -y apache2
+sudo apt-get install -y php
+sudo rm /etc/apache2/sites-available/000-default.conf
+sudo cp -l ~/LilL3x/install/apache_default.conf /etc/apache2/sites-available/lill3x.conf
+sudo chown root:root /etc/apache2/sites-available/lill3x.conf
+sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
+sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
+sudo a2ensite lill3x.conf
+sudo chmod a+rx ~  # needed to be able to browse folders in home folder
+sudo systemctl restart apache2
+
+# make sure the website can read the file
+cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
+sudo usermod -a -G www-data $USER
+sudo usermod -a -G www-data www-data
+sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
+sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
+
+echo 
+echo
+echo
+echo The configuration website is installed.  Remaining install time is approximately 45 minutes.
+echo go to http://$(hostname -I | grep -o '[0-9\.]* ') to configure $HOSTNAME in the meantime!
+read -p "Press Enter to continue..."
+
 sudo apt install -y python3-picamera2
 sudo apt-get install -y python3-pil
 sudo apt-get install -y flac
@@ -21,7 +47,7 @@ pip install opencv-contrib-python
 pip install pygame
 pip install pyttsx3
 pip install openai
-pip install openai-whisper
+#pip install openai-whisper  causes error, installed below
 pip install gtts
 pip install vosk
 pip install sounddevice
@@ -95,27 +121,6 @@ cp /etc/skel/.bashrc ~/.bashrc
 cat ~/LilL3x/install/bashrc >> ~/.bashrc
 chmod +x ~/.bashrc
 
-# install website
-sudo apt-get install -y apache2
-sudo apt-get install -y php
-sudo rm /etc/apache2/sites-available/000-default.conf
-sudo cp -l ~/LilL3x/install/apache_default.conf /etc/apache2/sites-available/lill3x.conf
-sudo chown root:root /etc/apache2/sites-available/lill3x.conf
-sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
-sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
-sudo a2ensite lill3x.conf
-sudo chmod a+rx ~  # needed to be able to browse folders in home folder
-sudo systemctl restart apache2
-
-# make sure the website can read the file
-cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
-sudo usermod -a -G www-data $USER
-sudo usermod -a -G www-data www-data
-sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
-sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
-
-
-
 # Install the backup network
 sudo nmcli connection add \
  type wifi \
@@ -147,6 +152,10 @@ sudo chown root:root /var/www/html/*.sh
 
 
 cd ~/LilL3x/
+echo
+echo
+echo
 echo Install finished.  Please remember to set your default audio device, then reboot.
+echo
 echo For bookworm use raspi-config
 echo for trixie use wpctl.  See https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/#Setting_the_audio_device
