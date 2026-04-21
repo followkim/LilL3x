@@ -20,14 +20,19 @@ sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
 sudo a2ensite lill3x.conf
 sudo chmod a+rx ~  # needed to be able to browse folders in home folder
 sudo rm /var/www/html/*
+sudo ln ~/LilL3x/config/html/* /var/www/html/
+
+sudo chmod a+x /var/www/html/*.sh
+sudo chown root:root /var/www/html/*.sh
 sudo systemctl restart apache2
 
-# make sure the website can read the file
+# make sure the website can read the configuration file
 cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
 sudo usermod -a -G www-data $USER
 sudo usermod -a -G www-data www-data
 sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
 sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
+
 
 echo 
 echo
@@ -143,12 +148,6 @@ echo "%www-data ALL=NOPASSWD: /home/$USER/LilL3x/config/html/setwifi.sh" | sudo 
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
-
-sudo ln ~/LilL3x/config/html/* /var/www/html/
-
-sudo chmod a+x /var/www/html/*.sh
-sudo chown root:root /var/www/html/*.sh
-
 
 
 cd ~/LilL3x/
