@@ -19,6 +19,7 @@ sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
 sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
 sudo a2ensite lill3x.conf
 sudo chmod a+rx ~  # needed to be able to browse folders in home folder
+sudo rm /var/www/html/*
 sudo systemctl restart apache2
 
 # make sure the website can read the file
@@ -143,7 +144,6 @@ sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
 
-sudo rm /var/www/html/*
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 
 sudo chmod a+x /var/www/html/*.sh
