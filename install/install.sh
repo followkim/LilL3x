@@ -1,4 +1,4 @@
-#I don't recommend trying to run this script.  Rather, run smaller chunks one at a time to monitor that everything is going well.
+#!/bin/bash
 sudo apt-get update
 
 git clone -b v2 http://github.com/followkim/LilL3x/
@@ -34,6 +34,7 @@ sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
 sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
 
 
+printf '\a'
 echo 
 echo
 echo
@@ -49,6 +50,7 @@ sudo apt install -y portaudio19-dev
 sudo apt-get install -y espeak
 sudo apt install -y python3-libcamera python3-kms++ libcap-dev
 
+pip uninstall opencv-python opencv-contrib-python
 pip install opencv-contrib-python
 pip install pygame
 pip install pyttsx3
@@ -151,6 +153,7 @@ sudo chmod +x /etc/rc.local
 
 
 cd ~/LilL3x/
+printf '\a'
 echo
 echo
 echo
