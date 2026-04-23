@@ -158,7 +158,7 @@ def UploadLog(filename=False):
     if not filename: filename = log_file_name
     try:
         url = False
-        ul_url = 'http://el3ktra.el3ktra.net/ullog.php'
+        ul_url = cf.g('LOG_UPLOAD_URL')
         files={'fileToUpload': open(filename,'rb')}
         payload = {'submit': 'Upload File'}
         r = requests.post(ul_url, data=payload, files=files)

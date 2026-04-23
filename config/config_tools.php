@@ -326,7 +326,7 @@
                 echo "<td id='rightHand' >\n";
                 echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
                 foreach (scandir('../wake/') as $file) {
-                        if (preg_match_all("/^([a-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
+                        if (preg_match_all("/^([A-Za-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                 $filename = ucwords($matches[1][0]);
                                 $filepath = __DIR__ . '/../wake/'.$file;
                                 echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
