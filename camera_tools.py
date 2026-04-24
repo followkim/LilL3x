@@ -372,35 +372,36 @@ def RemoveFile(file):
 CleanDirs("./picts", r"\.jpg$")
 
 if __name__ == '__main__':
+    import face
     global STATE
+    def dummy():
+        pass
 
     pygame.mixer.init()
+
+    face = face.Face() 
+    face.SetViewControl(dummy, dummy)
+    face.looking()
+
     STATE.ChangeState('Idle')
     c = Camera()
 #    exit(0)
     try: 
-#        Thread  = threading.Thread(target=c.CameraLoopThread)
-#        Thread.start()
         c.ShowView()
         while not c.CanISeeYou(): sleep(0.25)
-        sleep(10)
         print("user seen")
-        print(c.TakePortrait())
-        '''
-        x = 0
-        while x < 100: 
-            print(c.CanISeeYou())
-            print(f'last motion: {c.last_motion.strftime("%H:%M:%S")}')
-            print(f'last seen: {c.last_seen.strftime("%H:%M:%S")}')
-            print(f'mood: {c.GetEmotion()}')
-            print(f'is_dark: {c.is_dark}\n\n')
-            sleep(5)
-            x=x+1
-    #    sleep(120)
-        '''
+        try:
+            while True: sleep(10)
+        except KeyboardInterrupt:
+            pass
+
+        print(c.SharePicture())
+
         STATE.ChangeState('Quit')
         sleep(2)
         c.Close()
+        face.Close()
+        sleep(2)
     except Exception as e:
         print(f"exception {e.args}")
         exit(0)
