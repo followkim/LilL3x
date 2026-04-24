@@ -100,25 +100,6 @@ if __name__ == '__main__':
     face = Face() #main
     face.SetViewControl(dummy, dummy)
     STATE.ChangeState('ActiveIdle')
-
-    ww = pico_wake.pico_wake()
-    ww_thread = threading.Thread(target=ww.ww_thread, daemon=True)
-    ww_thread.name = f"{GetHostname()} WakeWordThread"
-    ww_thread.start()
-
-
-    sleep(20)
-    '''
-    # state test
-    face.talking()
-    sleep(2)
-
-    face.listening()
-    sleep(2)
-
-    face.thinking()
-    sleep(2)
-    '''
     face.idle()
 #    b = 0
 #    while b >= 0:
@@ -131,46 +112,30 @@ if __name__ == '__main__':
 #        cf.s('LIGHT_SPEED', b)
 
 # showview test
-#    face.looking()
-#    sleep(600)
-        
-#    animate_thread = threading.Thread(target=face.screen.AnimateThread)
-#    animate_thread.start()
-    face.idle()
+    face.looking()
+    try:
+        while True: sleep(10)
+    except KeyboardInterrupt:
+        pass
+#    face.idle()
 #    STATE.ChangeState('Looking')
 #    sleep(5)
 #    STATE.ChangeState('Surveil')
 #    sleep(5)
-
-    
 #    face.looking()
-#    sleep(10)
+#    sleep(5)
 #    face.listening()
-#    sleep(10)
+#    sleep(5)
 #    cf.s('SCREEN_DEBUG', True)
-    face.idle()
+#    face.idle()
 ##    face.message("Hi there!")
-    STATE.ChangeState('Active')
-    face.looking()
-#    sleep(360)
-    STATE.ChangeState('Idle')
-    sleep(10)
-    STATE.ChangeState('SleepState')
-    sleep(10)
-    STATE.ChangeState('ActiveIdle')
-    sleep(10)
-    '''
+#    STATE.ChangeState('Active')
+#    face.looking()
+#    STATE.ChangeState('Idle')
+#    sleep(10)
+#    STATE.ChangeState('SleepState')
+#    sleep(10)
+#    STATE.ChangeState('ActiveIdle')
+    STATE.ChangeState('Quit')
     face.Close()
-    '''
-    '''
-    while face:
-        try:
-            STATE.cx = int(input("x"))
-            STATE.cy = int(input("y"))
-        except Exception as e:
-            print(e.args)
-            STATE.ChangeState('Quit')
-            sleep(5)
-            face.Close()
-            break
-    '''
+    sleep(2)
