@@ -38,6 +38,8 @@ class AI_Dude(AI):
                 user_input = user_input[1:]
             if parent_resp[0] == '!':  # its an instruction
                 user_input = user_input[1:]
+            if parent_resp[0] == '~':  # its an paraphrase
+                user_input = user_input[1:]
             else:
                 return parent_resp
 

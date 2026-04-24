@@ -50,8 +50,7 @@ sudo apt install -y portaudio19-dev
 sudo apt-get install -y espeak
 sudo apt install -y python3-libcamera python3-kms++ libcap-dev
 
-pip uninstall opencv-python opencv-contrib-python
-pip install opencv-contrib-python
+pip install opencv-contrib-python  # need to install first to control numpy version
 pip install pygame
 pip install pyttsx3
 pip install openai
@@ -77,11 +76,16 @@ pip install tf-keras
 pip install llamaapi
 pip install ollama
 pip install langchain_ollama
-pip install google.generativeai
+pip install google.generativeai  #legacy, should remove 
+pip install google.genai
 pip install google-cloud-texttospeech
 pip install anthropic
 pip install PyCharacterAI
 pip install characterai
+
+#reinstall opencv-contrib -- one of the above packages install opencv
+pip uninstall opencv-python opencv-contrib-python
+pip install opencv-contrib-python
 
 #Speech regognition
 pip install git+https://github.com/followkim/speech_recognition.git
