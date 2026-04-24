@@ -369,7 +369,7 @@ def RemoveFile(file):
     try: os.remove(file)
     except: pass
 
-CleanDirs("./picts", "\.jpg$")
+CleanDirs("./picts", r"\.jpg$")
 
 if __name__ == '__main__':
     global STATE
