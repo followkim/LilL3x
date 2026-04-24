@@ -27,7 +27,7 @@ sudo chown root:root /var/www/html/*.sh
 sudo systemctl restart apache2
 
 # make sure the website can read the configuration file
-cp ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
+cp -n ~/LilL3x/config/config.default ~/LilL3x/config/config.txt
 sudo usermod -a -G www-data $USER
 sudo usermod -a -G www-data www-data
 sudo chown $USER:www-data ~/LilL3x/config ~/LilL3x/config/config.txt
@@ -35,7 +35,7 @@ sudo chmod ug+rw  ~/LilL3x/config ~/LilL3x/config/config.txt
 
 
 printf '\a'
-echo 
+echo
 echo
 echo
 echo The configuration website is installed.  Remaining install time is approximately 45 minutes.
@@ -84,7 +84,7 @@ pip install PyCharacterAI
 pip install characterai
 
 #reinstall opencv-contrib -- one of the above packages install opencv
-pip uninstall opencv-python opencv-contrib-python
+pip uninstall -y opencv-python opencv-contrib-python
 pip install opencv-contrib-python
 
 #Speech regognition
