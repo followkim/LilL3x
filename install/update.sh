@@ -1,5 +1,6 @@
 #!/bin/bash
-source /home/el3ktra/LilL3x/bin/activate
+source /home/$USER/LilL3x/bin/activate
 
 pip install pyimgur
+pip install google.genai
 #pip install gpiozero
