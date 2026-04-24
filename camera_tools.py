@@ -372,9 +372,17 @@ def RemoveFile(file):
 CleanDirs("./picts", r"\.jpg$")
 
 if __name__ == '__main__':
+    import face
     global STATE
+    def dummy():
+        pass
 
     pygame.mixer.init()
+
+    face = face.Face() 
+    face.SetViewControl(dummy, dummy)
+    face.looking()
+
     STATE.ChangeState('Idle')
     c = Camera()
 #    exit(0)
@@ -392,6 +400,8 @@ if __name__ == '__main__':
         STATE.ChangeState('Quit')
         sleep(2)
         c.Close()
+        face.Close()
+        sleep(2)
     except Exception as e:
         print(f"exception {e.args}")
         exit(0)
