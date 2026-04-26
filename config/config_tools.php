@@ -329,7 +329,7 @@
                         if (preg_match_all("/^([A-Za-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                 $filename = ucwords($matches[1][0]);
                                 $filepath = __DIR__ . '/../wake/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";
@@ -344,7 +344,7 @@
                         if (preg_match_all("/^(.*).(onnx)/", str_replace('_', ' ', $file), $matches)) {
                                 $filename = ucwords($matches[1][0]);
                                 $filepath = __DIR__ . '/../wake/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";
@@ -375,7 +375,7 @@
                         if (preg_match_all("/^([A-Za-z1-9_]*).ppm$/", $file, $matches)) {
                                 $filename = str_replace("_", " ", ucwords($matches[1][0]));
                                 $filepath =  __DIR__ . '/../frames/welcome/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";
