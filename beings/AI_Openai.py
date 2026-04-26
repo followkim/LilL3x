@@ -30,8 +30,10 @@ class AI_openAI(AI):
     use_temp = True
     def __init__(self):
         AI.__init__(self)
-        self.client = openai.Client(api_key=self.api_key,)
 
+        self.api_key = cf.g(self.api_key)
+
+        self.client = openai.Client(api_key=self.api_key,)
 
         self.memory = self.LoadConvo()
         LogInfo(f"AI {self.name}, ({self.model()}) loaded.")
@@ -108,9 +110,10 @@ class AI_openAI(AI):
             response = self.client.chat.completions.create(**args)
         except Exception as e:
             LogError(f"Caught exception creating response: {e.args}")
-            return ""
+            self.mouth.say("There was an error talking to OpenAI", face=face, asyn=True)
+            return "There was an error talking to OpenAI"
+
         #if this is a picture we are talking about, leave it on the screen
-#        if args['model']==self.model(vision=True):
         if cf.g('GIVE_PICT_DESC') in str(args['messages'][-1]):
             face=None            # don't allow mouth to control the face
             self.face.looking()  # turn the screen
@@ -119,9 +122,10 @@ class AI_openAI(AI):
         try:
             for chunk in response:
                 if not resp: resp = chunk  # grab the firset chunk to be used below for tool calls
-#                LogDebug(f"Async ch: {chunk}")
+#                LogDebug(f"Async: {chunk}")
                 m = chunk.choices[0].delta.content
                 finish = chunk.choices[0].finish_reason
+                if finish == 'stop': break
                 if m:
                     full_reply = full_reply + m
                     eos = re.search(r"(^|[^.])(!|\.|\?)( |$)", m)
@@ -143,8 +147,9 @@ class AI_openAI(AI):
                 full_reply = reply
             self.mouth.say(self.StripActions(reply), face=face, asyn=False)
         except Exception as e:
-            LogError(f"Caught exception creating resonse: {e.args}")
-            return ""
+            LogError(f"Caught exception creating response: {e.args}")
+            self.mouth.say("There was an error talking to OpenAI", face=face, asyn=True)
+            return "There was an error talking to OpenAI"
 
         if face: face.off()
         return self.StripActions(full_reply)
@@ -155,7 +160,11 @@ class AI_openAI(AI):
 #        ai_msg = self.client.invoke(input=args['messages'], kwargs=args)
 #        reply = ai_msg.content
         reply = ""
-        response = self.client.chat.completions.create(**args)
+        try:
+            response = self.client.chat.completions.create(**args)
+        except Exception as e:
+            LogError(f"Exception in chat.completions.create: {e.args}")
+            return "There was an error talking to OpenAI"
         if response.choices:
             reply =  response.choices[0].message.content
             if not reply: reply = ""
@@ -308,7 +317,7 @@ class AI_openAI(AI):
 
     def IsConvoDirty(self):
         try:
-            f_dt = datetime.fromtimestamp(os.path.getmtime("training/AI_"+self.name + "_convo.dat"))
+            f_dt = datetime.fromtimestamp(os.path.getmtime("training/AI_"+ re.sub(r'[^a-zA-Z0-9]', '_', self.name) + "_convo.dat"))
             if f_dt > self.last_convo_load:
                 return True
         except Exception as e:
@@ -316,7 +325,7 @@ class AI_openAI(AI):
         return False
 
     def WriteConvo(self):
-        filename = "training/AI_"+self.name + "_convo.dat"
+        filename = "training/AI_"+re.sub(r'[^a-zA-Z0-9]', '_', self.name) + "_convo.dat"
         try:
             f = open(filename, 'w')
         except Exception as e:
@@ -363,7 +372,7 @@ class AI_openAI(AI):
     def ReadConvo(self):
         memory = []
 
-        filename = "training/AI_"+self.name + "_convo.dat"
+        filename = "training/AI_" +re.sub(r'[^a-zA-Z0-9]', '_', self.name) + "_convo.dat"
         if os.path.exists(filename):
             try:
                 f = open(filename, 'r')
@@ -410,50 +419,58 @@ class AI_openAI(AI):
 
 class AI_ChatGPT(AI_openAI):
 
-    api_key=cf.g('OPEN_AI_API_KEY')
+    api_key='OPEN_AI_API_KEY'
     model_key = 'CHATGPT_MODEL'
-    slow_model_key = 'CHATGPT_MODEL_SLOW'
     name = "ChatGPT"
     tools = function_tools # False # turn this on if asked
     token_mult = 1
     training = True
 
-class AI_OpenAIurl(AI_openAI):
+class AI_OpenAI(AI_openAI):
 
-    base_url  = ""
+    tools = False
+    token_mult = 1
+    name_key = 'OPENAI_NAME'
+    has_vision = 'OPENAI_VISION'
+    url_key = 'OPENAI_URL'
+    api_key = 'OPENAI_API'
+    model_key = 'OPENAI_MODEL'
 
     def __init__(self):
         AI.__init__(self)
+
+        self.name = cf.g(self.name_key, default=self.name_key)
+        self.has_vision = cf.c(self.has_vision, self.has_vision)
+        self.api_key = cf.g(self.api_key)
+        self.base_url = cf.g(self.url_key)
+
         self.client=openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.memory = self.LoadConvo()
         return
 
-class AI_Grok(AI_OpenAIurl):
+class AI_Grok(AI_OpenAI):
     tools = False
     token_mult = 1
-    base_url = cf.g('GROK_URL')
-    api_key = cf.g('GROK_API')
+    url_key = 'GROK_URL'
+    api_key = 'GROK_API'
     model_key = 'GROK_MODEL'
-    slow_model_key = model_key
     name = "Grok"
     has_vision = False
 
-class AI_Llama(AI_OpenAIurl):
-    base_url = cf.g('LLAMA_BASE_URL')
-    api_key = cf.g('LLAMA_KEY')
+class AI_Llama(AI_OpenAI):
+    url_key = 'LLAMA_BASE_URL'
+    api_key = 'LLAMA_KEY'
     model_key = 'LLAMA_MODEL'
-    slow_model_key = 'LLAMA_MODEL_SLOW'
     name = "Llama"
     tools = False
     token_mult = 1
     use_temp = False
     has_vision = False
 
-class AI_Poe(AI_OpenAIurl):
-    base_url = cf.g('POE_BASE_URL')
-    api_key = cf.g('POE_KEY')
+class AI_Poe(AI_OpenAI):
+    url_key = 'POE_BASE_URL'
+    api_key = 'POE_KEY'
     model_key = 'POE_MODEL'
-    slow_model_key = model_key
     name = "Poe"
     tools = False
     token_mult = 1
@@ -472,7 +489,7 @@ if __name__ == '__main__':
     global STATE
     SetErrorLevel(4)
     STATE.ChangeState('Idle')
-    ai = AI_ChatGPT()
+    ai = AI_OpenAI()
     ai.face = DummyFace()
   #  ai.eyes = eyes
     ai.mouth = DummySpeech()

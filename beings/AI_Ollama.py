@@ -27,9 +27,13 @@ class AI_ollama(AI_openAI):
     def __init__(self):
         AI.__init__(self) # we don't want to init AI_OpenAI, we just want the functions
 
-#        self.client = lc.ChatOllama(base_url =self.base_url, model=self.model(), temperature=cf.g('TEMPERATURE'), auth=(cf.g('USEREMAIL'), self.api_key))
+        self.name = cf.g(self.name_key, default=self.name_key) #if key not found, it's a string
+        self.base_url = cf.g(self.url_key)
+        self.api_key = cf.g(self.api_key)
+
         self.client=ollama.Client(host=self.base_url, auth=(cf.g('USEREMAIL'), self.api_key))
         self.memory = self.LoadConvo()
+        LogInfo(f"Welcome to {self.name}  ({self.base_url})")
         return
 
     def ai_respond(self, user_input, canParaphrase=False):  # called from AI_openAI.respond().  Has wrapper to handle convo
@@ -48,7 +52,7 @@ class AI_ollama(AI_openAI):
         try:
             if args['stream']: reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
-            self.memory.append({"role": "assistant", "content": reply}) # overwrite reply
+            self.memory.append({"role": "assistant", "content": reply}) 
 
         except Exception as e:
             LogError(f"There was an error talking to Ollama. {str(e)}")
@@ -94,10 +98,9 @@ class AI_ollama(AI_openAI):
 #        reply = ai_msg.content
         reply = ""
         
+
         response = self.client.chat(**args)
-#        response = self.client.invoke(self.GetMemory())
-#        if response.content: LC
-#            reply = response.content
+
         if response['message']['content']:
             reply = response['message']['content']
 
@@ -131,7 +134,6 @@ class AI_ollama(AI_openAI):
         #reply is a command
         elif user_input[:1] == '!': #command
             role = "user"
-#            arg['model'] = self.slow_model
             arg['stream'] = False
             user_input = user_input[1:]
             self.memory.append({"role": role, "content": user_input})
@@ -191,25 +193,25 @@ class AI_ollama(AI_openAI):
         return sum
 
 class AI_Adhoc(AI_ollama):
-    name = "AdHoc"
-    base_url = cf.g('ADHOC_URL')
-    api_key = cf.g('ADHOC_API_KEY')
+    name_key = 'ADHOC_NAME'
+    url_key = 'ADHOC_URL'
+    api_key = 'ADHOC_API_KEY'
     model_key = 'ADHOC_MODEL'
-    slow_model_key='ADHOC_MODEL_SLOW'
+    slow_model_key=model_key
     vision_model_key='ADHOC_VISION_MODEL'
 
 class AI_Corgi(AI_ollama):
-    name = "Corgi"
-    base_url = cf.g('CORGI_URL')
-    api_key = cf.g('CORGI_API_KEY')
+    name_key = "Corgi"
+    url_key = 'CORGI_URL'
+    api_key = 'CORGI_API_KEY'
     model_key = 'CORGI_MODEL'
     slow_model_key=model_key
     vision_model_key='CORGI_VISION_MODEL'
 
 class AI_El3ktra(AI_ollama):
-    name = "El3ktra"
-    base_url = cf.g('EL3KTRA_URL')
-    api_key = cf.g('EL3KTRA_API_KEY')
+    name_key = "El3ktra"
+    url_key = 'EL3KTRA_URL'
+    api_key = 'EL3KTRA_API_KEY'
     model_key = 'EL3KTRA_MODEL'
     slow_model_key=model_key
     vision_model_key='EL3KTRA_VISION_MODEL'
@@ -224,7 +226,7 @@ if __name__ == '__main__':
         def say(self, txt, face=None, asyn=False):
             print(txt)
 
-    ai = AI_El3ktra()
+    ai = AI_Adhoc()
     ai.face = DummyFace()
     ai.mouth = mouth()
 #    ai.eyes = Camera()

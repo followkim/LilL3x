@@ -93,6 +93,7 @@ POE_KEY||str|
 POE_MODEL|Assistant|str|
 
 ADHOC_URL|http://127.0.0.1:11434/v1|str|1
+ADHOC_NAME||str|
 ADHOC_MODEL|qwen2|str|
 ADHOC_MODEL_SLOW|qwen2|str|
 EL3KTRA_VISION_MODEL||str
@@ -123,4 +124,9 @@ DEEPSEEK_API||str
 DEEPSEEK_MODEL|deepseek-chat|str
 GROK_API||str
 GROK_MODEL|grok-2-latest|str
+OPENAI_URL||str
+OPENAI_API||str
+OPENAI_MODEL||str
+OPENAI_NAME||str
+OPENAI_VISION|0|bool
 LOG_UPLOAD_URL||str
