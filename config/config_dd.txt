@@ -14,10 +14,11 @@ LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
 POE_KEY|Poe API Key|Get from <a href="https://poe.com/api_key" target="_blank">Poe API Keys</a>|AI_ENGINE_Poe
 POE_MODEL|Poe Model|Get from <a href="https://poe.com/explore" target="_blank">Poe.com</a>|AI_ENGINE_Poe
-ADHOC_URL|Adhoc URL|Must be running Ollama on a local server (listening on port 0.0.0.0)</a>|AI_ENGINE_Adhoc
-ADHOC_MODEL|Adhoc Model|Model on your local Ollama server|AI_ENGINE_Adhoc
-ADHOC_MODEL_SLOW|Adhoc Model Slow|For non-convversational requests</a>|AI_ENGINE_Adhoc
-ADHOC_API_KEY|Adhoc API Key|If needed|AI_ENGINE_Adhoc
+ADHOC_NAME|Ollama Name|The name of this server|AI_ENGINE_Adhoc
+ADHOC_URL|Ollama URL|Must be running Ollama on a local server (listening on port 0.0.0.0)</a>|AI_ENGINE_Adhoc
+ADHOC_MODEL|Ollama Model|Model on your local Ollama server|AI_ENGINE_Adhoc
+ADHOC_MODEL_SLOW|Ollama Model Slow|For non-convversational requests</a>|AI_ENGINE_Adhoc
+ADHOC_API_KEY|Ollama API Key|If needed|AI_ENGINE_Adhoc
 CORGI_API_KEY|Corgi API Key||AI_ENGINE_Corgi
 CORGI_MODEL|Corgi Model||AI_ENGINE_Corgi
 CORGI_VISION_MODEL|Corgi Vision Model||AI_ENGINE_Corgi
@@ -36,7 +37,11 @@ NOMI_API|Nomi API||AI_ENGINE_Nomi
 NOMI_ID|Nomi ID||AI_ENGINE_Nomi
 GROK_API|Grok API Key|Get from <a href="https://console.x.ai/team/default/api-keys" target="_blank">Grok API Key</a>|AI_ENGINE_Grok
 GROK_MODEL|Grok Model|Get from <a href="https://docs.x.ai/docs/models" target="_blank">Deepseek Models</a>|AI_ENGINE_Grok
-
+OPENAI_NAME|Open AI Name|Pick a name for this AI|AI_ENGINE_OpenAI
+OPENAI_URL|Open AI Url||AI_ENGINE_OpenAI
+OPENAI_API|Open AI API Key||AI_ENGINE_OpenAI
+OPENAI_MODEL|Open AI Model||AI_ENGINE_OpenAI
+OPENAI_VISION|Open AI Vision|If the model supports image analysis or not|AI_ENGINE_OpenAI
 
 HEADER|Wake|2
 WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
