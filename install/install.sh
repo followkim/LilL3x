@@ -76,7 +76,6 @@ pip install tf-keras
 pip install llamaapi
 pip install ollama
 pip install langchain_ollama
-pip install google.generativeai  #legacy, should remove 
 pip install google.genai
 pip install google-cloud-texttospeech
 pip install anthropic
@@ -85,7 +84,7 @@ pip install characterai
 
 #openwakeword
 pip install openwakeword --no-deps
-pip install onnxruntime numpy tqdm scipy requests
+pip install onnxruntime numpy tqdm scipy requests scikit-learn
 python -c "import openwakeword; openwakeword.utils.download_models()"
 cd ~/LilL3x/
 ln ./lib/python3.13/site-packages/openwakeword/resources/models/*.onnx ./wake
