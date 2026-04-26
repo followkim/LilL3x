@@ -117,10 +117,12 @@ class Config:
             cmds = []
             if currAI and currAI != self.g('AI_ENGINE'):   	 	cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
             if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):	cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
-            if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
-            if currWW and currWW != self.g('WAKE_WORD'):		cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
-            if currOWW and currOWW != self.g('OPENWAKEWORD_WAKEWORD'):	cmds.append(f"self.ww.SetWakeWord('{self.g('OPENWAKEWORD_WAKEWORD')}')")
             if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
+
+            if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')")
+
+            if self.g('WAKE_WORD_ENGINE') == "pico" and currWW and currWW != self.g('WAKE_WORD'):                       cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
+            if self.g('WAKE_WORD_ENGINE') == "openWakeWord" and currOWW and currOWW != self.g('OPENWAKEWORD_WAKEWORD'): cmds.append(f"self.ww.SetWakeWord('{self.g('OPENWAKEWORD_WAKEWORD')}')")
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')
