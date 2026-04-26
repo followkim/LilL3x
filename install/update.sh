@@ -1,7 +1,15 @@
 #!/bin/bash
-source /home/$USER/LilL3x/bin/activate
+
+source $HOME/LilL3x/bin/activate
 
 pip install pyimgur
 pip install google.genai
-pip install openwakeword
+
+pip uninstall -y openwakeword
+pip install openwakeword --no-deps
+pip install onnxruntime numpy tqdm scipy requests scikit-learn
+python -c "import openwakeword; openwakeword.utils.download_models()"
+ln $HOME/LilL3x/lib/python3.13/site-packages/openwakeword/resources/models/*.onnx $HOME/LilL3x/wake
+
 #pip install gpiozero
+
