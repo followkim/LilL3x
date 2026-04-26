@@ -13,9 +13,9 @@
 	if ($isPost) {
                 $ssid = $_POST["SSID"];
                 $password = $_POST["PASSWORD"];
-                echo 'sudo ./setwifi.sh "' . $ssid . '" "' .$password . '"<br>';
+                //echo 'sudo ./setwifi.sh "' . $ssid . '" "' .$password . '"<br>';
                 exec('sudo ./setwifi.sh "' . $ssid . '" "' .$password . '"', $rets, $ret);
-                echo "Setting wifi to " . $ssid. " returned " . $ret . "<br>";
+                //echo "Setting wifi to " . $ssid. " returned " . $ret . "<br>";
                 foreach ($rets as $r) {
                     echo $r;
                 }

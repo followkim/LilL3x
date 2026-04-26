@@ -83,6 +83,7 @@ class Config:
         currSpeech = self.g('SPEECH_ENGINE')
         currWWe = self.g('WAKE_WORD_ENGINE')
         currWW = self.g('WAKE_WORD')
+        currOWW = self.g('OPENWAKEWORD_WAKEWORD')
 #        currAudioProfile = self.g('AUDIO_PROFILE') TODO
 #        currFramesProfile = self.g('FRAMES_PROFILE')
 
@@ -117,6 +118,7 @@ class Config:
             if currAI and currAI != self.g('AI_ENGINE'):   	 	cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
             if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):	cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
             if currWW and currWW != self.g('WAKE_WORD'):		cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
+            if currOWW and currOWW != self.g('OPENWAKEWORD_WAKEWORD'):	cmds.append(f"self.ww.SetWakeWord('{self.g('OPENWAKEWORD_WAKEWORD')}')")
             if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
             if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')") 
 
@@ -256,7 +258,7 @@ class Config:
                     self.LockFile()
                     try:
                         os.rename(tempFile, self.configFile)
-                        os.system(f"sudo chown {os.getenv('USER')}:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
+                        os.system(f"sudo chown $USER:www-data {self.configFile} config ; sudo chmod ug+rw {self.configFile}; sudo chmod ug+rwx config")
                         self.lastLoad = datetime.now()  # theself.configfile is up to date
                         LogInfo(f"Config File written {self.lastLoad.strftime(self.g('CONFIG_DT_FORMAT'))}")
                         self.config_changed = False
@@ -335,20 +337,22 @@ class Config:
 
 
     def g(self, key, default=False):
-#        if self.IsConfigDirty(): self.LoadConfig()
         if key in self.config:
             try:
                 return self.config[key]['val']
             except Exception as e: LogError(f"Config.g caught exception: {e.args}")
-        else: return default
+        else:
+#            LogWarn(f"config.py g(): key {key} not found.")
+            return default
 
     def d(self, key):
-#        if self.IsConfigDirty(): self.LoadConfig()
         if key in self.configDef:
             try:
                 return self.configDef[key]['val']
             except Exception as e: LogError(f"Config.d caught exception: {e.args}")
-        else: return False
+        else:
+#            LogWarn(f"config.py d(): key {key} not found.")
+            return False
 
 
     def c(self, key, alt):

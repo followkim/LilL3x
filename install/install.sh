@@ -83,6 +83,13 @@ pip install anthropic
 pip install PyCharacterAI
 pip install characterai
 
+#openwakeword
+pip install openwakeword --no-deps
+pip install onnxruntime numpy tqdm scipy requests
+python -c "import openwakeword; openwakeword.utils.download_models()"
+cd ~/LilL3x/
+ln ./lib/python3.13/site-packages/openwakeword/resources/models/*.onnx ./wake
+
 #reinstall opencv-contrib -- one of the above packages install opencv
 pip uninstall -y opencv-python opencv-contrib-python
 pip install opencv-contrib-python
