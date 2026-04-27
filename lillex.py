@@ -24,6 +24,7 @@ InitLogFile()
 from globals import STATE, SleepOn
 import vosk_wake
 import pico_wake
+import openWakeWord_wake
 from config import cf
 
 from listen_tools import SpeechRecognition_listener
@@ -122,7 +123,6 @@ class lill3x:
         
         # THREADS : WW and config
 
-#        self.ww = vosk_wake.vosk_wake(self.face)
         if cf.g('WAKE_WORD_ENGINE').split('_')[0].lower() == cf.g('LISTEN_ENGINE').split('_')[0].lower(): self.ww = self.ears
         else: self.ww = eval(f"{cf.g('WAKE_WORD_ENGINE')}_wake.{cf.g('WAKE_WORD_ENGINE')}_wake(self.face)")
         ww_thread = threading.Thread(target=self.ww.ww_thread, daemon=True)

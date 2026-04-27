@@ -329,20 +329,36 @@
                         if (preg_match_all("/^([A-Za-z1-9 ]*)_.*\.ppn/", str_replace('-', ' ', $file), $matches)) {
                                 $filename = ucwords($matches[1][0]);
                                 $filepath = __DIR__ . '/../wake/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";
                 echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
 
 	}
+        function Print_OPENWAKEWORD_WAKEWORD($label, $name, $value, $desc="", $class="") {
+                echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
+                echo "<td id='rightHand' >\n";
+                echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
+                foreach (scandir('../wake/') as $file) {
+                        if (preg_match_all("/^(.*).(onnx)/", str_replace('_', ' ', $file), $matches)) {
+                                $filename = ucwords($matches[1][0]);
+                                $filepath = __DIR__ . '/../wake/'.$file;
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
+                        }
+                }
+                echo "</select></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+
+        }
+
 
 	function Print_WAKE_WORD_ENGINE($label, $name, $value, $desc="", $class="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>\n";
 		echo "<td id='rightHand' >\n";
 		echo "<table><tr><td><select  id='".$name."'  name=\"".$name."\" value=".$value.">\n";
 		foreach (scandir('../') as $file) {
-			if (preg_match_all("/^([a-z]*)_wake.py/", $file, $matches)) {
+			if (preg_match_all("/^([a-zA-Z]*)_wake.py/", $file, $matches)) {
 				$wake_word_eng = $matches[1][0];
 				echo "<option value=\"" . $wake_word_eng  . "\" " . (($wake_word_eng == $value)?"selected":"") . ">" . ucwords($wake_word_eng) . "</option>";
 			}
@@ -359,7 +375,7 @@
                         if (preg_match_all("/^([A-Za-z1-9_]*).ppm$/", $file, $matches)) {
                                 $filename = str_replace("_", " ", ucwords($matches[1][0]));
                                 $filepath =  __DIR__ . '/../frames/welcome/'.$file;
-                                echo "<option value=\"" . $filepath  . "\" " . (($filepath == $value)?"selected":"") . ">" . $filename . "</option>";
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
                         }
                 }
                 echo "</select></td></tr>";

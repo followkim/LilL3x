@@ -89,7 +89,7 @@ class Screen:
         dt = datetime.now() + timedelta(seconds=-1)
         real_fps = 0
         LogInfo(f"Animate Thread started.  Screen {width}x{height}")
-        while not self.state=='Quit':
+        while not self.state=='Quit' and errCnt < 3:
             thisState = self.state              #lock in the state at the start
             thisDisplayPicts = self.displayPicts
 
@@ -183,10 +183,10 @@ class Screen:
                 if thisState == 'Look': SleepOn(varf=self.WakeWIS, wakeOn=True, step=0.1)
                 elif thisState != self.state or thisState == 'Listen': pass # state changed, don't sleep
                 else: sleep(max((1/cf.g('FPS')) - (datetime.now()-dt).microseconds/1000000, 0))
-
+                errCnt = 0
             except Exception as e:
                 LogError(f"AnimateThreadException: {e.args}")
-
+                errCnt = errCnt + 1
         self.disp.fill(0) # clear display
         self.disp.show()
         LogInfo(f"Animate Thread ended")
