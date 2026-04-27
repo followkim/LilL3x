@@ -67,7 +67,6 @@ class openWakeWord_wake:
         LogInfo("openWakeWord Listen Thread started")
         while not self.should_quit and self.ww_listener:
             if not STATE.IsInteractive():     #don't bother listening if in Active or Wake
-                #self.SetWakeWord()  # DEBUG
                 if (MIC_STATE.CanUse()):
                     MIC_STATE.TakeMic()
                     self.listen_loop()
@@ -78,11 +77,10 @@ class openWakeWord_wake:
             else:
                 # no wakeword on Wake/Active states
                 continue
-        if self.ww_listener: self.ww_listener.reset()
         LogInfo("WW Listen Thread ended")
 
     def listen_loop(self):
-        LogDebug("ww listen_loop started")
+        LogDebug("openWakeWord_wake listen_loop started")
         avgDelta = 1
         if not self.ww_listener:
             LogWarn("Not starting Wake word: no listener")
@@ -114,7 +112,6 @@ class openWakeWord_wake:
         recorder.stop()  # stop the recorder if requested to do so
         recorder.delete()
         sd.default.reset()
-
         LogDebug("openWakeWord_wake listen_loop ended")
         return
     
