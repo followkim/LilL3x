@@ -31,7 +31,7 @@ from listen_tools import SpeechRecognition_listener
 from vosk_wake import Vosk_listener
 from speech_tools import speech_generator
 from camera_tools import Camera
-from face import Face
+from face import Face, DummyFace
 
 currentdir = os.getcwd()
 
@@ -89,7 +89,7 @@ class lill3x:
             self.face.SetViewControl(self.eyes.ShowView, self.eyes.EndShowView)
         except Exception as e:
             RaiseError(f"Init():Could not init Display. {e.args}")
-
+            self.face = DummyFace()
         try:
             self.button = Button()
             button_thread = threading.Thread(target=self.button.ButtonThread, args=(self.mouth,), daemon=True)
