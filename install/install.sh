@@ -85,8 +85,9 @@ pip install PyCharacterAI
 pip install characterai
 pip install piper-tts
 pip install pydub
+pip install typecast-python
 
-python3 -m piper.download_voices en_US-lessac-medium
+python3 -m piper.download_voices --data-dir $HOME/LilL3x/voices en_US-lessac-medium
 
 #openwakeword
 pip install openwakeword --no-deps
