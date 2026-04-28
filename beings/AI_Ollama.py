@@ -48,7 +48,6 @@ class AI_ollama(AI_openAI):
             return class_resp #hacky - if the class doesn'tt return text then assume that they handled it.
 
         reply = ""
-        LogDebug(str(args['messages'][-1]))
         try:
             if args['stream']: reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
@@ -197,7 +196,6 @@ class AI_Adhoc(AI_ollama):
     url_key = 'ADHOC_URL'
     api_key = 'ADHOC_API_KEY'
     model_key = 'ADHOC_MODEL'
-    slow_model_key=model_key
     vision_model_key='ADHOC_VISION_MODEL'
 
 class AI_Corgi(AI_ollama):
@@ -205,7 +203,6 @@ class AI_Corgi(AI_ollama):
     url_key = 'CORGI_URL'
     api_key = 'CORGI_API_KEY'
     model_key = 'CORGI_MODEL'
-    slow_model_key=model_key
     vision_model_key='CORGI_VISION_MODEL'
 
 class AI_El3ktra(AI_ollama):
@@ -213,7 +210,6 @@ class AI_El3ktra(AI_ollama):
     url_key = 'EL3KTRA_URL'
     api_key = 'EL3KTRA_API_KEY'
     model_key = 'EL3KTRA_MODEL'
-    slow_model_key=model_key
     vision_model_key='EL3KTRA_VISION_MODEL'
 
 #    tools = function_tools

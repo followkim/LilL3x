@@ -8,16 +8,13 @@ BACKSTORY|Backstory|Give a backstory for your AI companion.  Write in the second
 AI_ENGINE|AI Engine|The engine or Large Language Model you want to use (say "Talk to..." to switch)
 OPEN_AI_API_KEY|OpenAI API Key|Get from <a href="https://platform.openai.com/api-keys" target="_blank">Open AI </a>|AI_ENGINE_ChatGPT
 CHATGPT_MODEL|GPT Model|Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
-CHATGPT_MODEL_SLOW|Slow GPT Model|For longer prompts, use for some requests to save tokens.  Get from <a href="https://platform.openai.com/docs/models#current-model-aliases" target="_blank">Open AI Models</a>|AI_ENGINE_ChatGPT
 LLAMA_KEY|Llama API Key|Get from <a>Llama</a>|AI_ENGINE_Llama
 LLAMA_MODEL|Llama Model|Get from <a>Llama</a>|AI_ENGINE_Llama
-LLAMA_MODEL_SLOW|Llama Slow Model|Get from <a>OpenAI</a>|AI_ENGINE_Llama
 POE_KEY|Poe API Key|Get from <a href="https://poe.com/api_key" target="_blank">Poe API Keys</a>|AI_ENGINE_Poe
 POE_MODEL|Poe Model|Get from <a href="https://poe.com/explore" target="_blank">Poe.com</a>|AI_ENGINE_Poe
 ADHOC_NAME|Ollama Name|The name of this server|AI_ENGINE_Adhoc
 ADHOC_URL|Ollama URL|Must be running Ollama on a local server (listening on port 0.0.0.0)</a>|AI_ENGINE_Adhoc
 ADHOC_MODEL|Ollama Model|Model on your local Ollama server|AI_ENGINE_Adhoc
-ADHOC_MODEL_SLOW|Ollama Model Slow|For non-convversational requests</a>|AI_ENGINE_Adhoc
 ADHOC_API_KEY|Ollama API Key|If needed|AI_ENGINE_Adhoc
 CORGI_API_KEY|Corgi API Key||AI_ENGINE_Corgi
 CORGI_MODEL|Corgi Model||AI_ENGINE_Corgi
@@ -27,10 +24,8 @@ EL3KTRA_MODEL|El3ktra Model||AI_ENGINE_El3ktra
 EL3KTRA_VISION_MODEL|El3ktra Vision Model||AI_ENGINE_El3ktra
 GEMINI_API_KEY|Gemini API Key||AI_ENGINE_Gemini
 GEMINI_MODEL|Gemini Model|Get from <a href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">Gemini Models</a>|AI_ENGINE_Gemini
-GEMINI_MODEL_SLOW|Gemini Model Slow|Save tokens with a slower model for non-conversational replies.  Get from link above.|AI_ENGINE_Gemini
 CLAUDE_API_KEY|Claude API Key|Get from <a href="https://console.anthropic.com/settings/keys" target="_blank">Anthropic API Keys (need Anthropic account)</a>|AI_ENGINE_Claude
 CLAUDE_MODEL|Claude Model|Get from <a href="https://docs.anthropic.com/en/docs/about-claude/models" target="_blank">Claude Models</a>|AI_ENGINE_Claude
-CLAUDE_MODEL_SLOW|Claude Model Slow|A slower version for non-conversational requests.  Get from above.|AI_ENGINE_Claude
 KINDROID_API|Kindroid API|Get from "General":"API & advanced integration at <a href="https://kindroid.ai/home/" target="_blank">Kindroid</a>|AI_ENGINE_Kindroid
 KINDROID_GMPID|Kindriod AI ID|Your character's AI ID.  See above.|AI_ENGINE_Kindroid
 NOMI_API|Nomi API||AI_ENGINE_Nomi
@@ -97,7 +92,7 @@ GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
 GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
 MURF_API_KEY|Murf API|See <a href="https://murf.ai/api/api-keys" target="blank">Murf AI API</a> to get an API key.|SPEECH_ENGINE_murf
 MURF_VOICE_ID|Murf Voice ID|Indicate the voice to use.  See <a href="https://murf.ai/api/api-keys" target="_blank">Murf AI API</a>|SPEECH_ENGINE_murf
-
+PIPER_VOICE|Piper Voices|Get more at <a href="https://huggingface.co/rhasspy/piper-voices/tree/main" target="_blank">Hugging Face piper-voices</a>|SPEECH_ENGINE_piper
 HEADER|Camera|2
 IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.

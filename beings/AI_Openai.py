@@ -277,7 +277,6 @@ class AI_openAI(AI):
 #            self.memory = self.memory[:-2]  
             del self.memory[-2:]
             self.WriteConvo()
-            LogDebug(self.memory[:3])
 
     def GetString(self, key):
         return cf.g(key)

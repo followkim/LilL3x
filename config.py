@@ -84,6 +84,7 @@ class Config:
         currWWe = self.g('WAKE_WORD_ENGINE')
         currWW = self.g('WAKE_WORD')
         currOWW = self.g('OPENWAKEWORD_WAKEWORD')
+        currPV = self.g('PIPER_VOICE')
 #        currAudioProfile = self.g('AUDIO_PROFILE') TODO
 #        currFramesProfile = self.g('FRAMES_PROFILE')
 
@@ -123,6 +124,8 @@ class Config:
 
             if self.g('WAKE_WORD_ENGINE') == "pico" and currWW and currWW != self.g('WAKE_WORD'):                       cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
             if self.g('WAKE_WORD_ENGINE') == "openWakeWord" and currOWW and currOWW != self.g('OPENWAKEWORD_WAKEWORD'): cmds.append(f"self.ww.SetWakeWord('{self.g('OPENWAKEWORD_WAKEWORD')}')")
+
+            if self.g('SPEECH_ENGINE') == "piper" and currSpeech and currSpeech == self.g('SPEECH_ENGINE') and currPV and currPV != self.g('PIPER_VOICE'): cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')

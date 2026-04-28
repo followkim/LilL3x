@@ -15,6 +15,13 @@ from globals import STATE, HasInternet
 import requests
 import re
 
+from pydub import AudioSegment
+from piper import PiperVoice
+import wave
+
+from typecast import Typecast
+from typecast.models import TTSRequest, SmartPrompt, Output
+
 LogInfo("Speech Engine Loading...")
 
 def dummy():
@@ -186,7 +193,9 @@ class elevenLabs_tts:
 
         response = requests.post(url, json=data, headers=self.headers)
         if response.status_code != 200:
-            raise Exception(f"elevenLabs_tts returned error {response.status_code}")
+            LogDebug(response.json()['detail']['message'])
+            LogError(f"elevenLabs_tts returned error {response.status_code} {response.json()['detail']['message']}")
+            return False
         else:
             with open(filename, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=self.CHUNK_SIZE):
@@ -290,49 +299,61 @@ class google_tts:
 
 class typeCast_tts:
     client = 0
-    CHUNK_SIZE = 1024
-
-    headers = {
-      "X-API-KEY": cf.g('TYPECAST_API_KEY'),
-      "Content-Type": "application/json"
-    }
 
     def __init__(self):
          LogInfo("Speech Engine: TypeCast")
+         self.client = Typecast(api_key = cf.g('TYPECAST_API_KEY'))
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
 
-        url = cf.g('TYPECAST_URL')
+        response = self.client.text_to_speech(TTSRequest(
+            text = txt,
+            model = cf.g('TYPECAST_MODEL'),
+            voice_id = cf.g('TYPECAST_VOICE_ID'),
+            output=Output(audio_format="mp3")
+        ))
 
-        data = {
-            "text": txt,
-            "model": cf.g('TYPECAST_MODEL'),
-            "voice_id": cf.g('TYPECAST_VOICE_ID'),
-            "prompt": {"preset": "happy", "preset_intensity": 2.0}
-        }
-
-        response = requests.post(url, json=data, headers=self.headers)
         if response.status_code != 200:
-            raise Exception(f"typeCast_tts returned error {response.status_code} - {response.text}")
-        else:
-            with open(filename, 'wb') as f:
-                f.write(response.content)
+            LogError(f"typeCast_tts returned error {response.status_code} - {response.text}")
+            return False
+
+        with open(filename, 'wb') as f:
+            f.write(response.audio_data)
         return filename
 
     def Close(self):
         return
 
+class piper_tts:
+
+    voice = False
+    def __init__(self):
+        LogWarn("Loading Piper... NOTE SYSTEM WILL FREEZE MOMENTARILY!")
+        self.voice = PiperVoice.load(cf.g('PIPER_VOICE'))
+        LogInfo("Speech Engine: Piper")
+        return
+
+    def tts(self, txt, filename=cf.g('SPEECH_FILE')):
+        with wave.open("./temp/piper.wav", "wb") as wav_file:
+            self.voice.synthesize_wav(txt, wav_file)
+        audio = AudioSegment.from_wav("./temp/piper.wav")
+        audio.export(filename, format="mp3")
+        return filename
+
+    def Close(self):
+        return
+
+
 if __name__ == '__main__':
-    
+
     pygame.mixer.init()
     sr = speech_generator()
-#    sr.SwitchEngine("pytts")
-    sr.say("the big red dog jumped over the lazy fox", asyn=True)
-#    cf.s('GOOGLE_LANG_CODE', 'en-AU')
-#    cf.s('GOOGLE_VOICE_NAME', 'en-AU-Standard-C')
 
-    sr.say("oh what a beautiful day!", asyn=True)
-    sr.say("I have a wonderful feeling", asyn=False)
+
+    sr.say("Alexander Hamilton", asyn=False)
+    sr.say("My name is Alexander Hamilton", asyn=True)
+    sr.say("And there's a million things I haven't done", asyn=True)
+    sr.say("But just you wait, just you wait", asyn=False)
+
     print("done")
-
