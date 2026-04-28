@@ -283,10 +283,10 @@ class AI_Eliza(AI):
 
     #ON Startup
     def Hello(self):
-        return self.eliza.initial()
+        return f"{self.eliza.initial()[:-1]}, {cf.g('USERNAMEP')}"
 
     def Intruder(self):
-        return "Don't you have something better to do?"
+        return self.eliza.initial()
 
     def Close(self):
        AI.Close(self)
@@ -297,9 +297,10 @@ class AI_Eliza(AI):
 if __name__ == '__main__':
 
     global STATE
-    STATE.ChangeState('Idle')
 
     ai = AI_Eliza()
+    STATE.ChangeState('Idle')
+    print("AI: "+ ai.Hello())
     inp = ""
     while inp != "quit":
         inp = input()

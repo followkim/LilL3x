@@ -63,7 +63,7 @@ class AI:
 
         if re.search(r"^transerror$", search_txt.lower()):
             STATE.ChangeState('ActiveIdle')
-            return f"I'm sorry, I didn't quite get that."
+            return f"~I'm sorry, I didn't quite get that."
 
         if re.search(r"^(not now|shut up|be quiet|go away|later|stop)$", search_txt.lower()):
             STATE.ChangeState('ActiveIdle')
@@ -155,7 +155,7 @@ class AI:
             '''
             desc = cf.g('CAMERA_STR')
             selfie = False
-            path = self.TakePicture(0, selfie=False) #cf.g('CAMERA_PICT_SEC'), selfie=selfie)  # delay will come from the response wait
+            path = self.TakePicture(cf.g('CAMERA_PICT_SEC'), selfie=False) #cf.g('CAMERA_PICT_SEC'), selfie=selfie)  # delay will come from the response wait
 
             if path:
                 url  = self.eyes.UploadPicture(path)
@@ -258,7 +258,7 @@ class AI:
 #        if re.search(r"^set (.*) to (.*)$", search_txt):
 #             return self.SetKey(txt)
         # perform Interactions (belo)
-        # switch speech/listening enginespicture
+        # switch speech/listening engineswpicture
         # reinstall software
         # reboot
 

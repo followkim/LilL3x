@@ -4,7 +4,7 @@ import inspect
 from pathlib import Path
 from datetime import datetime, timedelta
 import re
-import google.generativeai as genai
+import google.genai as genai
 import PIL.Image
 from AI_class import AI
 
@@ -16,22 +16,25 @@ from config import cf
 class AI_Gemini(AI):
     
     memory = ""
+    client = None
     gemini = 0
     config= 0
     model = cf.g('GEMINI_MODEL')
-    model_slow = cf.g ('GEMINI_MODEL_SLOW')
     name = "Gemini"
     training = True
     has_vision = True
     tools = False
     def __init__(self):
         AI.__init__(self)
-        genai.configure(api_key=cf.g('GEMINI_API_KEY'))
-        system = f"{cf.g('BACKSTORY')}  {cf.g('INSTRUCTION')}"
-        self.gemini = genai.GenerativeModel(model_name=self.model,system_instruction=[cf.g('BACKSTORY'), cf.g('INSTRUCTION')])
-        self.config = genai.types.GenerationConfig(
-#            max_output_tokens = 50,
-            temperature = cf.g('TEMPERATURE')
+
+        self.client = genai.Client(api_key=cf.g('GEMINI_API_KEY'))
+
+        self.gemini = self.client.chats.create(
+            model= self.model,
+            config={'temperature': cf.g('TEMPERATURE')},
+            history=[
+                {'role': 'user', 'parts': [{'text': f"{cf.g('BACKSTORY')} {cf.g('INSTRUCTION')}"}]}
+           ]
         )
         return
 
@@ -60,10 +63,10 @@ class AI_Gemini(AI):
 
         self.face.thinking()
         try:
-            reply = self.gemini.generate_content(user_input) #, generation_config=self.config)
+            reply = self.gemini.send_message(user_input)
             reply = str(reply.text.encode('ascii', 'ignore').decode("utf-8"))
         except Exception as e:
-            reply = f"There was an error talking to Gemini: {str(e)}"
+            reply = f"There was an error talking to Gemini: {str(e.args)}"
 
         self.face.off()
         return reply

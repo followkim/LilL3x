@@ -52,7 +52,7 @@ WAKE_WORD_ENGINE|openWakeWord|str|1
 #WAKE_WORD_REGEX||regex
 WAKE_WORD_TRIES|0|int
 PICOVOICE_KEY||str|
-OPENWAKEWORD_WAKEWORD|./wake/Lil_L3x.onnx|str|1
+OPENWAKEWORD_WAKEWORD|./wake/Lil_L3x.onnx|path|1
 OPENWAKEWORD_THRESHOLD|0.5|float|1
 SPEECH_ENGINE|gTTS|str|1|
 VOLUME|10|int
@@ -76,6 +76,7 @@ TYPECAST_VOICE_ID||str
 TYPECAST_MODEL|ssfm-v21|str
 MURF_VOICE_ID||str
 MURF_API_KEY||str
+PIPER_VOICE|./voices/en_US-lessac-medium.onnx|path|1
 FPS|3|int|1
 MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|1
@@ -87,17 +88,14 @@ CHECK_GIT|30|int|1
 CONFIG_DT_FORMAT|%Y-%m-%d %H:%M:%S|str|1
 OPEN_AI_API_KEY||str
 CHATGPT_MODEL|gpt-4o|str|
-CHATGPT_MODEL_SLOW|gpt-4o-mini|str|
 LLAMA_KEY||str|
 LLAMA_MODEL|llama3.1-8b|str|
-LLAMA_MODEL_SLOW|llama3.1-8b|str|
 POE_KEY||str|
 POE_MODEL|Assistant|str|
 
 ADHOC_URL|http://127.0.0.1:11434/v1|str|1
 ADHOC_NAME||str|
 ADHOC_MODEL|qwen2|str|
-ADHOC_MODEL_SLOW|qwen2|str|
 EL3KTRA_VISION_MODEL||str
 ADHOC_API_KEY||str|
 CORGI_API_KEY|na|str|
@@ -110,10 +108,8 @@ CONVO_ID||str|
 GOOGLE_API||str|
 GEMINI_API_KEY||str|
 GEMINI_MODEL|gemini-1.5-flash|str|
-GEMINI_MODEL_SLOW|gemini-1.5-flash|str|
 CLAUDE_API_KEY||str|
 CLAUDE_MODEL|claude-3-opus-20240229|str|
-CLAUDE_MODEL_SLOW|claude-3-opus-20240229|str|
 KINDROID_API||str|
 KINDROID_GMPID||str|
 NOMI_API||str

@@ -21,7 +21,6 @@ class AI_Claude(AI_openAI):
     config=0
 
     model_key = 'CLAUDE_MODEL'
-    model_slow_key = 'CLAUDE_MODEL_SLOW'
     name = "Claude"
     training = True
     has_vision = True
@@ -63,13 +62,12 @@ class AI_Claude(AI_openAI):
 
         if user_input[0] == '#':  # its a picture
             l = user_input.split('#') # none, desc, file, url
-#            file = PIL.Image.open(l[2])
             file = None
             with open(l[2], "rb") as image_file: file = base64.b64encode(image_file.read()).decode("utf-8")
             user_input = [{"type": "image", "source":{"type": "base64", "media_type": "image/jpeg", "data": file}},{"type": "text", "text": l[1]}]
         elif user_input[0] == '~':  # its a picture
             user_input = f"Paraphrase '{user_input[1:]}'"
-        elif user_input[0] == '!':  # its a picture
+        elif user_input[0] == '!':  # its a command
             user_input = user_input[1:]
             stream = False
         elif not user_input[0].isalpha():
@@ -101,7 +99,8 @@ class AI_Claude(AI_openAI):
             self.memory.append({"role": "assistant", "content": reply}) # overwrite reply
         except Exception as e:
             stream = False
-            reply = f"There was an error talking to Claude: {str(e)}"
+            LogError(f"There was an error talking to Claude: {str(e.args)}")
+            reply = f"There was an error talking to Claude."
         if file:
             LogDebug("deleting from memory pict: " + self.memory[-2]['content'][1]['text'])
             self.memory[-2]["content"]=user_input  # erase the picture
@@ -139,7 +138,7 @@ if __name__ == '__main__':
     from face import DummyFace
     import pygame
 
-    pygame.mixer.init()
+#    pygame.mixer.init()
 #    eyes = Camera()
 
     global STATE

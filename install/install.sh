@@ -19,6 +19,7 @@ sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
 sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
 sudo a2ensite lill3x.conf
 sudo chmod a+rx ~  # needed to be able to browse folders in home folder
+chown $USER:www-data ~/LilL3x/
 sudo rm /var/www/html/*
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 
@@ -82,6 +83,8 @@ pip install google-cloud-texttospeech
 pip install anthropic
 pip install PyCharacterAI
 pip install characterai
+pip install piper-tts
+pip install pydub
 
 #openwakeword
 pip install openwakeword --no-deps

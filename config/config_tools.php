@@ -271,6 +271,21 @@
 
 	}
 
+        function Print_PIPER_VOICE($label, $name, $value, $desc="", $class="") {
+                echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
+                echo "<td id='rightHand' >\n";
+                echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
+                foreach (scandir('../voices/') as $file) {
+                        if (preg_match_all("/^(.*).(onnx)$/", str_replace('_', ' ', $file), $matches)) {
+                                $filename = ucwords($matches[1][0]);
+                                $filepath = __DIR__ . '/../voices/'.$file;
+                                echo "<option value=\"" . $filepath  . "\" " . ((basename($filepath) == basename($value))?"selected":"") . ">" . $filename . "</option>";
+                        }
+                }
+                echo "</select></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+
+        }
         function Print_LISTEN_ENGINE($label, $name, $value, $desc="", $class="") {
                 echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
                 echo "<td id='rightHand' >";
