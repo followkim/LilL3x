@@ -48,7 +48,6 @@ class AI_ollama(AI_openAI):
             return class_resp #hacky - if the class doesn'tt return text then assume that they handled it.
 
         reply = ""
-        LogDebug(str(args['messages'][-1]))
         try:
             if args['stream']: reply = self.reply_async(args)
             else: reply = self.reply_sync(args)
