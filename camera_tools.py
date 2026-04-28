@@ -23,10 +23,93 @@ import pyimgur
 
 LogInfo("Camera Loading...")
 
+class picamera:
+    cam = None
+
+    def __init__(self):
+        self.cam = Picamera2()
+        video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}, lores={"size": (320,240), "format": "YUV420"})
+        self.cam.configure(video_config)
+
+    def read_camera_buffer(self):
+        try:
+            return cv2.flip(self.cam.capture_buffer("lores"), 0)
+        except Exception as e:
+            return RaiseError(f"Error reading camera ({e.args})")
+
+    def read_camera_array(self):
+        try:
+            return cv2.flip(self.cam.capture_array(), 0)
+        except Exception as e:
+            return RaiseError(f"Error reading camera ({e.args})")
+
+    def capture_file(filename):
+        return self.cam.capture_file(filename)
+
+    def start(self):
+        self.cam.start()
+
+    def stop(self):
+        self.cam.stop()
+
+    def close(self):
+        pass
+
+class USBcamera:
+    cam = None
+
+    def __init__(self):
+        self.cam = cv2.VideoCapture(cf.g("CAMERA_DEVICE"))
+        start = datetime.now()
+        i = None
+        LogDebug("USB Camera connected.  Warming up...")
+        while (datetime.now()-start).total_seconds() < 60:
+            i = self.read_camera_buffer()
+            if i.any(): break
+            sleep(1)
+        if not i.any():
+            return None
+
+    def read_camera_buffer(self):
+        try:
+            ret, frame = self.cam.read()
+            if ret: return frame
+            else: 
+                LogError("Error reading camera buffer")
+                return False
+        except Exception as e:
+            return RaiseError(f"Error reading camera buffer ({e.args})")
+
+    def read_camera_array(self):
+        try:
+            ret, frame = self.cam.read()
+            if ret: return frame
+            else: 
+                LogError("Error reading camera array")
+                return False
+        except Exception as e:
+            return RaiseError(f"Error reading camera array ({e.args})")
+
+    def capture_file(filename):
+        ret, frame = self.cam.read()
+
+        if ret:
+            cv2.imwrite(filename, frame)
+        return ret
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def close(self):
+        self.cam.release()
+
 class Camera:
     cam = None
     shutter = 0
-    last_seen = datetime.now() 
+    last_seen = datetime.now()
     last_motion = datetime.now()
     is_dark = False
     face_cascade = 0
@@ -49,9 +132,7 @@ class Camera:
             self.face_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_frontalface_default.xml') 
             self.eye_cascade = cv2.CascadeClassifier(haarFolder + 'haarcascade_eye.xml') 
 
-            self.cam = Picamera2()
-            video_config = self.cam.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}, lores={"size": (320,240), "format": "YUV420"})
-            self.cam.configure(video_config)
+            self.cam = eval(f"{cf.g('CAMERA_TYPE')}()")
 
             self.CheckCameraThread()
 
@@ -60,8 +141,22 @@ class Camera:
             self.cam = False
         return
 
+    def SwitchCamera(self):
+        LogInfo("Shutting down camera")
+        self.should_quit = True
+        while self.CameraAlive(): sleep(1)
+        self.should_quit = False
+        try:
+            self.cam = eval(f"{cf.g('CAMERA_TYPE')}()")
+            self.CheckCameraThread()
+            LogInfo(f"Camera {cf.g('CAMERA_TYPE')} activated.")
+        except Exception as e:
+             LogError(f"Unable to switch camera to {cf.g('CAMERA_TYPE')}!  ({e.args})")
+             self.cam = None
+
+
     def CheckCameraThread(self):
-        if not self.CameraAlive():
+        if self.cam and not self.CameraAlive():
             self.cam_thread = threading.Thread(target=self._camera_loop_thread, daemon=True)
             self.cam_thread.name = f"{GetHostname()} CameraLoopThread"
             self.cam_thread.start()
@@ -80,7 +175,7 @@ class Camera:
             os.environ["LIBCAMERA_LOG_LEVELS"] = "3"
             self.cam.start()
         except Exception as e:
-            RaiseError(f"Unable to init Picamera: {e.args}")
+            RaiseError(f"Unable to init Camera: {e.args}")
             self.cam = None
 
         LogInfo("Camera thread starting.")
@@ -96,16 +191,16 @@ class Camera:
 
                 # do not use the camera if in Active or Wake... unless asked to.  should_wake() is true if user asks for camera.
                 if self.should_wake() or not STATE.IsInteractive():
-                    img = self.__read_camera_array()
+                    img = self.cam.read_camera_array()
                     if isinstance(img, bool):  #__is_dark will access image.  Don't do anything if there isn't an image
-                        LogError(f"Unable to get camera  image")
+                        LogError(f"Unable to get camera image")
                         SleepOn(cf.g('CAMERA_SLEEP_SEC')*2)
                         continue
 
                     if self.__is_dark(img):
                         STATE.ChangeState('SleepState')      # allow the camera to dictate this, LilLex.Sleep() will reset state when light again
                         SleepOn(secs=cf.g('CAMERA_SLEEP_SEC')*2, varf=STATE.IsSleeping, wakeOn=False)
-                        continue                             # as it is dark, we can't see anything and should try to continue loop
+                        continue                             # as it is dark, we can't see anything and should not try to continue loop
 
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -170,30 +265,21 @@ class Camera:
                 else: SleepOn(cf.g('CAMERA_SLEEP_SEC'), self.should_wake, 0.25, watchState=False, wakeOn=True)  # want to limit sleep to check for tracking
              except Exception as e:
                   LogError(f"CameraLoop Uncaught Exception {e.args}")
-        if self.cam: self.cam.stop()
+        if self.cam:
+            self.cam.stop()
+            self.cam.close()
         LogInfo("Camera thread exiting.")
         STATE.cx=0
         STATE.cy=0
 
     def should_wake(self):
-          return self.show_view or self.take_picture or self.take_portrait
-
-    def __read_camera_buffer(self):
-        try:
-            return cv2.flip(self.cam.capture_buffer("lores"), 0)
-        except Exception as e:
-            return RaiseError(f"Error reading camera ({e.args})")
-
-    def __read_camera_array(self):
-        try:
-            return cv2.flip(self.cam.capture_array(), 0)
-        except Exception as e:
-            return RaiseError(f"Error reading camera ({e.args})")
+          return self.show_view or self.take_picture or self.take_portrait or self.should_quit
 
     def IsDark(self):
         return self.is_dark
     
     def __is_dark(self, image):
+
         # Convert image to HSV colorspace
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -207,17 +293,17 @@ class Camera:
         return self.is_dark
 
     def CanISeeYou(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
-        self.CheckCameraThread()
+        #self.CheckCameraThread()
         return self.last_seen > (datetime.now() - timedelta(seconds=secs))
 
     def LastSeen(self):
-        self.CheckCameraThread()
+        #self.CheckCameraThread()
         return (datetime.now()-self.last_seen).total_seconds()
 
     # Note: _look_for_user assumes OPEN cameara instance.
     #https://github.com/raspberrypi/picamera2/blob/main/examples/capture_motion.py
     def IsUserMoving(self, secs=cf.g('LOOK_SECS_TO_DEFAULT')):
-        self.CheckCameraThread()
+        #self.CheckCameraThread()
         return max(self.last_seen, self.last_motion) > datetime.now() - timedelta(seconds=secs)
 
 
@@ -233,7 +319,7 @@ class Camera:
         return cur # allows easy setting of previous frame
 
     def ShowView(self):
-        self.CheckCameraThread()
+        #self.CheckCameraThread()
         if not self.show_view: RemoveFile(cf.g('WIS_FILE'))  #remove view file if exsists
         self.show_view=True
 
@@ -244,7 +330,7 @@ class Camera:
         return
 
     def _whatISee(self, img=False, filename=cf.g('WIS_FILE')):
-        if isinstance(img, bool): img = self.__read_camera_buffer()
+        if isinstance(img, bool): img = self.cam.read_camera_buffer()
 
 #        gmi = cv2.flip(img, 1)
         ig = cv2.resize(img, (128, 64))
@@ -257,7 +343,7 @@ class Camera:
         return self.TakePicture(fname, beQuiet, seeUser, timeout)
 
     def TakePicture(self, fname=cf.g('PICT_PATH'), beQuiet=False, seeUser=False, timeout=cf.g('CAMERA_PICT_SEC')):
-        self.CheckCameraThread()
+        #self.CheckCameraThread()
         self.be_quiet = beQuiet
         if is_dir(fname):
             filename = fname+'p'+datetime.now().strftime(cf.g('SFT_FORMAT')) +'.jpg'

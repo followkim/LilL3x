@@ -23,18 +23,22 @@ const pico = document.getElementById("WAKE_WORD_ENGINE");
 showhide("WAKE_WORD_ENGINE");
 pico.addEventListener("change", (evt) => showhide("WAKE_WORD_ENGINE", evt));
 
+const cam = document.getElementById("CAMERA_TYPE");
+showhide("CAMERA_TYPE");
+cam.addEventListener("change", (evt) => showhide("CAMERA_TYPE", evt));
+
 function showhide(name, evt) {
 	const selectElement = document.getElementById(name);
        	const selectedValue = selectElement.value;
      	console.log("function called for "+ name + ", val=" + selectedValue);
-       	const hide = document.querySelectorAll("[class*='"+name+"_']"); // Replace '.className' with the actual class name
+       	const hide = document.querySelectorAll("[class*='"+name+"_']");
 	for (var i=0;i<hide.length;i+=1){
 		hide[i].style.display = 'none';
                 console.log(i + "Hiding " + hide[i].className)
                 hide[i].dispatchEvent(new Event('change'));
 		// TODO : search the children of this element to close all dependants
 	}
-       	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']"); // Replace '.className' with the actual class name
+       	const show = document.querySelectorAll("[class*='"+name+"_" + selectedValue + "']");
 	for (var i=0;i<show.length;i+=1){
 		show[i].style.display = '';
                 console.log(i + "Showing " + show[i].className)

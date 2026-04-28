@@ -85,6 +85,8 @@ class Config:
         currWW = self.g('WAKE_WORD')
         currOWW = self.g('OPENWAKEWORD_WAKEWORD')
         currPV = self.g('PIPER_VOICE')
+        currCam = self.g('CAMERA_TYPE')
+        currCamDv = self.g('CAMERA_DEVICE')
 #        currAudioProfile = self.g('AUDIO_PROFILE') TODO
 #        currFramesProfile = self.g('FRAMES_PROFILE')
 
@@ -121,11 +123,13 @@ class Config:
             if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
 
             if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')")
+            if currCam != self.g('CAMERA_TYPE'):			cmds.append(f"self.eyes.SwitchCamera()")
 
             if self.g('WAKE_WORD_ENGINE') == "pico" and currWW and currWW != self.g('WAKE_WORD'):                       cmds.append(f"self.ww.SetWakeWord('{self.g('WAKE_WORD')}')")
             if self.g('WAKE_WORD_ENGINE') == "openWakeWord" and currOWW and currOWW != self.g('OPENWAKEWORD_WAKEWORD'): cmds.append(f"self.ww.SetWakeWord('{self.g('OPENWAKEWORD_WAKEWORD')}')")
 
             if self.g('SPEECH_ENGINE') == "piper" and currSpeech and currSpeech == self.g('SPEECH_ENGINE') and currPV and currPV != self.g('PIPER_VOICE'): cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
+            if self.g('CAMERA_TYPE') == "USBcamera" and currCam == self.g('CAMERA_TYPE') and currCamDv and currCamDv != self.g('CAMERA_DEVICE'): cmds.append(f"self.eyes.SwitchCamera()")
 
             if len(cmds)>0:
                 STATE.ChangeState('EvalCode')

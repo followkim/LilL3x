@@ -39,7 +39,7 @@ OPENAI_MODEL|Open AI Model||AI_ENGINE_OpenAI
 OPENAI_VISION|Open AI Vision|If the model supports image analysis or not|AI_ENGINE_OpenAI
 
 HEADER|Wake|2
-WAKE_WORD_ENGINE|Wake Word Engine|Picovoice is better, but requires an API key.  Vosk is inaccurate but can respond to the context of your wake phrase.
+WAKE_WORD_ENGINE|Wake Word Engine|Pico requires an API key.<br>OpenWakeWord is great but requires Wake Word setup.<br>Vosk is inaccurate but can respond to the context of your wake phrase.
 PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>|WAKE_WORD_ENGINE_pico
 WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)|WAKE_WORD_ENGINE_vosk
@@ -54,7 +54,7 @@ INTERACT_MAX|Interactivity Max|Don't wait longer then this many minutes to inter
 ACTIVE_IDLE_TO|Active Timeout|Minutes until you AI goes into inactive mode. (-1 for never)
 IDLE_ON_CAMERA|Idle on View|Idle when the user isn't seen in Active Timeout minutes.  Otherwise, idle even if user is seen.
 IDLE_WAIT_MIN|Inactive Quiet|When inactive, minutes to wait before interacting again (-1 for never)
-SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes)
+SURVEIL_WAIT|Surveillance Wait|Time to wait before starting surveillance (in minutes).  Say "You're in charge" to start surveillance mode!
 SURVEIL_LOOK|Surveillance Look|Time to wait between reporting on movement (in minutes)
 
 HEADER|Listening|2
@@ -92,8 +92,11 @@ GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
 GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
 MURF_API_KEY|Murf API|See <a href="https://murf.ai/api/api-keys" target="blank">Murf AI API</a> to get an API key.|SPEECH_ENGINE_murf
 MURF_VOICE_ID|Murf Voice ID|Indicate the voice to use.  See <a href="https://murf.ai/api/api-keys" target="_blank">Murf AI API</a>|SPEECH_ENGINE_murf
-PIPER_VOICE|Piper Voices|Get more at <a href="https://huggingface.co/rhasspy/piper-voices/tree/main" target="_blank">Hugging Face piper-voices</a>|SPEECH_ENGINE_piper
+PIPER_VOICE|Piper Voices|Get more at <a href="https://huggingface.co/rhasspy/piper-voices/tree/main" target="_blank">Hugging Face piper-voices</a><br>Add new models by running <u>python3 -m piper.download_voices --data-dir ~/LilL3x/voices voice_name</u>|SPEECH_ENGINE_piper
+
 HEADER|Camera|2
+CAMERA_TYPE|Camera type|USB Camera is in beta, try at your own risk!
+CAMERA_DEVICE|Device number|Get from <i>v4l2-ctl --list-devices</i>|CAMERA_TYPE_USBcamera
 IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
 CAMERA_SLEEP_SEC|Camera Sleep|Wait this many seconds between loops to view the user.  Increase if application is running slowly.

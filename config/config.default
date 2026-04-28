@@ -24,6 +24,8 @@ LIGHT_SPEED|75|int|1
 LISTEN_LED|green|str|1
 TALK_LED|red|str|1
 LOOK_LED|white|str|1
+CAMERA_TYPE|picamera|str|1
+CAMERA_DEVICE|1|int|1
 ICU_THRESH|2|int
 MOTDET_SENS|7|int
 MOTDET_THRESH|10|int

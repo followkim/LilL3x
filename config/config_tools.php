@@ -305,6 +305,29 @@
         }
 
 
+       function Print_CAMERA_TYPE($label, $name, $value, $desc="", $class="") {
+                echo "<tr class='".$class."' ><td id='leftHand'><b>".$label.":</b></td>";
+                echo "<td id='rightHand' >";
+                echo "<table><td><tr><select id='".$name."' name=\"".$name."\" value=".$value.">";
+                $pyfile = fopen('../camera_tools.py', "r");
+                $engines = [];
+                while(!feof($pyfile)) {
+                        $line = fgets($pyfile);
+                        if (preg_match_all("/class ([a-zA-Z]*)camera:/", $line, $matches)) {
+                                array_push($engines, $matches[1][0] . 'camera');
+                        }
+                }
+                fclose($pyfile);
+                sort($engines);
+                $engines = array_unique($engines);
+                foreach ($engines as $engine) {
+                        echo "<option value=\"" . $engine . "\" "  .   (($engine == $value)?"selected":"") . ">" . $engine ."</option>";
+                }
+                echo "</select></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+
+        }
+
 	function Print_DEBUG($label, $name, $value, $desc="", $class="") {
 		echo "<tr><td id='leftHand'><b>".$label.":</b></td>";
 		echo "<td id='rightHand' >";
