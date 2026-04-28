@@ -19,7 +19,7 @@ sudo chmod a+rwx /etc/apache2/sites-available/lill3x.conf
 sudo sed -i "s/USER/$USER/g" /etc/apache2/sites-available/lill3x.conf
 sudo a2ensite lill3x.conf
 sudo chmod a+rx ~  # needed to be able to browse folders in home folder
-chown $USER:www-data ~/LilL3x/
+sudo chown $USER:www-data ~/LilL3x/
 sudo rm /var/www/html/*
 sudo ln ~/LilL3x/config/html/* /var/www/html/
 
