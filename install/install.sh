@@ -86,6 +86,8 @@ pip install characterai
 pip install piper-tts
 pip install pydub
 
+python3 -m piper.download_voices en_US-lessac-medium
+
 #openwakeword
 pip install openwakeword --no-deps
 pip install onnxruntime numpy tqdm scipy requests scikit-learn
