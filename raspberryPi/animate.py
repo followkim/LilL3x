@@ -145,7 +145,7 @@ class Screen:
                             show_temp = STATE.temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('SCREEN_DEBUG')
                             locStr = 'lr'
                             if cf.g('SHOW_CLOCK'):
-                                if not show_temp and not cf.g('SCREEN_DEBUG') and cf.g('SHOW_CLOCK'):
+                                if not show_temp and not cf.g('SCREEN_DEBUG'):
                                     if movY > 0: locStr = 'u'+locStr[1]
                                     if movX > 0: locStr = locStr[0]+'l'
                                 self.DrawText(draw, datetime.now().strftime("%-I:%M%p"), locStr, font) # defaults to top right
