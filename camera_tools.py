@@ -144,8 +144,12 @@ class Camera:
     def SwitchCamera(self):
         LogInfo("Shutting down camera")
         self.should_quit = True
-        while self.CameraAlive(): sleep(1)
+        start = datetime.now()
+        while (datetime.now()-start).total_seconds() < cf.g('CAMERA_SLEEP_SEC')*3 and  self.CameraAlive(): sleep(1)
         self.should_quit = False
+        if self.CameraAlive():
+            LogError("Unable to shut down camera thread.")
+            return False
         try:
             self.cam = eval(f"{cf.g('CAMERA_TYPE')}()")
             self.CheckCameraThread()
@@ -184,8 +188,8 @@ class Camera:
                 if STATE.temp >= cf.g('CPU_MAX_TEMP'):
                     LogError(f"Camera not used: CPU too hot ({STATE.temp})")
                     self.cam.stop()
-                    while STATE.temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10):
-                        sleep(60)  # force sleep
+                    while STATE.temp >= cf.g('CPU_MAX_TEMP')-(cf.g('CPU_MAX_TEMP')/10) and not STATE.ShouldQuit() and not self.should_quit:
+                        sleep(5)  # force sleep
                     self.cam.start()
                     continue
 
@@ -373,7 +377,7 @@ class Camera:
                 self.shutter.play()
                 if self.show_view:           # freeze the camera to show pict
                     self._whatISee(image)    # show_view is set outside the loop
-                    while self.show_view: sleep(0.25)
+                    #while self.show_view: sleep(0.25)
             if seeUser: self.take_portrait = False
             else: self.take_picture = False
             return filename
@@ -389,8 +393,9 @@ class Camera:
 
     def UploadPicture(self, pict_path):
         url = False
-        if pict_path and os.path.isfile(pict_path):
-
+        if not cf.g('IMGUR_ID'):
+            LogWarn("No imgur id, can't upload picture")
+        elif pict_path and os.path.isfile(pict_path):
             try:
                  im = pyimgur.Imgur(cf.g('IMGUR_ID'))
                  LogDebug(f"Uploading Picture: {pict_path}")
@@ -485,6 +490,7 @@ if __name__ == '__main__':
 
         STATE.ChangeState('Quit')
         sleep(2)
+        c.EndShowView()
         c.Close()
         face.Close()
         sleep(2)
