@@ -20,14 +20,11 @@ class Button:
     btn = False
     def __init__(self):
         BUTTON = cf.g('BUTTON')
-#        GPIO.setmode(GPIO.BCM)
-#        GPIO.setup(self.BUTTON, GPIO.IN)
         self.btn = gpiozero.Button(BUTTON)
 
     def ButtonThread(self, audio):
         while not STATE.ShouldQuit():
-    
-#            if not (GPIO.input(self.BUTTON)):
+
             if self.btn.is_pressed:
                 if not audio.IsBusy():
                     audio.PlaySound(cf.g('WAKE_MP3'))
@@ -51,7 +48,7 @@ class Button:
 
 
 if __name__ == '__main__':
-    class A: 
+    class A:
         def PlaySound(str):
             print(str)
         def IsBusy():
