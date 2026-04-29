@@ -1,9 +1,3 @@
-
-# pre trained
-#model: alexa
-#model: hey_mycroft
-#model: hey_jarvis
-
 import argparse
 import os
 from pathlib import Path

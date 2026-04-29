@@ -28,19 +28,10 @@ class Screen:
     lastWIS = False
     def __init__(self):
 
-        # Create the I2C interface.
         i2c = busio.I2C(SCL, SDA)
-
-        # Create the SSD1306 OLED class.
-        # The first two parameters are the pixel width and pixel height.  Change these
-        # to the right size for your display!
         self.disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 
-#        # Clear display. -- not needed - we are showing a welcome pict
-#        self.disp.fill(0)
-#        self.disp.show()
-
-        # laod the images
+        # load the images
         self.blackPict = image = Image.new("1", (128, 64))
         self.LoadFrames()
 
@@ -89,7 +80,7 @@ class Screen:
         dt = datetime.now() + timedelta(seconds=-1)
         real_fps = 0
         LogInfo(f"Animate Thread started.  Screen {width}x{height}")
-        while not self.state=='Quit' and errCnt < 3:
+        while not self.state=='Quit' and errCnt < 10:
             thisState = self.state              #lock in the state at the start
             thisDisplayPicts = self.displayPicts
 
@@ -109,7 +100,6 @@ class Screen:
                     else: #determine wich "Idle" animation we should use
                         if STATE.CheckState('Surveil'): thisDisplayPicts = self.picts['surveil']
                         elif STATE.cx: thisDisplayPicts = self.picts['tracking']
-#                        else: thisDisplayPicts = self.picts['active'] # is set on state change, but need to reset here
 
                 # See if we should be showing camera images #TODO Speed up frame rate and match to incoming images
                 if thisState == 'Look' and os.path.exists(cf.g('WIS_FILE')):
@@ -154,10 +144,11 @@ class Screen:
                         if not self._message:
                             show_temp = STATE.temp >= cf.g('CPU_MAX_TEMP')*0.9 or cf.g('SCREEN_DEBUG')
                             locStr = 'lr'
-                            if not show_temp and not cf.g('SCREEN_DEBUG'):
-                                if movY > 0: locStr = 'u'+locStr[1]
-                                if movX > 0: locStr = locStr[0]+'l'
-                            self.DrawText(draw, datetime.now().strftime("%-I:%M%p"), locStr, font) # defaults to top right
+                            if cf.g('SHOW_CLOCK'):
+                                if not show_temp and not cf.g('SCREEN_DEBUG'):
+                                    if movY > 0: locStr = 'u'+locStr[1]
+                                    if movX > 0: locStr = locStr[0]+'l'
+                                self.DrawText(draw, datetime.now().strftime("%-I:%M%p"), locStr, font) # defaults to top right
 
                             # temperature: botton left
                             if show_temp: self.DrawText(draw, f"{STATE.temp}C", 'bl', font)
@@ -166,7 +157,6 @@ class Screen:
                             if not self._message and cf.g('SCREEN_DEBUG'):  # show debug messages
                                 if STATE.cpu: self.DrawText(draw, f"{STATE.cpu}%", 'ur', font)
                                 self.DrawText(draw, f"{last_fps}fps ({real_fps})", 'ul', font)
-#                                self.DrawText(draw, f"{round(STATE.volume)}", 'ul', font)
                     # end if state == 'Idle'
                 elif self.state == 'Listen': self.DrawVolume(draw)  # don't draw if we switched states (will be too loud)
 

@@ -83,6 +83,7 @@ FPS|3|int|1
 MESSAGE_SHOW_SECS|10|int|
 SCREEN_SPEED|1|int|1
 SCREEN_DEBUG|0|bool|1
+SHOW_CLOCK|1|bool|1
 SHOW_USER_CHECK|0|bool
 DEBUG|4|int|1
 WELCOME_IMAGE|./frames/welcome/el3ktra.ppm|path|1
@@ -130,3 +131,4 @@ OPENAI_MODEL||str
 OPENAI_NAME||str
 OPENAI_VISION|0|bool
 LOG_UPLOAD_URL||str
+BUTTON|17|int|1

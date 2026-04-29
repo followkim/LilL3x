@@ -18,11 +18,12 @@ from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
-from picamera2 import Picamera2
+#from picamera2 import Picamera2
+from config import cf
 
 #import RPi.GPIO as GPIO
 import gpiozero
-BUTTON = 17
+BUTTON = cf.g('BUTTON')
 
 
 # Create the I2C interface.
@@ -35,10 +36,12 @@ disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 
 
 # check the camera
-try:
-    cam = Picamera2()
-except:
-    cam = False 
+#cam = False
+#try:
+#    cam = Picamera2()
+#except:
+#    cam = False
+
 # Clear display.
 disp.fill(0)
 disp.show()
@@ -115,6 +118,10 @@ while (not btn.is_pressed) and (datetime.now()-start).total_seconds() < (60*10):
     elif SSID == hostname:
         draw.text((x, top + ((height/4)*2)), f"Sign onto {hostname}", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "to select wifi", font=font, fill=255)
+
+#    elif not cam:
+#        draw.text((x, top + ((height/4)*2)), f"Camera Error", font=font, fill=255)
+#        draw.text((x, top + ((height/4)*3)), "", font=font, fill=255)
     else:
         draw.text((x, top + ((height/4)*2)), f"Welcome to {hostname}!", font=font, fill=255)
         draw.text((x, top + ((height/4)*3)), "Press The Button", font=font, fill=255)

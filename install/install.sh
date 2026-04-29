@@ -49,6 +49,7 @@ sudo apt-get install -y flac
 sudo apt-get install -y libportaudio2
 sudo apt install -y portaudio19-dev
 sudo apt-get install -y espeak
+sudo apt install -y espeak-ng libespeak1
 sudo apt install -y python3-libcamera python3-kms++ libcap-dev
 
 pip install opencv-contrib-python  # need to install first to control numpy version
