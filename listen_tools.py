@@ -140,31 +140,30 @@ class SpeechRecognition_listener:
                     LogError(f"speech_listener.listener() returned error: {e.args}")
                     self.audio = None  # don't try to use the mic again (was returned)
 
-                if not beQuiet:
-                    self.end_mp3.play()
-                    if self.face: self.face.thinking()
-                STATE.RevertWake()  # If Wake state while listening, user pushed button.  If not Wake State, this does nothing. 
+        if not beQuiet:
+            self.end_mp3.play()
+            if self.face: self.face.thinking()
+        STATE.RevertWake()  # If Wake state while listening, user pushed button.  If not Wake State, this does nothing. 
+        if self.audio:
+            updt_thrd = self.update(asyn=True, needMic=False)
+            try:
+                imp = eval(f"self.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
+            except sr.exceptions.UnknownValueError:
+                pass
+            except Exception as e:
+                RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
+                imp = "transerror" # let AI_class deal with it
+                self.audio=False
+            while updt_thrd.is_alive(): sleep(0.25)
 
-                if self.audio:
-                    updt_thrd = self.update(asyn=True, needMic=False)
-                    try:
-                        imp = eval(f"self.recognize_{cf.g('INTERPRET_ENGINE')}(self.audio)")
-                    except sr.exceptions.UnknownValueError:
-                        pass
-                    except Exception as e:
-                        RaiseError(f"speech_listener.recognize_{cf.g('INTERPRET_ENGINE')}() returned error: {e.args}")
-                        imp = "transerror" # let AI_class deal with it
-                    self.audio=False
-                    while updt_thrd.is_alive(): sleep(0.25)
+        MIC_STATE.ReturnMic()
 
-                MIC_STATE.ReturnMic()
-
-                if imp:
-                    self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
-                    LogInfo(f"Set Quiet to {self.quiet}.")
-                LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
+        if imp:
+            self.quiet = self.speech.current_energy  # retain the value from the update() call above.  This means it was quiet enough to hear
+            LogInfo(f"Set Quiet to {self.quiet}.")
+        LogConvo(f"{cf.g('USERNAME')}: '{imp}'  ({(datetime.now()-dt).seconds}s)")
                 #self.speech.energy_threshold = start_et
-                if self.face: self.face.off()
+        if self.face: self.face.off()
         return imp
 
     def Close(self):
