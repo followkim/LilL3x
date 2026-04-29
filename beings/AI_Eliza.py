@@ -283,7 +283,7 @@ class AI_Eliza(AI):
 
     #ON Startup
     def Hello(self):
-        return f"{self.eliza.initial()[:-1]}, {cf.g('USERNAMEP')}"
+        return f"{self.eliza.initial()[:-1]}, {cf.c('USERNAMEP', 'USERNAME')}"
 
     def Intruder(self):
         return self.eliza.initial()
