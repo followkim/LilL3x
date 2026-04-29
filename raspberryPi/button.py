@@ -19,7 +19,7 @@ class Button:
 
     btn = False
     def __init__(self):
-        BUTTON = 17
+        BUTTON = cf.g('BUTTON')
 #        GPIO.setmode(GPIO.BCM)
 #        GPIO.setup(self.BUTTON, GPIO.IN)
         self.btn = gpiozero.Button(BUTTON)

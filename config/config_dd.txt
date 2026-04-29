@@ -123,7 +123,7 @@ DEBUG|Logging Level|Set debug level messages
 SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees and indicate if sounds can be heard)
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 WELCOME_IMAGE|Welcome Image|Image shown on startup
-
+BUTTON|GPIO pin for Button|For other soundcards
 #HEADER|Keys and Models|2
 
 
