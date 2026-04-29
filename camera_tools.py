@@ -73,7 +73,7 @@ class USBcamera:
     def read_camera_buffer(self):
         try:
             ret, frame = self.cam.read()
-            if ret: return cv2.flip(frame)
+            if ret: return cv2.flip(frame, 1)
             else:
                 LogError("Error reading camera buffer")
                 return False
