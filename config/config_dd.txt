@@ -112,6 +112,7 @@ TALK_LED|Talking Color|What color the LEDS will show when the AI is talking to y
 LOOK_LED|Looking Color|What color the LEDS will show when the AI is looking at you.
 
 HEADER|Screen|2
+SHOW_CLOCK|Show clock|
 FPS|Frames Per Second|Frames per second for display.
 MESSAGE_SHOW_SECS|Message Show|When showing a message on the screen, have it appear for this many seconds
 SCREEN_SPEED|Screen Speed|How fast the AI will bounce around the screen
