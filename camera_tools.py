@@ -73,8 +73,8 @@ class USBcamera:
     def read_camera_buffer(self):
         try:
             ret, frame = self.cam.read()
-            if ret: return frame
-            else: 
+            if ret: return cv2.flip(frame)
+            else:
                 LogError("Error reading camera buffer")
                 return False
         except Exception as e:
@@ -83,20 +83,22 @@ class USBcamera:
     def read_camera_array(self):
         try:
             ret, frame = self.cam.read()
-            if ret: return frame
-            else: 
+            if ret: return cv2.flip(frame, 1)
+            else:
                 LogError("Error reading camera array")
                 return False
         except Exception as e:
             return RaiseError(f"Error reading camera array ({e.args})")
 
     def capture_file(filename):
-        ret, frame = self.cam.read()
+        try:
+            ret, frame = self.cam.read()
 
-        if ret:
-            cv2.imwrite(filename, frame)
-        return ret
-
+            if ret:
+                cv2.imwrite(filename, frame)
+            return ret
+        except Exception as e:
+            LogError(f"capture_file: Error writing to file ({e.args})")
     def start(self):
         pass
 
