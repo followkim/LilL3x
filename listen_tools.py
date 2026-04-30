@@ -198,7 +198,7 @@ class SpeechRecognition_listener:
             LogError("SR: google RequestError; {0}".format(e))
             return self._recognize_default(audio)
 
-    def recognizex_sphinx(self, audio):
+    def recognize_sphinx(self, audio):
         try:
             return self.speech.recognize_sphinx(audio)
         except sr.RequestError as e:

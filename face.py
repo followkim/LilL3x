@@ -8,6 +8,7 @@ sys.path.insert(0, './raspberryPi/')
 from apa102 import APA102
 from animate import Screen
 from rasp_leds import LEDS
+from aiy_leds import AIY_LED
 
 sys.path.insert(0, '..')
 LogInfo("Importing Face...")
@@ -17,7 +18,7 @@ class Face:
     leds = 0
     def __init__(self):
         self.screen = Screen()
-        self.leds = LEDS()
+        self.leds = eval(f"{cf.g('LED_TYPE')}()")
         animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
         animate_thread.name = f"{GetHostname()} AnimateThread"
         animate_thread.start()
@@ -71,6 +72,7 @@ class Face:
 
     def message(self, text):
         self.screen.message(text)
+
 def dummy(): pass
 
 class DummyFace:
