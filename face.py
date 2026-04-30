@@ -8,7 +8,7 @@ sys.path.insert(0, './raspberryPi/')
 from apa102 import APA102
 from animate import Screen
 from rasp_leds import LEDS
-from aiy_leds import AIY_LEDS
+from aiy_leds import AIY_LED
 
 sys.path.insert(0, '..')
 LogInfo("Importing Face...")

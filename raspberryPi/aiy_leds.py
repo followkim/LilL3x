@@ -12,7 +12,7 @@ from globals import STATE, SleepOn
 from config import cf
 from error_handling import *
 
-class AIY_LEDS:
+class AIY_LED:
     led = False
     is_listening = False
     should_quit = False
@@ -34,7 +34,7 @@ class AIY_LEDS:
                 else: self.led.off()
                 sleep(max((1-(min(cf.g('LIGHT_SPEED'),99.5)/100))  - (datetime.now()-dt).microseconds/1000000, 0))
             except Exception as e:
-                LogError(f"AYI_LEDS:LedThread exception: {str(e)}:{e.args}")
+                LogError(f"AYI_LED:LedThread exception: {str(e)}:{e.args}")
                 if has_error: self.should_quit = True
                 else: has_error = True
         LogInfo("LEDThread ended")
