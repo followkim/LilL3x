@@ -27,6 +27,11 @@ const cam = document.getElementById("CAMERA_TYPE");
 showhide("CAMERA_TYPE");
 cam.addEventListener("change", (evt) => showhide("CAMERA_TYPE", evt));
 
+const led = document.getElementById("LED_TYPE");
+showhide("LED_TYPE");
+led.addEventListener("change", (evt) => showhide("LED_TYPE", evt));
+
+
 function showhide(name, evt) {
 	const selectElement = document.getElementById(name);
        	const selectedValue = selectElement.value;

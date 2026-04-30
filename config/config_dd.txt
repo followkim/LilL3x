@@ -124,7 +124,9 @@ SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is 
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 WELCOME_IMAGE|Welcome Image|Image shown on startup
 BUTTON|GPIO pin for Button|For other soundcards
-#HEADER|Keys and Models|2
+LED_TYPE|LED Type|For other cards with LEDs
+LED_PIN|LED Pin||LED_TYPE_AIY_LED
+
 
 
 

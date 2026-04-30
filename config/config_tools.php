@@ -420,6 +420,18 @@
                 echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
 	}
 
+       function Print_LED_TYPE($label, $name, $value, $desc="", $class="") {
+                echo "<tr  class=\"".$class."\" ><td id='leftHand'><b>".$label.":</b></td>\n";
+                echo "<td id='rightHand' >\n";
+                echo "<table><tr><td><select id='".$name."' value='".$value."' name='".$name."'  >";
+
+                echo "<option value=\"" . "LEDS"  . "\" " . (($value == "LEDS")?"selected":"") . ">" . "ReSpeaker" . "</option>";
+                echo "<option value=\"" . "AIY_LED"  . "\" " . (($value == "AIY_LED")?"selected":"") . ">" . "Other HAT" . "</option>";
+
+                echo "</select></td></tr>";
+                echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
+	}
+
         function PrintHEADER($label, $ht="2") {
                 echo '<tr><td><input type="submit" value="Set"/></td><td></td></tr>';
 		echo "<tr><td colspan='2'><br><hr><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";

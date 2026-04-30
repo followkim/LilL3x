@@ -59,6 +59,7 @@ pip install openai
 #pip install openai-whisper  causes error, installed below
 pip install gtts
 pip install vosk
+pip install pocketsphinx
 pip install sounddevice
 pip install PyAudio
 pip install pvporcupine
