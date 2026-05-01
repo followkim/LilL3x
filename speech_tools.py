@@ -97,17 +97,17 @@ class speech_generator:
             self.engine = new_engine
             self.engine_name = engine_name
             self.engine.tts(cf.g('ERROR_STR'), filename=cf.g('ERROR_FILE'))
-            cf.s('SPEECH_ENGINE', engine_name) # if we are here we weren't able to switch to teh new engine.
+            cf.s('SPEECH_ENGINE', engine_name)
             return True
         else:
             LogWarn(f"SwitchEngine: Unable to switch to engine {engine_name}")
 
-        cf.s('SPEECH_ENGINE', self.engine_name) # if we are here we weren't able to switch to teh new engine.
+        cf.s('SPEECH_ENGINE', self.engine_name) # if we are here we weren't able to switch to the new engine.
         return False
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
         try:
-            tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))
+            tts = gTTS(txt, lang='en', tld=cf.g('GTTS_VOICE'))  # gTTS is the backup speech engine
             tts.save(filename)
             return filename
         except Exception as e:
@@ -306,17 +306,20 @@ class typeCast_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-
-        response = self.client.text_to_speech(TTSRequest(
-            text = txt,
-            model = cf.g('TYPECAST_MODEL'),
-            voice_id = cf.g('TYPECAST_VOICE_ID'),
-            output=Output(audio_format="mp3")
-        ))
-
-        if response.status_code != 200:
-            LogError(f"typeCast_tts returned error {response.status_code} - {response.text}")
-            return False
+        response = None
+        try:
+            response = self.client.text_to_speech(TTSRequest(
+                text = txt,
+                model = cf.g('TYPECAST_MODEL'),
+                voice_id = cf.g('TYPECAST_VOICE_ID'),
+                output=Output(audio_format="mp3")
+            ))
+        except Exception as e:
+             LogError(f"TypeCast Error:{e.args}")
+             return False
+#        if response.status_code != 200:
+#            LogError(f"typeCast_tts returned error {response.status_code} - {response.text}")
+#            return False
 
         with open(filename, 'wb') as f:
             f.write(response.audio_data)

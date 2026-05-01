@@ -54,7 +54,7 @@
 				$filename = '../.'.array_keys($_GET)[0];
 				fclose(fopen($filename , "w"));
 				chmod($filename, 0664);
-				echo "<br>requested " . array_keys($_GET)[0];
+				echo "<br>Requested " . array_keys($_GET)[0] . ".  Note it might take up to 10 seconds for LilL3x to load the changes.";
 			}
 			$configFile = str_replace("txt", array_keys($_GET)[0], CONFIG_FILE);
 			if (file_exists($configFile)) PrintConfigDev($configFile);
@@ -181,7 +181,7 @@
 				rename($configFilePath."php.BAK", $configFilePath);
                                 chmod($configFilePath, 0664);
 				UnlockFile();
-				echo "<i>Wrote to file '".basename($configFilePath)."'<i>";
+				echo "Wrote to file '".basename($configFilePath)."'.  Note it might take up to 10 seconds for LilL3x to load the changes.";
 
 			} catch (Exception $e) {
 	                        echo "Error writing to ".basename($configFilePath) .":". $e->getMessage() . "\n";
