@@ -1,4 +1,4 @@
-
+-
 <?php 	
 	// turn on error reporting
 	error_reporting(E_ALL ^ E_NOTICE);
@@ -49,8 +49,8 @@
 			}
 		}
 		if (sizeof(array_keys($_GET))>0) {
-			$a =  array("restart", "reboot", "quit");
-	                if (!(isset($POST) or count($_POST) > 0) and (in_array(array_keys($_GET)[0], array("restart", "reboot", "quit")))) {
+			$a =  array("restart", "reboot", "quit", "reloadAI", "reloadListen", "reloadInterpreter", "reloadSpeech");
+	                if (!(isset($POST) or count($_POST) > 0) and (in_array(array_keys($_GET)[0], $a))) {
 				$filename = '../.'.array_keys($_GET)[0];
 				fclose(fopen($filename , "w"));
 				chmod($filename, 0664);
@@ -433,8 +433,12 @@
 	}
 
         function PrintHEADER($label, $ht="2") {
-                echo '<tr><td><input type="submit" value="Set"/></td><td></td></tr>';
+                echo '<tr><td><input type="submit" value="Save"/></td><td></td></tr>';
 		echo "<tr><td colspan='2'><br><hr><h".$ht."><center>".$label."</center></h".$ht."></td></tr>";
+	}
+
+        function Print_TEXT($label, $key, $val, $class="") {
+		echo "<tr class=\"".$class."\" ><td></td><td>".$label."</td></tr>";
 	}
 
         function Print_blob($label, $key, $val, $desc="", $class="") {
@@ -461,6 +465,11 @@
 		echo "<tr><td><i>".$desc."</i></td></tr></table></td></tr>";
 	}
 
+
+        function Print_SHOW_BUTTON($label, $key, $val = "", $redirect = "", $desc="", $class="") {
+                echo '<tr><td><a href="/LilL3x/config/?'.$redirect.'"><input type="button" value="'.$label.'"/></a></td><td></td></tr>';
+
+        }
 
         function GetFuncList() {
 		$func_list = [];

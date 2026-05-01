@@ -121,7 +121,7 @@ class Config:
             if currAI and currAI != self.g('AI_ENGINE'):   	 	cmds.append(f"self.SwitchAI('{self.g('AI_ENGINE')}')")
             if currSpeech and currSpeech != self.g('SPEECH_ENGINE'):	cmds.append(f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')")
             if currListen and currListen != self.g('LISTEN_ENGINE'):	cmds.append(f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')")
-
+            # add interpreter TODO
             if currWWe and currWWe != self.g('WAKE_WORD_ENGINE'):	cmds.append(f"self.SwitchWakeWord('{self.g('WAKE_WORD_ENGINE')}')")
             if currCam != self.g('CAMERA_TYPE'):			cmds.append(f"self.eyes.SwitchCamera()")
 
@@ -331,19 +331,41 @@ class Config:
         return False
 
     def CheckFiles(self):
+
         # check if we were asked to reboot or reset
         if os.path.exists(".restart"):
             STATE.ChangeState('Restart')
             os.remove('.restart')
+
         if os.path.exists(".reboot"):
             STATE.ChangeState('Reboot')
             os.remove('.reboot')
+
         if os.path.exists(".quit"):
             STATE.ChangeState('Quit')
             os.remove('.quit')
+
+        if os.path.exists(".reloadAI"):
+            STATE.ChangeState('EvalCode')
+            STATE.data = [f"self.SwitchAI('{self.g('AI_ENGINE')}')"]
+            os.remove('.reloadAI')
+
+        if os.path.exists(".reloadListen"):
+            STATE.ChangeState('EvalCode')
+            STATE.data = [f"self.SwitchListener('{self.g('LISTEN_ENGINE')}')"]
+            os.remove('.reloadListen')
+
+        if os.path.exists(".reloadSpeech"):
+            STATE.ChangeState('EvalCode')
+            STATE.data = [f"self.mouth.SwitchEngine('{self.g('SPEECH_ENGINE')}')"]
+            os.remove('.reloadSpeech')
+
+#        if os.path.exists(".reloadInterpreter"):
+#            STATE.ChangeState('EvalCode')
+#            STATE.data = [f"self.mouth.SwitchInterpreter('{self.g('SPEECH_ENGINE')}')"]
+#            os.remove('.reloadInterpreter')
+
         return STATE.ShouldQuit() 
-
-
 
     def g(self, key, default=False):
         if key in self.config:
@@ -394,7 +416,7 @@ class Config:
             self.config[key]['val'] = val
             if key=='DEBUG': SetErrorLevel(self.g('DEBUG')) # error_handling doesn't have a Config object
             self.config_changed = True
-            return val
+            return self.config[key]['val']
 
         except Exception as e:
             LogWarn(f"Config.s ERR: {key} not found! ({e.args})")
@@ -427,7 +449,7 @@ class Config:
         LogInfo("Config thread ended.")
         self.WriteConfig()
 
-    # this is "dirty" because it will always return false in order to prevent waking a loop.  TODO fix
+    # this is "dirty" because it will always return false in order to prevent waking a sleep.  TODO fix
     def NewDay_dirty(self):
         if datetime.now().date() != self.today.date(): #new day
             CleanDirs(cf.g('TEMP_PATH'), r"^[^\.]", 12)
