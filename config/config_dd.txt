@@ -37,14 +37,20 @@ OPENAI_URL|Open AI Url||AI_ENGINE_OpenAI
 OPENAI_API|Open AI API Key||AI_ENGINE_OpenAI
 OPENAI_MODEL|Open AI Model||AI_ENGINE_OpenAI
 OPENAI_VISION|Open AI Vision|If the model supports image analysis or not|AI_ENGINE_OpenAI
+SHOW_BUTTON|Reload AI (save first)|reloadAI
 
 HEADER|Wake|2
-WAKE_WORD_ENGINE|Wake Word Engine|Pico requires an API key.<br>OpenWakeWord is great but requires Wake Word setup.<br>Vosk is inaccurate but can respond to the context of your wake phrase.
+WAKE_WORD_ENGINE|Wake Word Engine|
+TEXT|Pico requires an API key.|WAKE_WORD_ENGINE_pico
+TEXT|Requires wake word setup.|WAKE_WORD_ENGINE_openWakeWord
+TEXT|Vosk is inaccurate but can respond to the context of your wake phrase.|WAKE_WORD_ENGINE_vosk
+
+
 PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai/' target='_blank'>PicoVoice Porcupine Wake Word</a>|WAKE_WORD_ENGINE_pico
 WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)|WAKE_WORD_ENGINE_vosk
 OPENWAKEWORD_WAKEWORD|Wake Word|Download and train new models <a href='https://openwakeword.com/'  target='_blank'>here</a>.|WAKE_WORD_ENGINE_openWakeWord
-OPENWAKEWORD_THRESHOLD|Threshold|Increase if the system is having false wakes.|WAKE_WORD_ENGINE_openWakeWord
+OPENWAKEWORD_THRESHOLD|Threshold|Between 0-1.  Increase if the system is having false wakes, decrease if system is waking without hearing the wake word.|WAKE_WORD_ENGINE_openWakeWord
 
 HEADER|Behaviors|2
 VOLUME|Volume|Should be 1-10
@@ -93,9 +99,11 @@ GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
 MURF_API_KEY|Murf API|See <a href="https://murf.ai/api/api-keys" target="blank">Murf AI API</a> to get an API key.|SPEECH_ENGINE_murf
 MURF_VOICE_ID|Murf Voice ID|Indicate the voice to use.  See <a href="https://murf.ai/api/api-keys" target="_blank">Murf AI API</a>|SPEECH_ENGINE_murf
 PIPER_VOICE|Piper Voices|Get more at <a href="https://huggingface.co/rhasspy/piper-voices/tree/main" target="_blank">Hugging Face piper-voices</a><br>Add new models by running <u>python3 -m piper.download_voices --data-dir ~/LilL3x/voices voice_name</u>|SPEECH_ENGINE_piper
+SHOW_BUTTON|Reload Speech Engine (save first)|SpeechReload
 
 HEADER|Camera|2
-CAMERA_TYPE|Camera type|USB Camera is in beta, try at your own risk!
+CAMERA_TYPE|Camera type|
+TEXT|USB Camera is in beta, try at your own risk!|CAMERA_TYPE_USBcamera
 CAMERA_DEVICE|Device number|Get from <i>v4l2-ctl --list-devices</i>|CAMERA_TYPE_USBcamera
 IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
@@ -123,8 +131,8 @@ DEBUG|Logging Level|Set debug level messages
 SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees and indicate if sounds can be heard)
 CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
 WELCOME_IMAGE|Welcome Image|Image shown on startup
-BUTTON|GPIO pin for Button|For other soundcards
-LED_TYPE|LED Type|For other cards with LEDs
+BUTTON|GPIO pin for wButton|For other soundcards.  reSpeaker is pin 17.  Requires restart.
+LED_TYPE|LED Type|For other cards with LEDs  Requires restart.
 LED_PIN|LED Pin||LED_TYPE_AIY_LED
 
 

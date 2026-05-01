@@ -62,10 +62,12 @@ class USBcamera:
         self.cam = cv2.VideoCapture(cf.g("CAMERA_DEVICE"))
         start = datetime.now()
         i = None
-        LogDebug("USB Camera connected.  Warming up...")
+        LogInfo("USB Camera connected.  Warming up...")
         while (datetime.now()-start).total_seconds() < 60:
             i = self.read_camera_buffer()
-            if i.any(): break
+            if i.any():
+                LogInfo("USB Camera Ready")
+                break
             sleep(1)
         if not i.any():
             return None
