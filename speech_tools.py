@@ -306,17 +306,20 @@ class typeCast_tts:
          return
 
     def tts(self, txt, filename=cf.g('SPEECH_FILE')):
-
-        response = self.client.text_to_speech(TTSRequest(
-            text = txt,
-            model = cf.g('TYPECAST_MODEL'),
-            voice_id = cf.g('TYPECAST_VOICE_ID'),
-            output=Output(audio_format="mp3")
-        ))
-
-        if response.status_code != 200:
-            LogError(f"typeCast_tts returned error {response.status_code} - {response.text}")
-            return False
+        response = None
+        try:
+            response = self.client.text_to_speech(TTSRequest(
+                text = txt,
+                model = cf.g('TYPECAST_MODEL'),
+                voice_id = cf.g('TYPECAST_VOICE_ID'),
+                output=Output(audio_format="mp3")
+            ))
+        except Exception as e:
+             LogError(f"TypeCast Error:{e.args}")
+             return False
+#        if response.status_code != 200:
+#            LogError(f"typeCast_tts returned error {response.status_code} - {response.text}")
+#            return False
 
         with open(filename, 'wb') as f:
             f.write(response.audio_data)
