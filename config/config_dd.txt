@@ -50,7 +50,7 @@ PICOVOICE_KEY|Picovoice AccessKey|Get from <a href='https://console.picovoice.ai
 WAKE_WORD|Wake Word|The call name of your AI.  Get from Get from <a href='https://console.picovoice.ai/ppn' target='_blank'>PicoVoice</a>|WAKE_WORD_ENGINE_pico
 AINAMEP|AI Name<br>Pronunciation|How you pronounce your AI's name (if different)|WAKE_WORD_ENGINE_vosk
 OPENWAKEWORD_WAKEWORD|Wake Word|Download and train new models <a href='https://openwakeword.com/'  target='_blank'>here</a>.|WAKE_WORD_ENGINE_openWakeWord
-OPENWAKEWORD_THRESHOLD|Threshold|Between 0-1.  Increase if the system is having false wakes, decrase if system is waking without hearing the wake word.|WAKE_WORD_ENGINE_openWakeWord
+OPENWAKEWORD_THRESHOLD|Threshold|Between 0-1.  Increase if the system is having false wakes, decrease if system is waking without hearing the wake word.|WAKE_WORD_ENGINE_openWakeWord
 
 HEADER|Behaviors|2
 VOLUME|Volume|Should be 1-10
