@@ -438,7 +438,7 @@
 	}
 
         function Print_TEXT($label, $key, $val, $class="") {
-		echo "<tr class=\"".$class."\" ><td></td><td>".$label."</td></tr>";
+		echo "<tr class=\"".$class."\" ><td></td><td><i>".$label."</i></td></tr>";
 	}
 
         function Print_blob($label, $key, $val, $desc="", $class="") {

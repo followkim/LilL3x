@@ -102,7 +102,8 @@ PIPER_VOICE|Piper Voices|Get more at <a href="https://huggingface.co/rhasspy/pip
 SHOW_BUTTON|Reload Speech Engine (save first)|SpeechReload
 
 HEADER|Camera|2
-CAMERA_TYPE|Camera type|USB Camera is in beta, try at your own risk!
+CAMERA_TYPE|Camera type|
+TEXT|USB Camera is in beta, try at your own risk!|CAMERA_TYPE_USBcamera
 CAMERA_DEVICE|Device number|Get from <i>v4l2-ctl --list-devices</i>|CAMERA_TYPE_USBcamera
 IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
