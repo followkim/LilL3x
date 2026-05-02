@@ -16,6 +16,7 @@
 	  echo "<head>";
 	  echo " <title>".gethostname()."</title>";
 	  echo '  <meta name="viewport" content="width=device-width, initial-scale=1">';
+          echo '  <link rel="stylesheet" href="'.'html/lill3x.css'.'">';
 	  echo "</head>";
 	}
 
