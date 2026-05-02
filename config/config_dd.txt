@@ -92,8 +92,6 @@ ELEVENLABS_MODEL_ID|ElevenLabs Model ID|If speech engine is ElevenLabs, indicate
 TYPECAST_API_KEY|TypeCast API|See <a href="https://typecast.ai/developers/api" target="blank">TypeCast Dashboard</a> to get an API key.|SPEECH_ENGINE_typeCast
 TYPECAST_VOICE_ID|Actor ID|Indicate the voice to use.  See <a href="https://typecast.ai/developers/api/voices" target="_blank">TypeCast Voices</a>|SPEECH_ENGINE_typeCast
 TYPECAST_MODEL|Voice Model|Default should be fine.|SPEECH_ENGINE_typeCast
-
-
 GOOGLE_CLOUD_API|Google Cloud API|Get from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Credentials</a>|SPEECH_ENGINE_google
 GOOGLE_LANG_CODE|Google Language|Get from <a href="https://cloud.google.com/text-to-speech/docs/voices" target="_blank">Google Cloud Voices and Languages</a>|SPEECH_ENGINE_google
 GOOGLE_VOICE_NAME|Google Voice|See above|SPEECH_ENGINE_google
@@ -110,7 +108,7 @@ CAMERA_DEVICE|Device number|Get from <i>v4l2-ctl --list-devices</i>|CAMERA_TYPE_
 IMGUR_ID|Imgur ID|Get from <a href=https://imgur.com/ target="_blank">imgur</a>
 MOTDET_SENS|Motion<br>Sensitivity|How much movement should trigger motion. Set to higher if motion being detected too often.
 CAMERA_SLEEP_SEC|Camera Sleep|Wait this many seconds between loops to view the user.  Increase if application is running slowly.
-IS_DARK_THRESH|Darkness|Set to a higher value if the screen is going to sleep when it's still light
+IS_DARK_THRESH|Darkness|Set to a lower value if the screen is going to sleep when it's still light
 CAMERA_PICT_SEC|Camera Wait|Number of seconds to let the user prepare before taking a picture
 
 
