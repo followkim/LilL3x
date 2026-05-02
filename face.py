@@ -32,7 +32,7 @@ class Face:
             led_thread.start()
         except Exception as e:
             LogError(f"Unable to init LEDS.  {e.args}")
-
+            self.leds = DummyLED()
     def SetViewControl(self, showViewStartFunc, showViewEndFunc):
         self.view_start = showViewStartFunc
         self.view_end = showViewEndFunc
@@ -94,6 +94,17 @@ class DummyFace:
 class DummyScreen:
     def __init__(self): pass
     def AnimateThread(self): pass
+    def Close(self): pass
+    def talking(self): pass
+    def listening(self): pass
+    def thinking(self): pass
+    def looking(self): pass
+    def off(self): pass
+    def message(self, text): pass
+
+class DummyLED:
+    def __init__(self): pass
+    def LEDThread(self): pass
     def Close(self): pass
     def talking(self): pass
     def listening(self): pass
