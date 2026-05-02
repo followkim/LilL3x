@@ -55,6 +55,9 @@ class AI_Dude(AI):
     def Hello(self):
         return f"CATCHPHRASE"
 
+    def CanInteract(self):
+        return False
+
     def Intruder(self):
         return "INTRUDER!! Playtime's Over!  Intimidating flexing"
 
