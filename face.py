@@ -17,16 +17,21 @@ class Face:
     screen = 0
     leds = 0
     def __init__(self):
-        self.screen = Screen()
-        self.leds = eval(f"{cf.g('LED_TYPE')}()")
-        animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
-        animate_thread.name = f"{GetHostname()} AnimateThread"
-        animate_thread.start()
-        
-        led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
-        led_thread.name = f"{GetHostname()} LEDThread"
-        led_thread.start()
- 
+        try:
+            self.screen = Screen()
+            animate_thread = threading.Thread(target=self.screen.AnimateThread, daemon=True)
+            animate_thread.name = f"{GetHostname()} AnimateThread"
+            animate_thread.start()
+        except Exception as e:
+                LogError(f"Unable to init screen.  {e.args}")
+                self.screen = DummyScreen()
+        try:
+            self.leds = eval(f"{cf.g('LED_TYPE')}()")
+            led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
+            led_thread.name = f"{GetHostname()} LEDThread"
+            led_thread.start()
+         except Exception as e:
+                LogError(f"Unable to init LEDS.  {e.args}")
 
     def SetViewControl(self, showViewStartFunc, showViewEndFunc):
         self.view_start = showViewStartFunc
@@ -36,7 +41,6 @@ class Face:
         if run:
             self.screen.Close()
             self.leds.Close()
-
     def talking(self, run=True):
         if run:
             self.view_end()
@@ -86,6 +90,18 @@ class DummyFace:
     def idle(self, run=True): pass
     def off(self, run=True): pass
     def message(self, text): pass
+
+class DummyScreen:
+    def __init__(self): pass
+    def AnimateThread(self): pass
+    def Close(self): pass
+    def talking(self): pass
+    def listening(self): pass
+    def thinking(self): pass
+    def looking(self): pass
+    def off(self): pass
+
+
 
 if __name__ == '__main__':
     from time import sleep
