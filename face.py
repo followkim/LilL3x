@@ -30,8 +30,8 @@ class Face:
             led_thread = threading.Thread(target=self.leds.LEDThread, daemon=True)
             led_thread.name = f"{GetHostname()} LEDThread"
             led_thread.start()
-         except Exception as e:
-                LogError(f"Unable to init LEDS.  {e.args}")
+        except Exception as e:
+            LogError(f"Unable to init LEDS.  {e.args}")
 
     def SetViewControl(self, showViewStartFunc, showViewEndFunc):
         self.view_start = showViewStartFunc
