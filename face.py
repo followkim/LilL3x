@@ -100,6 +100,7 @@ class DummyScreen:
     def thinking(self): pass
     def looking(self): pass
     def off(self): pass
+    def message(self, text): pass
 
 
 
