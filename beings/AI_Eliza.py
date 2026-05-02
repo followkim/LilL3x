@@ -288,6 +288,10 @@ class AI_Eliza(AI):
     def Intruder(self):
         return self.eliza.initial()
 
+    def CanInteract(self):
+        return False
+
+
     def Close(self):
        AI.Close(self)
        return
@@ -303,5 +307,5 @@ if __name__ == '__main__':
     print("AI: "+ ai.Hello())
     inp = ""
     while inp != "quit":
-        inp = input()
+        inp = input(f"{cf.g('USERNAME')}: ")
         print("AI: "+ ai.respond(inp))

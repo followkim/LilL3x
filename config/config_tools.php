@@ -63,7 +63,7 @@
 
 
 		echo "</table>";
-                echo '<input type="submit" value="Set"/></form>';
+                echo '<input type="submit" value="Save"/></form>';
                 echo '<a href="/LilL3x/config/?restart"><input type="button" value="Restart"/></a>';
                 echo '<a href="/LilL3x/config/?reboot"><input type="button" value="Reboot"/></a>';
 	}
