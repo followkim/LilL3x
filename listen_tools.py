@@ -68,9 +68,12 @@ class SpeechRecognition_listener:
             LogInfo(f"SR Update: no dynamic, energy thresh={round(self.speech.energy_threshold)} x {1 + (cf.g('ENERGY_THRESH')/100.0)}")
 
         if not needMic or MIC_STATE.TakeMic(cf.g('MIC_TO')):
-            with sr.Microphone() as source:
-                self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
- 
+            try:
+                with sr.Microphone() as source:
+                    self.speech.adjust_for_ambient_noise(source, adjust_for_ambient)
+            except Exception as e:
+                LogError(f"Exception: self.speech.adjust_for_ambient_noise ({e.args})")
+
             if needMic: MIC_STATE.ReturnMic()
 
             if not self.speech.dynamic_energy_threshold: self.speech.energy_threshold = self.speech.energy_threshold * (1 + (cf.g('ENERGY_THRESH')/100.0))
@@ -144,6 +147,7 @@ class SpeechRecognition_listener:
             self.end_mp3.play()
             if self.face: self.face.thinking()
         STATE.RevertWake()  # If Wake state while listening, user pushed button.  If not Wake State, this does nothing. 
+
         if self.audio:
             updt_thrd = self.update(asyn=True, needMic=False)
             try:
