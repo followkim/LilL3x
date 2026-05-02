@@ -96,7 +96,7 @@ LLAMA_MODEL|llama3.1-8b|str|
 POE_KEY||str|
 POE_MODEL|Assistant|str|
 
-ADHOC_URL|http://127.0.0.1:11434/v1|str|1
+ADHOC_URL|http://127.0.0.1:11434|str|1
 ADHOC_NAME||str|
 ADHOC_MODEL|qwen2|str|
 EL3KTRA_VISION_MODEL||str
