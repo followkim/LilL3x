@@ -41,7 +41,7 @@
 <ul class="wp-block-list">
 <li><a href="https://www.digikey.com/en/products/detail/raspberry-pi/SC0195-9/12159401" target="_blank" rel="noreferrer noopener">A Raspberry Pi 4B 8 GB</a>
 <ul class="wp-block-list">
-<li><em>4MB RAM will work</em>,&nbsp;<em>but more is better</em>.</li>
+<li><em>4GB RAM will work</em>,&nbsp;<em>but more is better</em>.</li>
 <li><em>Will work on a Pi5, but gets too hot</em></li>
 </ul>
 </li>
