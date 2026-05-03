@@ -155,7 +155,8 @@ unzip vosk-model-small-en-us-0.15.zip
 
 
 # system changes
-(crontab -l; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
+(crontab -l 2>/dev/null | grep "launch.sh") || (crontab -l 2>/dev/null; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
+#(crontab -l; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
 
 cp /etc/skel/.bashrc ~/.bashrc
 cat ~/LilL3x/install/bashrc >> ~/.bashrc
