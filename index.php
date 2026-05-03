@@ -22,7 +22,7 @@
           echo ' <a href="config/html/wifi.php">Set Wifi</a><br>';
           echo ' <a href="config">Configure</a><br>';
           echo ' <a href="picts">Image Gallery</a><br>';
-          echo ' <a href="training">Training</a><br>';
+//          echo ' <a href="training">Training</a><br>';
           echo ' <a href="log">Logs</a><br>';
 //          echo ' <a href="LilL3x/">Browse directory</a><br>';
           echo ' <p><hr>';
