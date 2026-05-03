@@ -160,7 +160,7 @@ wpctl set-default &lt;id&gt;</code></pre>
 <pre class="wp-block-code"><code>ps -A -f | grep lillex.py</code></pre>
 <p>If that shows processes (ignore the grep process), then you should stop it before proceeding. Ask it to stop with this:</p>
 <pre class="wp-block-code"><code>cd ~/LilL3x/
-touch .quit</code></pre>
+touch .quit  #ONLY if lillex is running!!</code></pre>
 <p>Wait about 10 seconds and then see if the process is still running. If it is, you might have to kill it. You can also type&nbsp;<code>log</code>&nbsp;to see if the program is shutting down or not.</p>
 </div>
 <p>Now that we&rsquo;ve installed, lets test to make sure everything is working. First get into the virtual environment:</p>
