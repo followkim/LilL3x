@@ -1,6 +1,6 @@
 <img width="272" height="300" alt="image" src="https://github.com/user-attachments/assets/24d1ee75-bbfb-46f7-bb43-aa753cce9fb7" /><h1>Introducing LilL3x, the Desktop AI Sidekick</h1>
 <div>
-<p><i>Note: these instruction may be out of date.  See <a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick">this post</a> for the most up to date installtion and troubleshooting information.</i></p>
+<p><i>Note: these instructions may be out of date.  See <a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick">this post</a> for the most up to date installation and troubleshooting information.</i></p>
 <p>Who hasn&rsquo;t wanted their own little AI sidekick? This Beginner&rsquo;s Raspberry Pi project will set you up!</p>
 </div>
 <div>
