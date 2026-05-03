@@ -1,5 +1,6 @@
 .gitignore
-wake/*raspberry-pi.ppn
+wake/*.ppn
+wake/*.onnx
 config/config.txt
 picts/*.jpg
 log
@@ -15,3 +16,6 @@ pyvenv.cfg
 sr.py
 /training/*.dat
 /vosk/*
+/voices/
+media/error.mp3
+package_info.json
