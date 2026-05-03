@@ -106,9 +106,9 @@ pip install opencv-contrib-python
 pip install git+https://github.com/followkim/speech_recognition.git
 
 #OpenAI Whisper workaround
-mkdir ~/pip_tmp
-TMPDIR=~/pip_tmp pip install openai-whisper
-rmdir ~/pip_tmp --ignore-fail-on-non-empty
+#mkdir ~/pip_tmp
+#TMPDIR=~/pip_tmp pip install openai-whisper
+#rmdir ~/pip_tmp --ignore-fail-on-non-empty
 
 # screen
 # GPIO pins: SDA: 3, SCL 5
@@ -137,9 +137,17 @@ sudo ./install.sh
 
 # get default wakewords -- #TODO: just grab directory not entire repo!!
 cd ~
-git clone http://github.com/Picovoice/porcupine.git
+git clone --filter=blob:none --no-checkout  https://github.com/Picovoice/porcupine.git
+cd porcupine/
+git sparse-checkout init --cone
+git sparse-checkout set resources/keyword_files/raspberry-pi/
+git checkout
+cd ~
 cp porcupine/resources/keyword_files/raspberry-pi/* ~/LilL3x/wake
 rm -rf porcupine
+
+
+
 
 cd ~/LilL3x/vosk
 wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
