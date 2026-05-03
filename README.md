@@ -212,7 +212,7 @@ python listen_tools.py # test the microphone (say 'quit' to end)</code></pre>
 </li>
 </ul>
 <p>Finally,&nbsp;<strong>know that LilL3x doesn&rsquo;t like being run from the command line</strong>. If you have stopped the program and want to restart it, reboot the Pi. If you have to start from the command line, press LilL3x&rsquo;s button until it beeps four times to reboot the unit once you&rsquo;ve determined LilL3x is working.</p>
-<p>Still having issues?&nbsp;<a href="https://github.com/followkim/LilL3x/issues" target="_blank" rel="noreferrer noopener">Let me know about it on GitHub!</a>&nbsp;You can also contact me via the&nbsp;<a href="https://el3ktra.net/contact/" target="_blank" rel="noreferrer noopener" data-type="page" data-id="56">contact form</a>&nbsp;on my website.</p>
+<p>Still having issues?&nbsp;<a href="https://github.com/followkim/LilL3x/issues" target="_blank" rel="noreferrer noopener">Let me know about it on GitHub!</a>&nbsp;You can also contact me via the&nbsp;<a href="https://el3ktra.net/contact/" target="_blank" rel="noreferrer noopener" data-type="page" data-id="56">contact form</a>&nbsp;on my website.  Finally, you can try me on <a href="https://discord.gg/CdfKk3ucuw">Discord</a>.</p>
 <h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--14"><span id="3D_Printing_the_Case" class="ez-toc-section"></span>3D Printing the Case</h2>
 <p><a href="https://cad.onshape.com/documents/baf2b1a0861a3245e87670f0/w/77d5bee69e53ad628c56a011/e/512a9d7134c0765d655596f8" target="_blank" rel="noreferrer noopener">The Onshape 3D Model</a></p>
 <p><em>Note: the Onshape model is upside down.</em>&nbsp;<em>Long story.</em></p>
