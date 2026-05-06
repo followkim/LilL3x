@@ -130,7 +130,7 @@ HEADER|Developer Tools|2
 SCREEN_DEBUG|Screen Info|Show debugging information on the screen.  Don't leave this feature on or it will burn your screen!
 DEBUG|Logging Level|Set debug level messages
 SHOW_USER_CHECK|Show Checks|When checking for the user, show when the system is listening or looking (will show what the AI sees and indicate if sounds can be heard)
-CHECK_GIT|System Update|How many minutes to wait between checking for system updates.
+CHECK_GIT|System Update|How many minutes to wait between checking for system updates.  To disable enter -1.
 BUTTON|GPIO pin for Button|For other soundcards.  reSpeaker is pin 17.  Requires restart.
 LED_TYPE|LED Type|For other cards with LEDs  Requires restart.
 LED_PIN|LED Pin||LED_TYPE_AIY_LED
