@@ -87,7 +87,7 @@ SHOW_CLOCK|1|bool|1
 SHOW_USER_CHECK|0|bool
 DEBUG|4|int|1
 WELCOME_IMAGE|./frames/welcome/el3ktra.ppm|path|1
-CHECK_GIT|30|int|1
+CHECK_GIT|-1|int|1
 CONFIG_DT_FORMAT|%Y-%m-%d %H:%M:%S|str|1
 OPEN_AI_API_KEY||str
 CHATGPT_MODEL|gpt-4o|str|
