@@ -432,7 +432,7 @@ class Config:
         while not self.should_quit:
             self.today = datetime.now()
             try:
-                if (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
+                if self.g('CHECK_GIT')>0 and (self.today-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive():  # user should be idle
                     if self.config_changed: self.WriteConfig() # periodically write just in case
                     self.CheckGit() # will update then change state to restart!!
                     #UploadLog()
@@ -462,7 +462,7 @@ class Config:
         return False
 
     def config_wake(self):
-        return ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60 and STATE.IsInactive()) or self.IsConfigDirty() or self.NewDay_dirty() or self.CheckFiles() or self.should_quit
+        return (self.g('CHECK_GIT')>0 and ((datetime.now()-self.lastGit).total_seconds() > self.g('CHECK_GIT')*60) and STATE.IsInactive()) or self.IsConfigDirty() or self.NewDay_dirty() or self.CheckFiles() or self.should_quit
 
 #
 # we want to Load config here so that just including will load config
