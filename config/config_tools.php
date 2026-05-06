@@ -49,6 +49,13 @@
 		            WriteConfig($_POST, $configFile);
 			}
 		}
+                if (isset($_POST['action'])) {
+			$filename = '../.' . $_POST['action'];
+                        fclose(fopen($filename , "w"));
+                        chmod($filename, 0664);
+                        echo "<br>Requested " . $_POST['action'] . ".  Note it might take up to 10 seconds for LilL3x to load the changes.";
+
+                }
 		if (sizeof(array_keys($_GET))>0) {
 			$a =  array("restart", "reboot", "quit", "reloadAI", "reloadListen", "reloadInterpreter", "reloadSpeech");
 	                if (!(isset($POST) or count($_POST) > 0) and (in_array(array_keys($_GET)[0], $a))) {
@@ -468,7 +475,7 @@
 
 
         function Print_SHOW_BUTTON($label, $key, $val = "", $redirect = "", $desc="", $class="") {
-                echo '<tr><td><a href="/LilL3x/config/?'.$redirect.'"><input type="button" value="'.$label.'"/></a></td><td></td></tr>';
+                echo '<tr><td><button type="submit" name="action" value="'.$redirect.'"/>'.$label.'</button></td><td></td></tr>';
 
         }
 

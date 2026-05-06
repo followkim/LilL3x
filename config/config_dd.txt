@@ -37,7 +37,7 @@ OPENAI_URL|Open AI Url||AI_ENGINE_OpenAI
 OPENAI_API|Open AI API Key||AI_ENGINE_OpenAI
 OPENAI_MODEL|Open AI Model||AI_ENGINE_OpenAI
 OPENAI_VISION|Open AI Vision|If the model supports image analysis or not|AI_ENGINE_OpenAI
-SHOW_BUTTON|Reload AI (save first)|reloadAI
+SHOW_BUTTON|Reload AI|reloadAI|
 
 HEADER|Wake|2
 WAKE_WORD_ENGINE|Wake Word Engine|
@@ -99,7 +99,7 @@ GOOGLE_GENDER|Google Gender|Female or male -- see above|SPEECH_ENGINE_google
 MURF_API_KEY|Murf API|See <a href="https://murf.ai/api/api-keys" target="blank">Murf AI API</a> to get an API key.|SPEECH_ENGINE_murf
 MURF_VOICE_ID|Murf Voice ID|Indicate the voice to use.  See <a href="https://murf.ai/api/api-keys" target="_blank">Murf AI API</a>|SPEECH_ENGINE_murf
 PIPER_VOICE|Piper Voices|Get more at <a href="https://rhasspy.github.io/piper-samples/" target="_blank">PIper Samples</a><br>Add new models by running <code>python3 -m piper.download_voices --data-dir ~/LilL3x/voices voice_name</code>|SPEECH_ENGINE_piper
-SHOW_BUTTON|Reload Speech Engine (save first)|reloadSpeech
+SHOW_BUTTON|Reload Speech Engine|reloadSpeech|
 
 HEADER|Camera|2
 CAMERA_TYPE|Camera type|
