@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo apt-get update
 
-git clone -b v2 http://github.com/followkim/LilL3x/
+git clone -b v2 https://github.com/followkim/LilL3x/
 python -m venv --system-site-packages LilL3x
 source LilL3x/bin/activate
 echo "source LilL3x/bin/activate" | sudo tee -a ~/.bashrc
