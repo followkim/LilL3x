@@ -47,27 +47,15 @@
 							$thumbnail_ext = pathinfo($thumbnail_path, PATHINFO_EXTENSION);
 							$image_ext = pathinfo($image_path, PATHINFO_EXTENSION);
 
-							$fb_share_link = "https://www.facebook.com/sharer/sharer.php?u=http://gallery.el3ktra.net/gallerys/rcds/" . $image_path."&TITLE=RCDS";
-							$tw_share_link = "https://twitter.com/intent/tweet?text=RCDS+-+http://gallery.el3ktra.net/gallerys/rcds/" . $image_path;
-							$dl_share_link = "http://gallery.el3ktra.net/gallerys/rcds/" . $image_path;
+							//$fb_share_link = "https://www.facebook.com/sharer/sharer.php?u=http://gallery.el3ktra.net/gallerys/rcds/" . $image_path."&TITLE=RCDS";
+							//$tw_share_link = "https://twitter.com/intent/tweet?text=RCDS+-+http://gallery.el3ktra.net/gallerys/rcds/" . $image_path;
+							//$dl_share_link = "http://gallery.el3ktra.net/gallerys/rcds/" . $image_path;
 
 							// Check its not folder and it is image file
 							if(!is_dir($image_path) && in_array($thumbnail_ext,$image_extensions) && in_array($image_ext,$image_extensions)) 
 							{
 								?>
-								<table>
-									<tr><td>
 										<div class="gallery" ><a href="<?php echo $image_path; ?>"><img src="<?php echo $thumbnail_path; ?>" alt="" title="" /></a></div>
-									</td></tr>	
-									<tr><td>
-										<table zheight="100%" width="100%" class="sm"><tr>
-											<td background="#3B5998" width="25%"><a href="#" class="fa fa-facebook" onclick="pop_up('<?php echo $fb_share_link; ?>');"></a></td>
-											<td background="#55ACEE" width="25%"><a href="#" class="fa fa-twitter"  onclick="pop_up('<?php echo $tw_share_link; ?>');"></a></td>
-											<td background="#808080" width="25%"><a href="<?php echo $dl_share_link; ?>" download class="fa fa-download"></a></td>										
-											<td background="#FF0000" width="25%"><a href="<?php echo $dl_share_link; ?>" download class="fa fa-download"></a></td>										
-										</tr></table>
-									</td></tr>
-								</table>
 								<?php
 					
 								// Break
