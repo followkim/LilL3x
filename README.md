@@ -11,10 +11,10 @@
 <li>You have experience with 3D printing and printing models off the Internet.</li>
 <li>You know how to setup and SSH into a RaspberryPi, and are able to wire the GPIO</li>
 </ul>
-<h2>Features</h2>
-<ul>
+<h2 class="wp-block-heading">Features</h2>
+<ul class="wp-block-list">
 <li>Integration with multiple LLMs, including:
-<ul>
+<ul class="wp-block-list">
 <li>ChatGPT</li>
 <li>Ollama</li>
 <li>Claude</li>
@@ -22,9 +22,9 @@
 <li><em>And others!</em></li>
 </ul>
 </li>
-<li>Wake Word functionality</li>
+<li>Wake Word functionality (with openWakeWord,&nbsp;<a href="https://console.picovoice.ai/">PicoVoice Porcupine</a>&nbsp;or&nbsp;<a href="https://pypi.org/project/vosk/">Vosk</a>)</li>
 <li>Integration with multiple text-to-speech engines, including:
-<ul>
+<ul class="wp-block-list">
 <li>ChatGPT</li>
 <li>ElevenLabs</li>
 <li>Amazon Polly</li>
@@ -35,29 +35,27 @@
 <li>A mounted Pi Camera will let the AI know when you are there, as well as comment on the surroundings</li>
 <li>Fully configurable via web interface</li>
 </ul>
-  
-<p class="demoTitle">&nbsp;&nbsp;&nbsp;&nbsp;</p>
-<div class="entry-content alignfull wp-block-post-content has-global-padding is-layout-constrained wp-container-core-post-content-is-layout-9517baca wp-block-post-content-is-layout-constrained">
-<h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--5">Shopping List</h2>
+<h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--5"><span id="Shopping_List" class="ez-toc-section"></span>Shopping List</h2>
 <ul class="wp-block-list">
-<li><a href="https://www.digikey.com/en/products/detail/raspberry-pi/SC0195-9/12159401" target="_blank" rel="noreferrer noopener">A Raspberry Pi 4B 8 GB</a>
+<li><a href="https://www.digikey.com/en/products/detail/raspberry-pi/SC0195-9/12159401" target="_blank" rel="noreferrer noopener">A Raspberry Pi 4B 8 GB</a>*
 <ul class="wp-block-list">
 <li><em>4GB RAM will work</em>,&nbsp;<em>but more is better</em>.</li>
-<li><em>Will work on a Pi5, but gets too hot</em></li>
+<li><em>Will work on a RPi5, but gets too hot</em></li>
+<li><em>Will not work on a RPi3.</em></li>
 </ul>
 </li>
-<li><a href="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/107100001/7325257?s=N4IgTCBcDaIEoFMDKAHBBDA1ggTgAjAFoBZASwGMBnPABVLwAkBBAFRAF0BfIA" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/107100001/7325257?s=N4IgTCBcDaIEoFMDKAHBBDA1ggTgAjAFoBZASwGMBnPABVLwAkBBAFRAF0BfIA">ReSpeaker 2-Mics Pi HAT</a>
+<li><a href="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/107100001/7325257?s=N4IgTCBcDaIEoFMDKAHBBDA1ggTgAjAFoBZASwGMBnPABVLwAkBBAFRAF0BfIA" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://www.digikey.com/en/products/detail/seeed-technology-co-ltd/107100001/7325257?s=N4IgTCBcDaIEoFMDKAHBBDA1ggTgAjAFoBZASwGMBnPABVLwAkBBAFRAF0BfIA">ReSpeaker 2-Mics Pi HAT</a>*
 <ul class="wp-block-list">
 <li><a href="https://www.amazon.com/KEYESTUDIO-ReSpeaker-2-Mic-V1-0-Raspberry/dp/B07H3T8SQY" data-type="link" data-id="https://www.amazon.com/KEYESTUDIO-ReSpeaker-2-Mic-V1-0-Raspberry/dp/B07H3T8SQY">KEYESTUDIO ReSpeaker 2-Mic Pi HAT</a>&nbsp;will work as well</li>
 <li><a href="https://www.adafruit.com/product/3602?srsltid=AfmBOoo2z8e5tQaV1DpJvZyGKbqdq9EXynifJ-h4Kt_qlGypMJ_hdxdP" data-type="link" data-id="https://www.adafruit.com/product/3602?srsltid=AfmBOoo2z8e5tQaV1DpJvZyGKbqdq9EXynifJ-h4Kt_qlGypMJ_hdxdP">Google AIY Voice HAT</a>&nbsp;also works, but will not fit in the case</li>
 </ul>
 </li>
-<li><a href="https://www.amazon.com/dp/B0B4D1BN4F?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_2&amp;th=1" target="_blank" rel="noreferrer noopener">Mini Speaker</a></li>
+<li><a href="https://www.amazon.com/dp/B0B4D1BN4F?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_2&amp;th=1" target="_blank" rel="noreferrer noopener">Mini Speaker</a>* (ReSpeaker only)</li>
 <li><a href="https://www.amazon.com/dp/B07QJ4MS2L?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_4" target="_blank" rel="noreferrer noopener">Raspberry Pi Cooling Fan</a></li>
 <li><a href="https://www.amazon.com/dp/B08C2DJBT2?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_18" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://www.amazon.com/dp/B08C2DJBT2?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_18">Micro Connector</a></li>
 <li><a href="https://www.digikey.com/en/products/detail/raspberry-pi/SC0023/6152810" target="_blank" rel="noreferrer noopener">Raspberry Pi Camera Module V2</a></li>
 <li><a href="https://www.amazon.com/dp/B0BFD4X6YV?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_3&amp;th=1" target="_blank" rel="noreferrer noopener">OLED I2C IIC Display 128&times;64</a></li>
-<li><a href="https://www.amazon.com/Amazon-Basics-microSDXC-Memory-Adapter/dp/B08TJRVWV1" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://www.amazon.com/Amazon-Basics-microSDXC-Memory-Adapter/dp/B08TJRVWV1">128 GB SD Card</a></li>
+<li><a href="https://www.amazon.com/Amazon-Basics-microSDXC-Memory-Adapter/dp/B08TJRVWV1" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://www.amazon.com/Amazon-Basics-microSDXC-Memory-Adapter/dp/B08TJRVWV1">128 GB SD Card</a>*</li>
 <li>Jumper wires (short):
 <ul class="wp-block-list">
 <li>4 F2F</li>
@@ -68,6 +66,7 @@
 <li>Crimpers and related hardware to shorten wires</li>
 <li>glue</li>
 </ul>
+<p><strong>* Required.</strong>&nbsp;This project can be done with just a RPi, sound card and memory card, but you&rsquo;ll probably want to build your own case.</p>
 <h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--6"><span id="Building_LilL3x" class="ez-toc-section"></span>Building LilL3x</h2>
 <p>Putting the parts together is pretty intuitive. This is the best order to do this:</p>
 <ul class="wp-block-list">
@@ -92,10 +91,10 @@
 <p><strong>Note that LilL3x is only supported on&nbsp;trixie&nbsp;at this time, bookworm is not supported.</strong></p>
 <p>First, test the camera. Check that your camera is recognized:</p>
 <pre class="wp-block-code"><code>rpicam-hello --list-cameras</code></pre>
-<p><em>Note: if you are using a USB camera it won&rsquo;t appear in this list.</em></p>
+<p><em>Note: if you are using a USB camera it won&rsquo;t appear in this list.</em>&nbsp;<em>See&nbsp;<a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/#Setting_a_device_for_the_USB_Camera">here&nbsp;</a>for information on setting up the USB camera.</em></p>
 <p>If you camera is not found, unplug your pi, double-check the connections, and reboot. The blue stripe should be facing the USB port.</p>
 <p>Once you&rsquo;ve gotten to a SSH shell with a working camera, download and run the setup script:</p>
-<pre class="wp-block-code"><code>wget <a href="https://raw.githubusercontent.com/followkim/LilL3x/refs/heads/v2/install/install.sh">https://raw.githubusercontent.com/followkim/LilL3x/refs/heads/v2/install/install.sh</a>
+<pre class="wp-block-code"><code>wget <a href="https://raw.githubusercontent.com/followkim/LilL3x/refs/heads/v2/install/install.sh" target="_blank" rel="noreferrer noopener">https://raw.githubusercontent.com/followkim/LilL3x/refs/heads/v2/install/install.sh</a>
 bash install.sh</code></pre>
 <p><strong>Note:</strong></p>
 <ul class="wp-block-list">
@@ -140,7 +139,7 @@ bash install.sh</code></pre>
 <li>Create a new Client ID and insert it into the &ldquo;Camera&rdquo; section of the configuration page, in field for the Imgur Client ID.</li>
 </ul>
 <h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--11"><span id="Setting_the_audio_device" class="ez-toc-section"></span>Setting the audio device</h2>
-<p><em>If you are using a AIY voice HAT, see these&nbsp;<a href="https://el3ktra.net/lill3x-on-a-aiy-voice-hat/" target="_blank" rel="noreferrer noopener">instructions</a>. AIY is not officially supported, use at your own risk!</em></p>
+<p><em>If you are using a AIY voice HAT, see these&nbsp;<a href="https://el3ktra.net/lill3x-on-a-aiy-voice-hat/" target="_blank" rel="noreferrer noopener">instructions</a>.</em></p>
 <p id="sound_card">Let&rsquo;s go back to the install. (It&rsquo;s probably waiting for you&ndash; just a reminder, don&rsquo;t reboot yet!) When the install script completes, you have to set the default audio device.</p>
 <p>As of trixie, raspi-config can no longer set the sound card. I am working to automate this, but currently you need to find and set the audio sink on your own:</p>
 <ol class="wp-block-list">
@@ -149,25 +148,26 @@ bash install.sh</code></pre>
 <li>Inspect the ID with&nbsp;<code>wpctl inspect</code>&nbsp;to make sure it&rsquo;s the right sound card (seeed-2mic-voicecard)</li>
 <li>Set it as default with&nbsp;<code>wpctl set-default</code></li>
 </ol>
-<pre class="wp-block-code"><code>wpctl statuswpctl inspect &lt;id&gt;
+<pre class="wp-block-code"><code><code>wpctl status</code>wpctl inspect &lt;id&gt;
 wpctl set-default &lt;id&gt;</code></pre>
 <figure class="wp-block-image size-full"><img class="wp-image-374" src="https://el3ktra.net/wp-content/uploads/2026/04/image.png" sizes="(max-width: 792px) 100vw, 792px" srcset="https://el3ktra.net/wp-content/uploads/2026/04/image.png 792w, https://el3ktra.net/wp-content/uploads/2026/04/image-300x175.png 300w, https://el3ktra.net/wp-content/uploads/2026/04/image-768x449.png 768w" alt="" width="792" height="463" /></figure>
 <p>So in this case above, you&rsquo;d want to inspect sink 58 to see if it&rsquo;s the correct card. If it matches, then select it as the default.</p>
 <h2 id="testing" class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--12"><span id="Testing" class="ez-toc-section"></span>Testing</h2>
 <div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow">
 <p><strong>Please Read!&nbsp;</strong>If you&rsquo;ve come here after installing and&nbsp;rebooting&nbsp;(ie to fix the camera) you will need to keep in mind that the below tests should only be run when&nbsp;LilL3x is not running.&nbsp;otherwise they will fail. (Of course, if LilL3x is running, the best way to test it is to use it, so testing might not be necessary.)</p>
-<p>After install&nbsp;LilL3x will run on boot, so when you boot up your Pi LilL3x is launched.&nbsp;<em>You will have to end the process before continuing, if you want to test.</em></p>
+<p><strong>After install&nbsp;LilL3x will run on boot,</strong>&nbsp;so when you boot up your Pi LilL3x is launched.&nbsp;<em>You will have to end the process before continuing, if you want to test.</em></p>
 <p>To check if LilL3x is running:</p>
 <pre class="wp-block-code"><code>ps -A -f | grep lillex.py</code></pre>
 <p>If that shows processes (ignore the grep process), then you should stop it before proceeding. Ask it to stop with this:</p>
 <pre class="wp-block-code"><code>cd ~/LilL3x/
-touch .quit  #ONLY if lillex is running!!</code></pre>
+touch .quit  # ONLY if lillex is running!!!</code></pre>
 <p>Wait about 10 seconds and then see if the process is still running. If it is, you might have to kill it. You can also type&nbsp;<code>log</code>&nbsp;to see if the program is shutting down or not.</p>
 </div>
-<p>Now that we&rsquo;ve installed, lets test to make sure everything is working. First get into the virtual environment:</p>
+<p>Now that we&rsquo;ve installed, lets test to make sure everything is working. We can do this without a reboot. First get into the virtual environment:</p>
 <pre class="wp-block-code"><code>cd ~/LilL3x
 . bin/activate</code></pre>
-<p>Start with the screen. Test the screen with this command (do this even if you don&rsquo;t have a screen to test the install):</p>
+<p>Your prompt should start with &ldquo;(LilL3x)&rdquo; now. If it doesn&rsquo;t the below tests will fail.</p>
+<p>Start with the screen. Test the screen with this command (do this even if you don&rsquo;t have a screen&ndash; to test the install):</p>
 <pre class="wp-block-code"><code>python stats.py</code></pre>
 <p>If you get &ldquo;<code>ModuleNotFoundError: No module named 'board'</code>&ldquo;, then that&rsquo;s because you were naughty and said &ldquo;Yes&rdquo; when you were asked to reboot during install. You can either run the entire install script again, or just run everything you missed. Start with adafruit-circuitpython-ssd1306 and run everything after that. The install script is here:&nbsp;<a href="https://raw.githubusercontent.com/followkim/LilL3x/refs/heads/v2/install/install.sh" target="_blank" rel="noreferrer noopener">~/LilL3x/install/install.sh</a>.</p>
 <p>Otherwise If nothing is appearing on the screen, or you get errors: check is that it is wired correctly. You might want to perform the rest of the tests first.</p>
@@ -178,10 +178,10 @@ python listen_tools.py # test the microphone (say 'quit' to end)</code></pre>
 <p>If you don&rsquo;t get audio, recheck that you&nbsp;<a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/" data-type="post" data-id="205">selected the correct sound card</a>.</p>
 <p>Move on to the next test, which will show the camera view on the screen.</p>
 <pre class="wp-block-code"><code>python camera_tools.py</code></pre>
-<p>If after a few seconds, if you see LilL3x winking at you but no video, then there is likely a hardware issue with your camera or ribbon. The errors in the terminal should give you some clues. If you are using a USB camera, then check your device with&nbsp;<code>v4l2-ctl --list-devices</code>&nbsp;and make sure the device ID is set to the top number on your device.</p>
+<p>If after a few seconds, if you see LilL3x winking at you but no video, then there is likely a hardware issue with your camera or ribbon. The errors in the terminal should give you some clues. If you are using a USB camera, then check your device with&nbsp;<code>v4l2-ctl --list-devices</code>&nbsp;and make sure the device ID on the configuration webpage is set to the top number on your device. See&nbsp;<a href="https://el3ktra.net/introducing-lilll3x-the-desktop-ai-sidekick/#Setting_a_device_for_the_USB_Camera">here&nbsp;</a>for information on setting up the USB camera.</p>
 <p>Press Cntl-C to exit the camera test. It will take a picture first to test the Imgur connection, then quit.</p>
 <h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--13"><span id="Start_It_Up" class="ez-toc-section"></span>Start It Up!</h2>
-<p>You have installed all the needed software for LilL3x, and it&rsquo;s time to&nbsp;<code>sudo reboot</code>. If everything is going well you will see a screen welcoming you to your project and showing your IP. Press the button on the ReSpeaker to continue. Be patient, LilL3x takes a bit of time to boot!</p>
+<p>You have installed all the needed software for LilL3x, and it&rsquo;s time to&nbsp;<code>sudo reboot</code>. If everything is going well you will see a screen welcoming you to your project and showing your IP. Press the button on the reSpeaker to continue. Be patient, LilL3x takes a bit of time to boot!</p>
 <ul class="wp-block-list">
 <li>SSH in and type&nbsp;<code>log</code>&nbsp;while LilL3x is booting. This will tail the log (control-c to exit). If you get a &ldquo;No such file or directory&rdquo; error, wait until the screen changes to a logo and try again&ndash; the log hasn&rsquo;t been created yet.</li>
 <li>The log will also be vital in helping you debug your engine (AI, speech, etc) connections. If you get an error, the log will give you the details.</li>
@@ -213,7 +213,7 @@ python listen_tools.py # test the microphone (say 'quit' to end)</code></pre>
 </li>
 </ul>
 <p>Finally,&nbsp;<strong>know that LilL3x doesn&rsquo;t like being run from the command line</strong>. If you have stopped the program and want to restart it, reboot the Pi. If you have to start from the command line, press LilL3x&rsquo;s button until it beeps four times to reboot the unit once you&rsquo;ve determined LilL3x is working.</p>
-<p>Still having issues?&nbsp;<a href="https://github.com/followkim/LilL3x/issues" target="_blank" rel="noreferrer noopener">Let me know about it on GitHub!</a>&nbsp;You can also contact me via the&nbsp;<a href="https://el3ktra.net/contact/" target="_blank" rel="noreferrer noopener" data-type="page" data-id="56">contact form</a>&nbsp;on my website.  Finally, you can try me on <a href="https://discord.gg/CdfKk3ucuw">Discord</a>.</p>
+<p>Still having issues?&nbsp;<a href="https://github.com/followkim/LilL3x/issues" target="_blank" rel="noreferrer noopener">Let me know about it on GitHub!</a>&nbsp;You can also contact me via the&nbsp;<a href="https://el3ktra.net/contact/" target="_blank" rel="noreferrer noopener" data-type="page" data-id="56">contact form</a>&nbsp;on my website. You can also contact me on&nbsp;<a href="https://discord.gg/CdfKk3ucuw" target="_blank" rel="noreferrer noopener" data-type="link" data-id="https://discord.gg/CdfKk3ucuw">Discord</a>. In fact, PLEASE let me know if you built the project! Seriously, I am kinda begging you here. Are people building this? Giving up halfway through? Built it and think it&rsquo;s stupid? I have no idea! My Discord is lonely!</p>
 <h2 class="wp-block-heading is-style-text-subtitle is-style-text-subtitle--14"><span id="3D_Printing_the_Case" class="ez-toc-section"></span>3D Printing the Case</h2>
 <p><a href="https://cad.onshape.com/documents/baf2b1a0861a3245e87670f0/w/77d5bee69e53ad628c56a011/e/512a9d7134c0765d655596f8" target="_blank" rel="noreferrer noopener">The Onshape 3D Model</a></p>
 <p><em>Note: the Onshape model is upside down.</em>&nbsp;<em>Long story.</em></p>
@@ -264,7 +264,7 @@ python listen_tools.py # test the microphone (say 'quit' to end)</code></pre>
 <ul class="wp-block-list">
 <li>Go to&nbsp;<a href="https://rhasspy.github.io/piper-samples/" target="_blank" rel="noreferrer noopener">Piper Samples</a></li>
 <li>Pick a voice that you like</li>
-<li>Copy the name that is to the left of the dropdowns. In the below case, it would be &ldquo;<strong>en_GB-semaine-medium</strong>&ldquo;:</li>
+<li>Copy the name that is to the right of the dropdowns. In the below case, it would be &ldquo;<strong>en_GB-semaine-medium</strong>&ldquo;:</li>
 </ul>
 <figure class="wp-block-image size-large"><img class="wp-image-585" src="https://el3ktra.net/wp-content/uploads/2026/04/image-8-1024x185.png" sizes="auto, (max-width: 1024px) 100vw, 1024px" srcset="https://el3ktra.net/wp-content/uploads/2026/04/image-8-1024x185.png 1024w, https://el3ktra.net/wp-content/uploads/2026/04/image-8-300x54.png 300w, https://el3ktra.net/wp-content/uploads/2026/04/image-8-768x138.png 768w, https://el3ktra.net/wp-content/uploads/2026/04/image-8.png 1026w" alt="" width="1024" height="185" /></figure>
 <ul class="wp-block-list">
@@ -275,10 +275,4 @@ python listen_tools.py # test the microphone (say 'quit' to end)</code></pre>
 <ul class="wp-block-list">
 <li>Refresh the configuration webpage and your new voice should be available for selection</li>
 </ul>
-<p>&nbsp;</p>
-</div>
-<h2>License</h2>
-  <img width="300" alt="image" src="https://github.com/user-attachments/assets/1cbd47fe-8717-471d-afa9-48b3b73a6557" />
-<br>Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial</a>
-
-</div>
+<!-- Comments are visible in the HTML source only -->
