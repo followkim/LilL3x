@@ -39,8 +39,8 @@ printf '\a'
 echo
 echo
 echo
-echo The configuration website is installed.  Remaining install time is approximately 45 minutes.
-echo go to http://$(hostname -I | grep -o '[0-9\.]* ') to configure $HOSTNAME in the meantime!
+echo The configuration website is installed.  Remaining install time is approximately 30 minutes.
+echo go to http://$(hostname -I | grep -o '[0-9\.]*') to configure $HOSTNAME in the meantime!
 read -p "Press Enter to continue..."
 
 sudo apt install -y python3-picamera2
@@ -110,18 +110,6 @@ pip install git+https://github.com/followkim/speech_recognition.git
 #TMPDIR=~/pip_tmp pip install openai-whisper
 #rmdir ~/pip_tmp --ignore-fail-on-non-empty
 
-# screen
-# GPIO pins: SDA: 3, SCL 5
-cd ~
-pip3 install --upgrade adafruit-python-shell
-wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
-sudo -E env PATH=$PATH python3 raspi-blinka.py
-
-
-##
-## IF YOU SAID YES WHEN YOU WERE ASKED TO REBOOT START HERE!!
-##
-pip install adafruit-circuitpython-ssd1306
 
 
 # seeed voicecard
@@ -154,9 +142,6 @@ wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
 unzip vosk-model-small-en-us-0.15.zip
 
 
-# system changes
-(crontab -l 2>/dev/null | grep "launch.sh") || (crontab -l 2>/dev/null; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
-#(crontab -l; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
 
 cp /etc/skel/.bashrc ~/.bashrc
 cat ~/LilL3x/install/bashrc >> ~/.bashrc
@@ -183,6 +168,22 @@ echo "%www-data ALL=NOPASSWD: /home/$USER/LilL3x/config/html/setwifi.sh" | sudo 
 sudo cp ~/LilL3x/install/rclocal /etc/rc.local # if no rc.local
 sudo chown root:root /etc/rc.local
 sudo chmod +x /etc/rc.local
+
+# screen
+# GPIO pins: SDA: 3, SCL 5
+cd ~
+pip3 install --upgrade adafruit-python-shell
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
+sudo -E env PATH=$PATH python3 raspi-blinka.py
+
+
+##
+## IF YOU SAID YES WHEN YOU WERE ASKED TO REBOOT START HERE!!
+##
+pip install adafruit-circuitpython-ssd1306
+
+# system changes
+(crontab -l 2>/dev/null | grep "launch.sh") || (crontab -l 2>/dev/null; echo "@reboot sh /home/$USER/LilL3x/launch.sh >> /home/$USER/LilL3x/log/cronlog") | crontab -
 
 
 cd ~/LilL3x/
